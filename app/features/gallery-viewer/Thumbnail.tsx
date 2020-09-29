@@ -10,7 +10,6 @@ import FileEntry, { isVideo } from '../../utils/FileEntry';
 
 const useStyles = createUseStyles({
   image: {
-    height: '100%',
     padding: 8,
     margin: '0 2px',
     borderRadius: 5,

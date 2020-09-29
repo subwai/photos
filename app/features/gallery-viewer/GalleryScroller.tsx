@@ -2,12 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import _ from 'lodash';
 import { Grid } from 'react-virtualized';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import FileEntry, { findAllFilesRecursive } from '../../utils/FileEntry';
 import Thumbnail from './Thumbnail';
 import useEventListener from '../../utils/useEventListener';
 import useAnimation from '../../utils/useAnimation';
 import { selectPlaying } from './playerSlice';
+import { selectGalleryScrollerHeight, setHeight } from './galleryScrollerSlice';
 
 const useStyles = createUseStyles({
   galleryContainer: {
@@ -50,11 +51,12 @@ interface Props {
 
 export default function GalleryScroller({ folder, cachePath, onSelect, width }: Props): JSX.Element | null {
   const styles = useStyles();
-  const [height, setHeight] = useState(80);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [dragStart, setDragging] = useState<number | null>(null);
   const [files, setFiles] = useState<FileEntry[] | null>(null);
   const container = useRef<HTMLDivElement>(null);
+  const height = useSelector(selectGalleryScrollerHeight);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -82,7 +84,6 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
       }
 
       const newHeight = _.max([0, height + dragStart - event.pageY]) || 0;
-      console.log('move', newHeight);
       container.current.style.height = `${newHeight}px`;
     },
     window,
@@ -98,9 +99,8 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
       }
 
       const newHeight = _.max([0, height + dragStart - event.pageY]) || 0;
-      console.log('up', newHeight);
       setDragging(null);
-      setHeight(newHeight);
+      dispatch(setHeight(newHeight));
     },
     window,
     dragStart !== null
