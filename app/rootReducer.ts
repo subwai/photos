@@ -1,12 +1,14 @@
+/* eslint-disable import/no-cycle */
 import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
-// eslint-disable-next-line import/no-cycle
-import counterReducer from './features/counter/counterSlice';
+import playerReducer from './features/gallery-viewer/playerSlice';
+import currentFolderReducer from './features/gallery-viewer/currentFolderSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
-    counter: counterReducer,
+    player: playerReducer,
+    currentFolder: currentFolderReducer,
   });
 }
