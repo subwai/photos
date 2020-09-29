@@ -11,7 +11,7 @@ import { selectCurrentFolder, setFolder } from '../features/gallery-viewer/curre
 const useStyles = createUseStyles({
   container: {
     display: 'flex',
-    height: '100%',
+    height: 'calc(100% - 34px)',
   },
 });
 

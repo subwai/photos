@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import FileEntry, { isVideo } from '../../utils/FileEntry';
 import useEventListener from '../../utils/useEventListener';
-import { play, pause } from './playerSlice';
+import { play, pause, selectPlaying } from './playerSlice';
 import { selectCurrentFolder } from './currentFolderSlice';
 
 const useStyles = createUseStyles({
@@ -30,11 +30,6 @@ const useStyles = createUseStyles({
     width: '100%',
     height: '100%',
   },
-  step: {
-    position: 'absolute',
-    left: 50,
-    top: 50,
-  },
 });
 
 interface Props {
@@ -46,6 +41,7 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
   const [file, setFile] = useState<FileEntry | null>(null);
   const dispatch = useDispatch();
   const folderPath = useSelector(selectCurrentFolder);
+  const playing = useSelector(selectPlaying);
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
   const imageWrapper = useRef<HTMLDivElement>(null);
@@ -53,6 +49,10 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
 
   useEffect(() => {
     const timeout = setTimeout(() => setFile(fileEntry), 200);
+
+    if (playing) {
+      dispatch(pause());
+    }
 
     return () => clearTimeout(timeout);
   }, [fileEntry]);
@@ -144,7 +144,6 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
         }}
       >
         <TransformComponent>
-          <p className={styles.step}>{step}</p>
           {noFileOrFolder && <h2 className={styles.selectText}>Select a folder</h2>}
           {file && (
             <img ref={imageElement} className={styles.image} alt={file.fullPath} src={`file:///${file.fullPath}`} />

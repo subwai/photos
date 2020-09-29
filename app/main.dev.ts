@@ -68,6 +68,9 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     vibrancy: 'under-window',
+    transparent: true,
+    backgroundColor: '#00000000',
+    titleBarStyle: 'hiddenInset',
     webPreferences:
       (process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true') && process.env.ERB_SECURE !== 'true'
         ? {

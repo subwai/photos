@@ -88,11 +88,11 @@ export default function Folder({
           setOpen(true);
         }
       }
-      if (event.keyCode === UP_ARROW) {
+      if (event.keyCode === UP_ARROW && !document.fullscreenElement) {
         event.preventDefault();
         selectPrevious();
       }
-      if (event.keyCode === DOWN_ARROW) {
+      if (event.keyCode === DOWN_ARROW && !document.fullscreenElement) {
         event.preventDefault();
         const firstFolder = open && findFirstFolder(fileEntry);
         if (firstFolder) {

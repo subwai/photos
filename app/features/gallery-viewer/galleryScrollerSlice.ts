@@ -8,7 +8,7 @@ type State = {
 
 const galleryScrollerSlice = createSlice({
   name: 'galleryScroller',
-  initialState: <State>{ height: 80 },
+  initialState: <State>{ height: 120 },
   reducers: {
     setHeight: (state, action) => {
       state.height = action.payload;
