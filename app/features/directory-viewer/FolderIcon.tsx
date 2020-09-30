@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
+import url from 'url';
 import FileEntry, { findFirstImage } from '../../utils/FileEntry';
 
 const useStyles = createUseStyles({
@@ -33,7 +34,7 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element {
   const preview = useMemo(() => findFirstImage(fileEntry), [fileEntry.children]);
 
   if (preview) {
-    return <img className={styles.previewIcon} alt="Preview" src={`file:///${preview.fullPath}`} />;
+    return <img className={styles.previewIcon} alt="Preview" src={url.pathToFileURL(preview.fullPath).toString()} />;
   }
 
   return <i className={classNames(styles.folderIcon, 'fa-folder')} />;

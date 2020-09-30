@@ -3,6 +3,7 @@ import { createUseStyles } from 'react-jss';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { useDispatch, useSelector } from 'react-redux';
 import { debounce } from 'lodash';
+import url from 'url';
 import FileEntry, { isVideo } from '../../utils/FileEntry';
 import useEventListener from '../../utils/useEventListener';
 import { play, pause, selectPlaying } from './playerSlice';
@@ -125,7 +126,7 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
         onPlay={() => dispatch(play())}
         onPause={() => dispatch(pause())}
       >
-        <source src={`file:///${file.fullPath}#t=0.5`} />
+        <source src={`${url.pathToFileURL(file.fullPath).toString()}#t=0.5`} />
       </video>
     );
   }
@@ -146,7 +147,12 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
         <TransformComponent>
           {noFileOrFolder && <h2 className={styles.selectText}>Select a folder</h2>}
           {file && (
-            <img ref={imageElement} className={styles.image} alt={file.fullPath} src={`file:///${file.fullPath}`} />
+            <img
+              ref={imageElement}
+              className={styles.image}
+              alt={file.fullPath}
+              src={url.pathToFileURL(file.fullPath).toString()}
+            />
           )}
         </TransformComponent>
       </TransformWrapper>

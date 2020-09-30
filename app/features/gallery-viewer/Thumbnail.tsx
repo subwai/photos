@@ -5,6 +5,7 @@ import sha1 from 'sha1';
 import { ipcRenderer } from 'electron';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
+import url from 'url';
 import Bluebird from 'bluebird';
 import FileEntry, { isVideo } from '../../utils/FileEntry';
 
@@ -70,7 +71,7 @@ export default function Thumbnail({ fileEntry, cachePath, isSelected, onClick, s
         key={key}
         className={classNames(styles.image, { [styles.selected]: isSelected })}
         alt=""
-        src={path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)}
+        src={url.pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)).toString()}
         onError={() => setRequestThumbnail(true)}
         onClick={onClick}
         style={style}
@@ -83,7 +84,7 @@ export default function Thumbnail({ fileEntry, cachePath, isSelected, onClick, s
     <img
       className={classNames(styles.image, { [styles.selected]: isSelected })}
       alt=""
-      src={`file:///${fileEntry.fullPath}`}
+      src={url.pathToFileURL(fileEntry.fullPath).toString()}
       onClick={onClick}
       style={style}
       loading="lazy"

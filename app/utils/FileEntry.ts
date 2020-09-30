@@ -8,9 +8,9 @@ export default interface FileEntry {
   children: FileEntry[] | null;
 }
 
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
 
-const VIDEO_EXTENSIONS = ['.mp4', '.webm'];
+const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp'];
 
 export function isImage(fileEntry: FileEntry) {
   return !fileEntry.isFolder && _.includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath));
