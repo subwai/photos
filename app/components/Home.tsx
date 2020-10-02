@@ -12,7 +12,9 @@ import { setSelectedFolder } from '../features/selectedFolderSlice';
 const useStyles = createUseStyles({
   container: {
     display: 'flex',
-    height: 'calc(100% - 34px)',
+    height: 'calc(100% - 35px)',
+    margin: '0 1px 1px 1px',
+    position: 'relative',
   },
 });
 

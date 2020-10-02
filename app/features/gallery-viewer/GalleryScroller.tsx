@@ -21,11 +21,13 @@ const useStyles = createUseStyles({
   scrollContainer: {
     width: '100%',
     height: '100%',
+    padding: 6,
+    boxSizing: 'border-box',
   },
   dragHandle: {
     width: '100%',
     height: 1,
-    background: '#444',
+    background: '#555',
     zIndex: 1,
     position: 'absolute',
     top: 0,
@@ -203,12 +205,12 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
       <div className={styles.scrollContainer}>
         <Grid
           cellRenderer={cellRenderer}
-          columnWidth={height}
+          columnWidth={height - 12}
           columnCount={files ? files.length : 0}
-          rowHeight={height}
+          rowHeight={height - 12}
           rowCount={1}
-          height={height}
-          width={width}
+          height={height - 12}
+          width={width - 12}
           overscanColumnCount={10}
           scrollLeft={scroll.animate ? animationScroll : undefined}
           onScroll={handleScroll}

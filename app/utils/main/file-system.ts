@@ -1,21 +1,21 @@
 import { app, ipcMain } from 'electron';
 import Bluebird from 'bluebird';
-import fs from 'fs';
+import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
 import FileEntry from '../FileEntry';
 
 const readdirAsync: (
   arg1: fs.PathLike,
-  arg2: { encoding?: string | null | undefined; withFileTypes: true }
+  arg2: BaseEncodingOptions & { withFileTypes: true }
 ) => Bluebird<fs.Dirent[]> = Bluebird.promisify(fs.readdir);
 
 let currentFolder: string;
 
-export function setCurrentFolderPath(folderPath: string) {
+export function setRootFolderPath(folderPath: string) {
   currentFolder = folderPath;
 }
 
-export function getCurrentFolderPath() {
+export function getRootFolderPath() {
   return currentFolder;
 }
 
@@ -51,12 +51,14 @@ export function getCachePath() {
   return path.join(app.getPath('cache'), 'org.adamlyren.Photos');
 }
 
-ipcMain.handle('get-file-tree', async () => {
-  if (!currentFolder) {
+ipcMain.handle('get-file-tree', async (_, rootPath) => {
+  if (!rootPath) {
     return null;
   }
 
-  return readDirectoryRecursively(currentFolder);
+  setRootFolderPath(rootPath);
+
+  return readDirectoryRecursively(rootPath);
 });
 
 ipcMain.handle('get-cache-path', () => {

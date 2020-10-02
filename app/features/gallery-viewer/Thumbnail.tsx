@@ -13,8 +13,7 @@ import { selectCachePath } from '../rootFolderSlice';
 
 const useStyles = createUseStyles({
   image: {
-    padding: 8,
-    margin: '0 2px',
+    padding: 6,
     borderRadius: 5,
     imageRendering: 'pixelated',
     objectFit: 'contain',

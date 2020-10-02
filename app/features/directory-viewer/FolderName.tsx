@@ -20,7 +20,13 @@ const useStyles = createUseStyles({
   },
   eyeIcon: {
     color: ({ hidden }) => (hidden ? 'rgba(200,200,200,.5)' : 'inherit'),
+    paddingRight: 4,
     composes: '$caretIcon fas',
+  },
+  name: {
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
 });
 
@@ -56,6 +62,8 @@ export default function FolderName({ fileEntry, subFolders, isSelected, open, on
       ) : (
         <span className={styles.caretIcon} />
       )}
+      <FolderIcon fileEntry={fileEntry} />
+      <span className={styles.name}>{fileEntry.name}</span>
       <i
         className={classNames(styles.eyeIcon, {
           'fa-eye': !hidden,
@@ -63,8 +71,6 @@ export default function FolderName({ fileEntry, subFolders, isSelected, open, on
         })}
         onClick={onChangeVisibility}
       />
-      <FolderIcon fileEntry={fileEntry} />
-      {fileEntry.name}
     </>
   );
 }

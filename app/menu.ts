@@ -1,5 +1,5 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron';
-import { getCurrentFolderPath, setCurrentFolderPath } from './utils/main/file-system';
+import { getRootFolderPath, setRootFolderPath } from './utils/main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -83,13 +83,13 @@ export default class MenuBuilder {
             dialog
               .showOpenDialog({
                 title: 'Select Folder',
-                defaultPath: getCurrentFolderPath(),
+                defaultPath: getRootFolderPath(),
                 properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
               })
               .then((result) => {
                 const folderPath = result.filePaths.pop();
                 if (folderPath) {
-                  setCurrentFolderPath(folderPath);
+                  setRootFolderPath(folderPath);
                   this.mainWindow.webContents.send('current-folder-changed', folderPath);
                 }
 

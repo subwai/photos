@@ -17,7 +17,7 @@ const useStyles = createUseStyles({
     position: 'absolute',
     height: '100%',
     width: 1,
-    background: '#444',
+    background: '#555',
     zIndex: 1,
     '&:after': {
       content: '""',
@@ -56,7 +56,7 @@ export default function DirectoryViewer(): JSX.Element {
 
       const newWidth = max([0, width + event.pageX - dragStart]) || 0;
       container.current.style.width = `${newWidth}px`;
-      dragHandle.current.style.left = `${newWidth}px`;
+      dragHandle.current.style.left = `${newWidth - 1}px`;
     },
     window,
     dragStart !== null
@@ -85,7 +85,7 @@ export default function DirectoryViewer(): JSX.Element {
         className={styles.dragHandle}
         role="separator"
         onMouseDown={startDragging}
-        style={{ left: width }}
+        style={{ left: width - 1 }}
       />
       {rootFolder && <Folder fileEntry={rootFolder} />}
     </div>

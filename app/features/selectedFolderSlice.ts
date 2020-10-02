@@ -16,7 +16,7 @@ const selectedFolderSlice = createSlice({
   initialState: <State>{ folder: null, autoSelectLast: false, file: null },
   reducers: {
     setSelectedFolder: (state, action) => {
-      if (action.payload.folder) {
+      if (action.payload?.folder) {
         state.folder = action.payload.folder;
         state.autoSelectLast = defaultTo(action.payload.autoSelectLast, state.autoSelectLast);
       } else {

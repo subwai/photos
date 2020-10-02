@@ -18,13 +18,15 @@ const useStyles = createUseStyles({
   },
   root: {
     marginLeft: 0,
-    width: 'max-content',
+    width: 'calc(100% - 1px)',
   },
   entry: {
-    minWidth: '100%',
+    display: 'flex',
     height: 40,
-    margin: '1px 0',
     lineHeight: '40px',
+    margin: 1,
+    padding: '4px 0',
+    boxSizing: 'border-box',
     fontSize: 14,
     borderRadius: 5,
     verticalAlign: 'middle',

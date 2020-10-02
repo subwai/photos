@@ -4,8 +4,13 @@ import { AppContainer as ReactHotAppContainer } from 'react-hot-loader';
 import './utils/configure-bluebird';
 import { history, configuredStore } from './store';
 import './app.global.css';
+import { loadPersistedState, persistState } from './utils/persistStoreState';
 
-const store = configuredStore();
+const store = configuredStore(loadPersistedState());
+
+store.subscribe(() => {
+  persistState(store.getState());
+});
 
 const AppContainer = process.env.PLAIN_HMR ? Fragment : ReactHotAppContainer;
 
