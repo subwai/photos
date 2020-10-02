@@ -2,7 +2,8 @@ import { app, ipcMain } from 'electron';
 import Bluebird from 'bluebird';
 import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
-import FileEntry from '../FileEntry';
+import { includes } from 'lodash';
+import FileEntry, { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '../FileEntry';
 
 const readdirAsync: (
   arg1: fs.PathLike,
@@ -23,27 +24,37 @@ export async function readDirectoryRecursively(
   basePath: string,
   currentPath = '',
   entry?: fs.Dirent
-): Promise<FileEntry> {
+): Promise<FileEntry | null> {
   if (entry && !entry.isDirectory()) {
-    return Bluebird.resolve({
-      name: entry.name,
-      fullPath: path.join(basePath, currentPath),
-      isFolder: false,
-      children: null,
-    });
+    const extname = path.extname(entry.name);
+
+    return includes(IMAGE_EXTENSIONS, extname) || includes(VIDEO_EXTENSIONS, extname)
+      ? Bluebird.resolve({
+          name: entry.name,
+          fullPath: path.join(basePath, currentPath),
+          isFolder: false,
+          children: null,
+        })
+      : null;
   }
 
-  const entries = await readdirAsync(path.join(basePath, currentPath), {
-    withFileTypes: true,
-  });
-  const children = await Bluebird.all(
-    entries.map((_entry) => readDirectoryRecursively(basePath, path.join(currentPath, _entry.name), _entry))
-  );
+  let children = <(FileEntry | null)[]>[];
+  try {
+    const entries = await readdirAsync(path.join(basePath, currentPath), {
+      withFileTypes: true,
+    });
+    children = await Bluebird.all(
+      entries.map((_entry) => readDirectoryRecursively(basePath, path.join(currentPath, _entry.name), _entry))
+    );
+  } catch (err) {
+    console.error(err.message);
+  }
+
   return {
     name: entry ? entry.name : basePath,
     fullPath: path.join(basePath, currentPath),
     isFolder: true,
-    children,
+    children: children.filter((child): child is FileEntry => child !== null),
   };
 }
 
@@ -51,14 +62,20 @@ export function getCachePath() {
   return path.join(app.getPath('cache'), 'org.adamlyren.Photos');
 }
 
+let readFileTreePromise = Bluebird.resolve<FileEntry | null>(null);
 ipcMain.handle('get-file-tree', async (_, rootPath) => {
   if (!rootPath) {
     return null;
   }
 
-  setRootFolderPath(rootPath);
+  if (readFileTreePromise) {
+    readFileTreePromise.cancel();
+  }
 
-  return readDirectoryRecursively(rootPath);
+  setRootFolderPath(rootPath);
+  readFileTreePromise = Bluebird.try(() => readDirectoryRecursively(rootPath));
+
+  return readFileTreePromise;
 });
 
 ipcMain.handle('get-cache-path', () => {

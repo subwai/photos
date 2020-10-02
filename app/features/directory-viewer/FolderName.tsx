@@ -25,6 +25,8 @@ const useStyles = createUseStyles({
   },
   name: {
     flex: 1,
+    height: 32,
+    lineHeight: '32px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },

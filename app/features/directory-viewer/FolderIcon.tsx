@@ -17,6 +17,8 @@ const useStyles = createUseStyles({
   },
   folderIcon: {
     width: 34,
+    height: 32,
+    lineHeight: '32px',
     marginRight: 5,
     fontSize: 22,
     textAlign: 'center',

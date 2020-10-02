@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { filter, isEmpty } from 'lodash';
+import { filter } from 'lodash';
 import classNames from 'classnames';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,7 +23,6 @@ const useStyles = createUseStyles({
   entry: {
     display: 'flex',
     height: 40,
-    lineHeight: '40px',
     margin: 1,
     padding: '4px 0',
     boxSizing: 'border-box',
@@ -173,7 +172,7 @@ export default function Folder({
         subFolders &&
         subFolders.map(
           (child, index) =>
-            !isEmpty(child.children) && (
+            child.isFolder && (
               <Folder
                 key={child.fullPath}
                 isRoot={false}
