@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import _ from 'lodash';
+import { max } from 'lodash';
 import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import FileEntry, { findAllFilesRecursive } from '../../utils/FileEntry';
@@ -9,6 +9,8 @@ import useEventListener from '../../utils/useEventListener';
 import useAnimation from '../../utils/useAnimation';
 import { selectPlaying } from './playerSlice';
 import { selectGalleryScrollerHeight, setHeight } from './galleryScrollerSlice';
+import { selectHiddenFolders } from '../hiddenFoldersSlice';
+import { setSelectedFile } from '../selectedFolderSlice';
 
 const useStyles = createUseStyles({
   galleryContainer: {
@@ -23,7 +25,7 @@ const useStyles = createUseStyles({
   dragHandle: {
     width: '100%',
     height: 1,
-    background: '#333',
+    background: '#444',
     zIndex: 1,
     position: 'absolute',
     top: 0,
@@ -44,31 +46,30 @@ const useStyles = createUseStyles({
 
 interface Props {
   folder?: FileEntry | null;
-  cachePath: string | null;
-  onSelect: (arg0: FileEntry | null) => void;
   width: number;
 }
 
-export default function GalleryScroller({ folder, cachePath, onSelect, width }: Props): JSX.Element | null {
+export default function GalleryScroller({ folder, width }: Props): JSX.Element | null {
   const styles = useStyles();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [dragStart, setDragging] = useState<number | null>(null);
   const [files, setFiles] = useState<FileEntry[] | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const height = useSelector(selectGalleryScrollerHeight);
+  const hiddenFolders = useSelector(selectHiddenFolders);
   const dispatch = useDispatch();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setFiles(folder ? findAllFilesRecursive(folder) : null);
+      setFiles(folder ? findAllFilesRecursive(folder, hiddenFolders) : null);
     }, 250);
 
     return () => clearTimeout(timeout);
-  }, [folder]);
+  }, [folder, hiddenFolders]);
 
   useEffect(() => {
-    onSelect((files && files[selectedIndex]) || null);
-  }, [files, selectedIndex, onSelect]);
+    dispatch(setSelectedFile((files && files[selectedIndex]) || null));
+  }, [files, selectedIndex]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -83,7 +84,7 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
         return;
       }
 
-      const newHeight = _.max([0, height + dragStart - event.pageY]) || 0;
+      const newHeight = max([0, height + dragStart - event.pageY]) || 0;
       container.current.style.height = `${newHeight}px`;
     },
     window,
@@ -98,7 +99,7 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
         return;
       }
 
-      const newHeight = _.max([0, height + dragStart - event.pageY]) || 0;
+      const newHeight = max([0, height + dragStart - event.pageY]) || 0;
       setDragging(null);
       dispatch(setHeight(newHeight));
     },
@@ -108,18 +109,26 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
 
   const playing = useSelector(selectPlaying);
 
-  const LEFT_ARROW = 37;
-  const RIGHT_ARROW = 39;
+  const arrowLeft = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    setSelectedIndex(Math.max(selectedIndex - 1, 0));
+  };
+
+  const arrowRight = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    setSelectedIndex(Math.min(selectedIndex + 1, files ? files.length - 1 : 0));
+  };
+
   useEventListener(
     'keydown',
     (event: React.KeyboardEvent) => {
-      if (event.keyCode === LEFT_ARROW && !event.shiftKey) {
-        setSelectedIndex(Math.max(selectedIndex - 1, 0));
-        event.preventDefault();
-      }
-      if (event.keyCode === RIGHT_ARROW && !event.shiftKey) {
-        setSelectedIndex(Math.min(selectedIndex + 1, files ? files.length - 1 : 0));
-        event.preventDefault();
+      switch (event.key) {
+        case 'ArrowLeft':
+          return !event.shiftKey && arrowLeft(event);
+        case 'ArrowRight':
+          return !event.shiftKey && arrowRight(event);
+        default:
+          return false;
       }
     },
     window,
@@ -179,7 +188,6 @@ export default function GalleryScroller({ folder, cachePath, onSelect, width }: 
       <Thumbnail
         key={file.fullPath}
         fileEntry={file}
-        cachePath={cachePath}
         isSelected={selectedIndex === columnIndex}
         onClick={() => {
           setSelectedIndex(columnIndex);

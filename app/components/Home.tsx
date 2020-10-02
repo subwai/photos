@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
@@ -6,7 +6,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import DirectoryViewer from '../features/directory-viewer/DirectoryViewer';
 import GalleryViewer from '../features/gallery-viewer/GalleryViewer';
 import FileEntry from '../utils/FileEntry';
-import { selectCurrentFolder, setFolder } from '../features/gallery-viewer/currentFolderSlice';
+import { selectRootFolderPath, setRootFolder, setRootFolderPath, setCachePath } from '../features/rootFolderSlice';
+import { setSelectedFolder } from '../features/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -17,16 +18,12 @@ const useStyles = createUseStyles({
 
 export default function Home(): JSX.Element {
   const styles = useStyles();
-  const [fileEntry, setFileEntry] = useState<FileEntry | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<FileEntry | null>(null);
-  const [autoSelectLast, setAutoSelectLastFolder] = useState(false);
-  const [cachePath, setCachePath] = useState<string | null>(null);
-  const folderPath = useSelector(selectCurrentFolder);
+  const rootFolderPath = useSelector(selectRootFolderPath);
   const dispatch = useDispatch();
 
   useEffect(() => {
     function handleFolderChanged(_: Electron.IpcRendererEvent, newPath: string) {
-      dispatch(setFolder(newPath));
+      dispatch(setRootFolderPath(newPath));
     }
 
     ipcRenderer.on('current-folder-changed', handleFolderChanged);
@@ -38,32 +35,27 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     const promise = Promise.resolve()
-      .then(() => ipcRenderer.invoke('get-file-tree', folderPath))
-      .tap(setFileEntry)
-      .tap(setSelectedFolder)
+      .then(() => ipcRenderer.invoke('get-file-tree', rootFolderPath))
+      .tap((folder: FileEntry) => dispatch(setRootFolder(folder)))
+      .tap((folder: FileEntry) => dispatch(setSelectedFolder(folder)))
       .catch(console.error);
 
     return () => promise.cancel();
-  }, [folderPath]);
+  }, [rootFolderPath]);
 
   useEffect(() => {
     const promise = Promise.resolve()
       .then(() => ipcRenderer.invoke('get-cache-path'))
-      .then(setCachePath)
+      .then((cachePath) => dispatch(setCachePath(cachePath)))
       .catch(console.error);
 
     return () => promise.cancel();
   }, []);
 
-  const handleSelect = (folder: FileEntry, _autoSelectLast = false) => {
-    setAutoSelectLastFolder(_autoSelectLast);
-    setSelectedFolder(folder);
-  };
-
   return (
     <div className={styles.container}>
-      <DirectoryViewer {...{ fileEntry, selectedFolder, autoSelectLast }} onSelect={handleSelect} />
-      <GalleryViewer {...{ fileEntry, selectedFolder, cachePath }} />
+      <DirectoryViewer />
+      <GalleryViewer />
     </div>
   );
 }

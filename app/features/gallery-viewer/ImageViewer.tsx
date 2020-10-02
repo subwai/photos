@@ -4,10 +4,12 @@ import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { useDispatch, useSelector } from 'react-redux';
 import { debounce } from 'lodash';
 import url from 'url';
-import FileEntry, { isVideo } from '../../utils/FileEntry';
+import { isVideo } from '../../utils/FileEntry';
 import useEventListener from '../../utils/useEventListener';
 import { play, pause, selectPlaying } from './playerSlice';
-import { selectCurrentFolder } from './currentFolderSlice';
+import { selectRootFolder } from '../rootFolderSlice';
+import { selectSelectedFile } from '../selectedFolderSlice';
+import useDebounce from '../../utils/useDebounce';
 
 const useStyles = createUseStyles({
   image: {
@@ -33,30 +35,18 @@ const useStyles = createUseStyles({
   },
 });
 
-interface Props {
-  fileEntry: FileEntry | null;
-}
-
-export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
+export default function ImageViewer(): JSX.Element | null {
   const styles = useStyles();
-  const [file, setFile] = useState<FileEntry | null>(null);
   const dispatch = useDispatch();
-  const folderPath = useSelector(selectCurrentFolder);
+  const rootFolder = useSelector(selectRootFolder);
+  const selectedFile = useSelector(selectSelectedFile);
   const playing = useSelector(selectPlaying);
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
   const imageWrapper = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState<number>(4);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => setFile(fileEntry), 200);
-
-    if (playing) {
-      dispatch(pause());
-    }
-
-    return () => clearTimeout(timeout);
-  }, [fileEntry]);
+  const file = useDebounce(selectedFile, 200);
 
   function updateStep() {
     if (imageElement.current) {
@@ -77,35 +67,60 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
     updateStep();
   }, [imageElement.current]);
 
-  const SPACE_KEY = 32;
-  const LEFT_ARROW = 37;
-  const RIGHT_ARROW = 39;
-  const F_KEY = 70;
-  useEventListener('keydown', (event: React.KeyboardEvent) => {
-    if (event.keyCode === SPACE_KEY && videoElement.current) {
+  useEffect(() => {
+    if (playing) {
+      dispatch(pause());
+    }
+  }, [selectedFile]);
+
+  const space = (event: React.KeyboardEvent) => {
+    if (videoElement.current) {
+      event.preventDefault();
       if (videoElement.current.paused) {
         videoElement.current.play().catch(console.error);
       } else {
         videoElement.current.pause();
       }
-      event.preventDefault();
     }
-    if (event.keyCode === LEFT_ARROW && videoElement.current && !videoElement.current.paused && !event.shiftKey) {
+  };
+
+  const arrowLeft = (event: React.KeyboardEvent) => {
+    if (videoElement.current && !videoElement.current.paused && !event.shiftKey) {
+      event.preventDefault();
       videoElement.current.currentTime = Math.max(0, videoElement.current.currentTime - 5);
-      event.preventDefault();
     }
-    if (event.keyCode === RIGHT_ARROW && videoElement.current && !videoElement.current.paused && !event.shiftKey) {
+  };
+
+  const arrowRight = (event: React.KeyboardEvent) => {
+    if (videoElement.current && !videoElement.current.paused && !event.shiftKey) {
+      event.preventDefault();
       videoElement.current.currentTime = Math.min(videoElement.current.duration, videoElement.current.currentTime + 5);
-      event.preventDefault();
     }
-    if (event.keyCode === F_KEY) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().then(updateStep).catch(console.error);
-      }
-      const currentElement = videoElement.current || imageWrapper.current;
-      if (currentElement) {
-        currentElement.requestFullscreen().then(updateStep).catch(console.error);
-      }
+  };
+
+  const fKey = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    if (document.fullscreenElement) {
+      document.exitFullscreen().then(updateStep).catch(console.error);
+    }
+    const currentElement = videoElement.current || imageWrapper.current;
+    if (currentElement) {
+      currentElement.requestFullscreen().then(updateStep).catch(console.error);
+    }
+  };
+
+  useEventListener('keydown', (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case ' ':
+        return space(event);
+      case 'ArrowLeft':
+        return arrowLeft(event);
+      case 'ArrowRight':
+        return arrowRight(event);
+      case 'f':
+        return fKey(event);
+      default:
+        return false;
     }
   });
 
@@ -131,7 +146,7 @@ export default function ImageViewer({ fileEntry }: Props): JSX.Element | null {
     );
   }
 
-  const noFileOrFolder = !file && !folderPath;
+  const noFileOrFolder = !file && !rootFolder;
 
   return (
     <div ref={imageWrapper} className={styles.imageWrapper}>

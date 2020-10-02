@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import _ from 'lodash';
+import { filter, isEmpty } from 'lodash';
 import classNames from 'classnames';
 
+import { useDispatch, useSelector } from 'react-redux';
 import FileEntry, { findFirstFolder, findLastFolder } from '../../utils/FileEntry';
 import FolderName from './FolderName';
 import useEventListener from '../../utils/useEventListener';
+import { selectSelectedFolder, selectAutoSelectLastFolder, setSelectedFolder } from '../selectedFolderSlice';
 
 const useStyles = createUseStyles({
   folder: {
@@ -29,20 +31,17 @@ const useStyles = createUseStyles({
     whiteSpace: 'nowrap',
     cursor: 'pointer',
     '&:hover': {
-      background: 'rgba(0,0,0,.3)',
+      background: 'rgba(255,255,255,.3)',
     },
   },
   selected: {
-    background: 'rgba(0,0,0,.45)',
+    background: 'rgba(255,255,255,.2)',
   },
 });
 
 interface Props {
   isRoot?: boolean;
   fileEntry: FileEntry;
-  selectedFolder: FileEntry | null;
-  autoSelectLast: boolean;
-  onSelect: (arg0: FileEntry, arg1?: boolean) => void;
   selectPrevious?: () => void;
   selectNext?: () => void;
   closeParent?: () => void;
@@ -51,55 +50,64 @@ interface Props {
 export default function Folder({
   isRoot = true,
   fileEntry,
-  selectedFolder,
-  autoSelectLast,
-  onSelect,
   selectPrevious = () => {},
   selectNext = () => {},
   closeParent = () => {},
 }: Props): JSX.Element {
   const styles = useStyles();
   const [open, setOpen] = useState(isRoot);
+  const selectedFolder = useSelector(selectSelectedFolder);
+  const autoSelectLast = useSelector(selectAutoSelectLastFolder);
+  const dispatch = useDispatch();
 
   const subFolders = useMemo(() => {
-    return fileEntry.children && _.filter(fileEntry.children, 'isFolder');
+    return fileEntry.children && filter(fileEntry.children, 'isFolder');
   }, [fileEntry.children]);
 
   const isSelected = fileEntry === selectedFolder;
 
-  const LEFT_ARROW = 37;
-  const UP_ARROW = 38;
-  const RIGHT_ARROW = 39;
-  const DOWN_ARROW = 40;
+  const arrowLeft = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    if (open) {
+      setOpen(false);
+    } else {
+      closeParent();
+    }
+  };
+  const arrowRight = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    if (!open) {
+      setOpen(true);
+    }
+  };
+  const arrowUp = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    selectPrevious();
+  };
+  const arrowDown = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    const firstFolder = open && findFirstFolder(fileEntry);
+    if (firstFolder) {
+      dispatch(setSelectedFolder(firstFolder));
+    } else {
+      selectNext();
+    }
+  };
+
   useEventListener(
     'keydown',
     (event: React.KeyboardEvent) => {
-      if (event.keyCode === LEFT_ARROW && event.shiftKey) {
-        event.preventDefault();
-        if (open) {
-          setOpen(false);
-        } else {
-          closeParent();
-        }
-      }
-      if (event.keyCode === RIGHT_ARROW && event.shiftKey) {
-        event.preventDefault();
-        if (!open) {
-          setOpen(true);
-        }
-      }
-      if (event.keyCode === UP_ARROW && !document.fullscreenElement) {
-        event.preventDefault();
-        selectPrevious();
-      }
-      if (event.keyCode === DOWN_ARROW && !document.fullscreenElement) {
-        event.preventDefault();
-        const firstFolder = open && findFirstFolder(fileEntry);
-        if (firstFolder) {
-          onSelect(firstFolder);
-        } else {
-          selectNext();
-        }
+      switch (event.key) {
+        case 'ArrowLeft':
+          return event.shiftKey && arrowLeft(event);
+        case 'ArrowRight':
+          return event.shiftKey && arrowRight(event);
+        case 'ArrowUp':
+          return !document.fullscreenElement && arrowUp(event);
+        case 'ArrowDown':
+          return !document.fullscreenElement && arrowDown(event);
+        default:
+          return false;
       }
     },
     window,
@@ -110,25 +118,21 @@ export default function Folder({
     if (isSelected && open && autoSelectLast) {
       const lastFolder = findLastFolder(fileEntry);
       if (lastFolder) {
-        onSelect(lastFolder);
+        dispatch(setSelectedFolder(lastFolder));
       }
     }
   }, [isSelected]);
 
-  function handleSelect() {
-    onSelect(fileEntry);
-  }
-
-  function handleCaretClick() {
+  function onChangeOpen() {
     setOpen(!open);
   }
 
   function createSelectPrevious(index: number) {
     return () => {
       if (subFolders && subFolders[index - 1]) {
-        onSelect(subFolders[index - 1], true);
+        dispatch(setSelectedFolder({ folder: subFolders[index - 1], autoSelectLast: true }));
       } else {
-        onSelect(fileEntry);
+        dispatch(setSelectedFolder(fileEntry));
       }
     };
   }
@@ -136,7 +140,7 @@ export default function Folder({
   function createSelectNext(index: number) {
     return () => {
       if (subFolders && subFolders[index + 1]) {
-        onSelect(subFolders[index + 1]);
+        dispatch(setSelectedFolder(subFolders[index + 1]));
       } else {
         selectNext();
       }
@@ -149,14 +153,17 @@ export default function Folder({
         className={classNames(styles.entry, {
           [styles.selected]: isSelected,
         })}
-        onClick={handleSelect}
+        onClick={() => {
+          dispatch(setSelectedFolder(fileEntry));
+        }}
       >
         <FolderName
           {...{
             fileEntry,
             subFolders,
+            isSelected,
             open,
-            handleCaretClick,
+            onChangeOpen,
           }}
         />
       </li>
@@ -164,19 +171,16 @@ export default function Folder({
         subFolders &&
         subFolders.map(
           (child, index) =>
-            !_.isEmpty(child.children) && (
+            !isEmpty(child.children) && (
               <Folder
                 key={child.fullPath}
                 isRoot={false}
                 fileEntry={child}
-                selectedFolder={selectedFolder}
-                autoSelectLast={autoSelectLast}
-                onSelect={onSelect}
                 selectPrevious={createSelectPrevious(index)}
                 selectNext={createSelectNext(index)}
                 closeParent={() => {
                   setOpen(false);
-                  onSelect(fileEntry);
+                  dispatch(setSelectedFolder(fileEntry));
                 }}
               />
             )

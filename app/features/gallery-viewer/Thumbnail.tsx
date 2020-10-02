@@ -7,7 +7,9 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import url from 'url';
 import Bluebird from 'bluebird';
+import { useSelector } from 'react-redux';
 import FileEntry, { isVideo } from '../../utils/FileEntry';
+import { selectCachePath } from '../rootFolderSlice';
 
 const useStyles = createUseStyles({
   image: {
@@ -15,9 +17,9 @@ const useStyles = createUseStyles({
     margin: '0 2px',
     borderRadius: 5,
     imageRendering: 'pixelated',
-    background: 'rgba(0,0,0,.2)',
     objectFit: 'contain',
     boxSizing: 'border-box',
+    cursor: 'pointer',
     '&:after': {
       content: '"\\f1c5"',
       fontSize: 48,
@@ -35,22 +37,22 @@ const useStyles = createUseStyles({
     },
   },
   selected: {
-    background: 'rgba(0,0,0,.6)',
+    background: 'rgba(255,255,255,.1)',
   },
 });
 
 interface Props {
   fileEntry: FileEntry;
-  cachePath: string | null;
   isSelected: boolean;
   onClick: (event: React.MouseEvent) => void;
   style: object;
 }
 
-export default function Thumbnail({ fileEntry, cachePath, isSelected, onClick, style }: Props): JSX.Element | null {
+export default function Thumbnail({ fileEntry, isSelected, onClick, style }: Props): JSX.Element | null {
   const styles = useStyles();
   const [key, setKey] = useState<string | undefined>(undefined);
   const [requestThumbnail, setRequestThumbnail] = useState(false);
+  const cachePath = useSelector(selectCachePath);
 
   useEffect(() => {
     let promise = Bluebird.resolve();

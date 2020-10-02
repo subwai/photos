@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { AutoSizer } from 'react-virtualized';
-import FileEntry from '../../utils/FileEntry';
+import { useSelector } from 'react-redux';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
+import { selectSelectedFolder } from '../selectedFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -19,19 +20,14 @@ const useStyles = createUseStyles({
   },
 });
 
-interface Props {
-  selectedFolder: FileEntry | null;
-  cachePath: string | null;
-}
-
-export default function GalleryViewer({ selectedFolder, cachePath }: Props): JSX.Element {
+export default function GalleryViewer(): JSX.Element {
   const styles = useStyles();
-  const [selected, setSelected] = useState<FileEntry | null>(null);
+  const selectedFolder = useSelector(selectSelectedFolder);
 
   return (
     <div className={styles.container}>
       <div className={styles.imageContainer}>
-        <ImageViewer fileEntry={selected} />
+        <ImageViewer />
       </div>
       <div>
         <AutoSizer disableHeight style={{ width: '100%' }}>
@@ -39,8 +35,6 @@ export default function GalleryViewer({ selectedFolder, cachePath }: Props): JSX
             <GalleryScroller
               key={selectedFolder ? selectedFolder.fullPath : undefined}
               folder={selectedFolder}
-              cachePath={cachePath}
-              onSelect={setSelected}
               width={width}
             />
           )}

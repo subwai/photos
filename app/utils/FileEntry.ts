@@ -1,5 +1,7 @@
-import _ from 'lodash';
+import { find, findLast, includes } from 'lodash';
 import path from 'path';
+// eslint-disable-next-line import/no-cycle
+import { HiddenFolders } from '../features/hiddenFoldersSlice';
 
 export default interface FileEntry {
   name: string;
@@ -13,30 +15,30 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp'];
 
 export function isImage(fileEntry: FileEntry) {
-  return !fileEntry.isFolder && _.includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath));
+  return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath));
 }
 
 export function isVideo(fileEntry: FileEntry) {
-  return !fileEntry.isFolder && _.includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath));
+  return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath));
 }
 
 export function findFirstFolder(fileEntry: FileEntry) {
-  return fileEntry.children && _.find(fileEntry.children, 'isFolder');
+  return fileEntry.children && find(fileEntry.children, 'isFolder');
 }
 
 export function findLastFolder(fileEntry: FileEntry) {
-  return fileEntry.children && _.findLast(fileEntry.children, 'isFolder');
+  return fileEntry.children && findLast(fileEntry.children, 'isFolder');
 }
 
 export function findFirstImage(fileEntry: FileEntry) {
-  return fileEntry.children && _.find(fileEntry.children, isImage);
+  return fileEntry.children && find(fileEntry.children, isImage);
 }
 
-export function findAllFilesRecursive(fileEntry: FileEntry, list: FileEntry[] = []) {
+export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: HiddenFolders, list: FileEntry[] = []) {
   if (fileEntry.children) {
     fileEntry.children.forEach((child) => {
-      if (child.isFolder) {
-        findAllFilesRecursive(child, list);
+      if (child.isFolder && !hiddenFolders[child.fullPath]) {
+        findAllFilesRecursive(child, hiddenFolders, list);
       } else if (isImage(child) || isVideo(child)) {
         list.push(child);
       }

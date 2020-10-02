@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 
-import _ from 'lodash';
-import FileEntry from '../../utils/FileEntry';
+import { max } from 'lodash';
+import { useSelector } from 'react-redux';
 import Folder from './Folder';
 import useEventListener from '../../utils/useEventListener';
+import { selectRootFolder } from '../rootFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -16,7 +17,7 @@ const useStyles = createUseStyles({
     position: 'absolute',
     height: '100%',
     width: 1,
-    background: '#333',
+    background: '#444',
     zIndex: 1,
     '&:after': {
       content: '""',
@@ -32,15 +33,9 @@ const useStyles = createUseStyles({
   },
 });
 
-interface Props {
-  fileEntry: FileEntry | null;
-  selectedFolder: FileEntry | null;
-  onSelect: (arg0: FileEntry) => void;
-  autoSelectLast: boolean;
-}
-
-export default function DirectoryViewer({ fileEntry, selectedFolder, autoSelectLast, onSelect }: Props): JSX.Element {
+export default function DirectoryViewer(): JSX.Element {
   const styles = useStyles();
+  const rootFolder = useSelector(selectRootFolder);
   const [width, setWidth] = useState<number>(250);
   const [dragStart, setDragging] = useState<number | null>(null);
   const container = useRef<HTMLDivElement>(null);
@@ -59,7 +54,7 @@ export default function DirectoryViewer({ fileEntry, selectedFolder, autoSelectL
         return;
       }
 
-      const newWidth = _.max([0, width + event.pageX - dragStart]) || 0;
+      const newWidth = max([0, width + event.pageX - dragStart]) || 0;
       container.current.style.width = `${newWidth}px`;
       dragHandle.current.style.left = `${newWidth}px`;
     },
@@ -75,7 +70,7 @@ export default function DirectoryViewer({ fileEntry, selectedFolder, autoSelectL
         return;
       }
 
-      const newWidth = _.max([0, width + event.pageX - dragStart]) || 0;
+      const newWidth = max([0, width + event.pageX - dragStart]) || 0;
       setDragging(null);
       setWidth(newWidth);
     },
@@ -92,7 +87,7 @@ export default function DirectoryViewer({ fileEntry, selectedFolder, autoSelectL
         onMouseDown={startDragging}
         style={{ left: width }}
       />
-      {fileEntry && <Folder {...{ fileEntry, selectedFolder, autoSelectLast, onSelect }} />}
+      {rootFolder && <Folder fileEntry={rootFolder} />}
     </div>
   );
 }
