@@ -6,20 +6,20 @@ import FileEntry, { findFirstImage } from '../../utils/FileEntry';
 
 const useStyles = createUseStyles({
   previewIcon: {
-    marginRight: 5,
     width: 32,
     height: 32,
-    verticalAlign: 'middle',
     borderRadius: 5,
+    padding: '0 4px',
+    verticalAlign: 'middle',
     imageRendering: 'pixelated',
     background: 'rgba(0,0,0,.3)',
-    objectFit: 'contain',
+    objectFit: 'cover',
   },
   folderIcon: {
-    width: 34,
+    width: 32,
     height: 32,
+    padding: '0 4px',
     lineHeight: '32px',
-    marginRight: 5,
     fontSize: 22,
     textAlign: 'center',
     verticalAlign: 'middle',

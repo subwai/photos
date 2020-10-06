@@ -12,6 +12,7 @@ const useStyles = createUseStyles({
     overflow: 'scroll',
     userSelect: 'none',
     background: 'rgba(0,0,0,.2)',
+    display: 'flex',
   },
   dragHandle: {
     position: 'absolute',
@@ -31,6 +32,13 @@ const useStyles = createUseStyles({
       zIndex: 2,
     },
   },
+  folderNames: {
+    flex: 1,
+  },
+  folderNamesInner: {
+    width: 'max-content',
+  },
+  folderVisibility: {},
 });
 
 export default function DirectoryViewer(): JSX.Element {
@@ -79,15 +87,19 @@ export default function DirectoryViewer(): JSX.Element {
   );
 
   return (
-    <div ref={container} className={styles.container} style={{ width }}>
-      <div
-        ref={dragHandle}
-        className={styles.dragHandle}
-        role="separator"
-        onMouseDown={startDragging}
-        style={{ left: width - 1 }}
-      />
-      {rootFolder && <Folder fileEntry={rootFolder} />}
-    </div>
+    <>
+      <div ref={container} className={styles.container} style={{ width }}>
+        <div
+          ref={dragHandle}
+          className={styles.dragHandle}
+          role="separator"
+          onMouseDown={startDragging}
+          style={{ left: width - 1 }}
+        />
+        <div className={styles.folderNames}>
+          <div className={styles.folderNamesInner}>{rootFolder && <Folder fileEntry={rootFolder} />}</div>
+        </div>
+      </div>
+    </>
   );
 }

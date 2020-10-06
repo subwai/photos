@@ -35,7 +35,7 @@ export default function GalleryViewer(): JSX.Element {
             <GalleryScroller
               key={selectedFolder ? selectedFolder.fullPath : undefined}
               folder={selectedFolder}
-              width={width}
+              width={width - 12}
             />
           )}
         </AutoSizer>

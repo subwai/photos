@@ -35,19 +35,16 @@ const useStyles = createUseStyles({
       alignItems: 'center',
     },
   },
-  selected: {
-    background: 'rgba(255,255,255,.1)',
-  },
 });
 
 interface Props {
   fileEntry: FileEntry;
-  isSelected: boolean;
+  index: number;
   onClick: (event: React.MouseEvent) => void;
   style: object;
 }
 
-export default function Thumbnail({ fileEntry, isSelected, onClick, style }: Props): JSX.Element | null {
+export default function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
   const styles = useStyles();
   const [key, setKey] = useState<string | undefined>(undefined);
   const [requestThumbnail, setRequestThumbnail] = useState(false);
@@ -70,7 +67,7 @@ export default function Thumbnail({ fileEntry, isSelected, onClick, style }: Pro
     return (
       <img
         key={key}
-        className={classNames(styles.image, { [styles.selected]: isSelected })}
+        className={classNames(styles.image, `file-${index}`)}
         alt=""
         src={url.pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)).toString()}
         onError={() => setRequestThumbnail(true)}
@@ -83,7 +80,7 @@ export default function Thumbnail({ fileEntry, isSelected, onClick, style }: Pro
 
   return (
     <img
-      className={classNames(styles.image, { [styles.selected]: isSelected })}
+      className={classNames(styles.image, `file-${index}`)}
       alt=""
       src={url.pathToFileURL(fileEntry.fullPath).toString()}
       onClick={onClick}

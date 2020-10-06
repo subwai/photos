@@ -1,7 +1,7 @@
 import { find, findLast, includes } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
-import { HiddenFolders } from '../features/hiddenFoldersSlice';
+import { FoldersHash } from '../features/folderVisibilitySlice';
 
 export default interface FileEntry {
   name: string;
@@ -34,7 +34,7 @@ export function findFirstImage(fileEntry: FileEntry) {
   return fileEntry.children && find(fileEntry.children, isImage);
 }
 
-export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: HiddenFolders, list: FileEntry[] = []) {
+export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: FoldersHash, list: FileEntry[] = []) {
   if (fileEntry.children) {
     fileEntry.children.forEach((child) => {
       if (child.isFolder && !hiddenFolders[child.fullPath]) {

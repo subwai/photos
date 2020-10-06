@@ -4,24 +4,29 @@ import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import FolderIcon from './FolderIcon';
 import FileEntry from '../../utils/FileEntry';
-import { selectHiddenFolders, toggleHiddenFolder } from '../hiddenFoldersSlice';
+import { selectHiddenFolders, toggleHiddenFolder } from '../folderVisibilitySlice';
 
 const useStyles = createUseStyles({
-  caretIcon: {
-    width: 24,
+  container: {
+    flex: 1,
+  },
+  icon: {
     height: 32,
     fontSize: 16,
+    padding: '0 4px',
     lineHeight: '32px',
     textAlign: 'center',
     verticalAlign: 'middle',
     display: 'inline-block',
     boxSizing: 'border-box',
-    composes: 'fas',
+  },
+  caretIcon: {
+    width: 18,
+    composes: '$icon fas',
   },
   eyeIcon: {
     color: ({ hidden }) => (hidden ? 'rgba(200,200,200,.5)' : 'inherit'),
-    paddingRight: 4,
-    composes: '$caretIcon fas',
+    composes: '$icon fas',
   },
   name: {
     flex: 1,
@@ -29,28 +34,37 @@ const useStyles = createUseStyles({
     lineHeight: '32px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    padding: '0 4px',
   },
 });
 
 interface Props {
   fileEntry: FileEntry;
   subFolders: FileEntry[] | null;
+  level: number;
   isSelected: boolean;
-  open: boolean;
+  isOpen: boolean;
   onChangeOpen: () => void;
 }
 
-export default function FolderName({ fileEntry, subFolders, isSelected, open, onChangeOpen }: Props): JSX.Element {
-  const dispatch = useDispatch();
+export default function FolderName({
+  fileEntry,
+  subFolders,
+  level,
+  isSelected,
+  isOpen,
+  onChangeOpen,
+}: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const styles = useStyles({ hidden });
+  const dispatch = useDispatch();
 
   function onChangeVisibility(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     if (!isSelected) {
-      dispatch(toggleHiddenFolder(fileEntry.fullPath));
+      dispatch(toggleHiddenFolder(fileEntry));
     }
   }
 
@@ -58,21 +72,23 @@ export default function FolderName({ fileEntry, subFolders, isSelected, open, on
     <>
       {subFolders && subFolders.length > 0 ? (
         <i
-          className={classNames(styles.caretIcon, { 'fa-caret-down': open, 'fa-caret-right': !open })}
+          className={classNames(styles.caretIcon, { 'fa-caret-down': isOpen, 'fa-caret-right': !isOpen })}
+          style={{ marginLeft: level * 10 }}
           onClick={onChangeOpen}
         />
       ) : (
-        <span className={styles.caretIcon} />
+        <span className={styles.caretIcon} style={{ marginLeft: level * 10 }} />
       )}
       <FolderIcon fileEntry={fileEntry} />
-      <span className={styles.name}>{fileEntry.name}</span>
       <i
+        key={fileEntry.fullPath}
         className={classNames(styles.eyeIcon, {
           'fa-eye': !hidden,
           'fa-eye-slash': hidden,
         })}
         onClick={onChangeVisibility}
       />
+      <span className={styles.name}>{fileEntry.name}</span>
     </>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { filter } from 'lodash';
 import classNames from 'classnames';
@@ -8,6 +8,7 @@ import FileEntry, { findFirstFolder, findLastFolder } from '../../utils/FileEntr
 import FolderName from './FolderName';
 import useEventListener from '../../utils/useEventListener';
 import { selectSelectedFolder, selectAutoSelectLastFolder, setSelectedFolder } from '../selectedFolderSlice';
+import { closeFolder, openFolder, selectOpenFolders } from '../folderVisibilitySlice';
 
 const useStyles = createUseStyles({
   folder: {
@@ -24,7 +25,7 @@ const useStyles = createUseStyles({
     display: 'flex',
     height: 40,
     margin: 1,
-    padding: '4px 0',
+    padding: 4,
     boxSizing: 'border-box',
     fontSize: 14,
     borderRadius: 5,
@@ -43,6 +44,7 @@ const useStyles = createUseStyles({
 interface Props {
   isRoot?: boolean;
   fileEntry: FileEntry;
+  level?: number;
   selectPrevious?: () => void;
   selectNext?: () => void;
   closeParent?: () => void;
@@ -51,14 +53,15 @@ interface Props {
 export default function Folder({
   isRoot = true,
   fileEntry,
+  level = 0,
   selectPrevious = () => {},
   selectNext = () => {},
   closeParent = () => {},
 }: Props): JSX.Element {
-  const styles = useStyles();
-  const [open, setOpen] = useState(isRoot);
+  const styles = useStyles({ level });
   const selectedFolder = useSelector(selectSelectedFolder);
   const autoSelectLast = useSelector(selectAutoSelectLastFolder);
+  const openFolders = useSelector(selectOpenFolders);
   const dispatch = useDispatch();
 
   const subFolders = useMemo(() => {
@@ -66,19 +69,20 @@ export default function Folder({
   }, [fileEntry.children]);
 
   const isSelected = fileEntry === selectedFolder;
+  const isOpen = openFolders[fileEntry.fullPath] || isRoot;
 
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    if (open) {
-      setOpen(false);
+    if (isOpen) {
+      dispatch(closeFolder(fileEntry));
     } else {
       closeParent();
     }
   };
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    if (!open) {
-      setOpen(true);
+    if (!isOpen) {
+      dispatch(openFolder(fileEntry));
     }
   };
   const arrowUp = (event: React.KeyboardEvent) => {
@@ -87,7 +91,7 @@ export default function Folder({
   };
   const arrowDown = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const firstFolder = open && findFirstFolder(fileEntry);
+    const firstFolder = isOpen && findFirstFolder(fileEntry);
     if (firstFolder) {
       dispatch(setSelectedFolder(firstFolder));
     } else {
@@ -116,7 +120,7 @@ export default function Folder({
   );
 
   useEffect(() => {
-    if (isSelected && open && autoSelectLast) {
+    if (isSelected && isOpen && autoSelectLast) {
       const lastFolder = findLastFolder(fileEntry);
       if (lastFolder) {
         dispatch(setSelectedFolder(lastFolder));
@@ -125,7 +129,7 @@ export default function Folder({
   }, [isSelected]);
 
   function onChangeOpen() {
-    setOpen(!open);
+    dispatch(isOpen ? closeFolder(fileEntry) : openFolder(fileEntry));
   }
 
   function createSelectPrevious(index: number) {
@@ -149,8 +153,8 @@ export default function Folder({
   }
 
   return (
-    <ul className={classNames(styles.folder, { [styles.root]: isRoot })}>
-      <li
+    <>
+      <div
         className={classNames(styles.entry, {
           [styles.selected]: isSelected,
         })}
@@ -162,13 +166,14 @@ export default function Folder({
           {...{
             fileEntry,
             subFolders,
+            level,
             isSelected,
-            open,
+            isOpen,
             onChangeOpen,
           }}
         />
-      </li>
-      {open &&
+      </div>
+      {isOpen &&
         subFolders &&
         subFolders.map(
           (child, index) =>
@@ -177,15 +182,16 @@ export default function Folder({
                 key={child.fullPath}
                 isRoot={false}
                 fileEntry={child}
+                level={level + 1}
                 selectPrevious={createSelectPrevious(index)}
                 selectNext={createSelectNext(index)}
                 closeParent={() => {
-                  setOpen(false);
+                  dispatch(closeFolder(fileEntry));
                   dispatch(setSelectedFolder(fileEntry));
                 }}
               />
             )
         )}
-    </ul>
+    </>
   );
 }
