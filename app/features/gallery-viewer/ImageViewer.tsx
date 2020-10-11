@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { useDispatch, useSelector } from 'react-redux';
-import { debounce } from 'lodash';
 import url from 'url';
+import classNames from 'classnames';
 import { isVideo } from '../../utils/FileEntry';
 import useEventListener from '../../utils/useEventListener';
 import { play, pause, selectPlaying } from './playerSlice';
@@ -24,6 +24,7 @@ const useStyles = createUseStyles({
   imageWrapper: {
     width: '100%',
     height: '100%',
+    cursor: 'pointer',
   },
   transformWrapper: {
     width: '100%',
@@ -32,6 +33,14 @@ const useStyles = createUseStyles({
   transformComponent: {
     width: '100%',
     height: '100%',
+  },
+  preview: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    left: 0,
+    zIndex: 2,
+    background: 'rgba(20,20,20,.9)',
   },
 });
 
@@ -44,28 +53,9 @@ export default function ImageViewer(): JSX.Element | null {
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
   const imageWrapper = useRef<HTMLDivElement>(null);
-  const [step, setStep] = useState<number>(4);
+  const [isPreviewing, setPreview] = useState<boolean>(false);
 
-  const file = useDebounce(selectedFile, 200);
-
-  function updateStep() {
-    if (imageElement.current) {
-      const min = Math.max(imageElement.current.clientWidth, imageElement.current.clientHeight);
-      const scaling = document.fullscreenElement ? 10 : 1;
-
-      setStep((scaling * min) / 200);
-    }
-  }
-
-  const updateStepDebounced = debounce(updateStep, 200);
-
-  useEventListener('resize', () => {
-    updateStepDebounced();
-  });
-
-  useEffect(() => {
-    updateStep();
-  }, [imageElement.current]);
+  const file = useDebounce(selectedFile, isPreviewing ? 0 : 50);
 
   useEffect(() => {
     if (playing) {
@@ -76,11 +66,17 @@ export default function ImageViewer(): JSX.Element | null {
   const space = (event: React.KeyboardEvent) => {
     if (videoElement.current) {
       event.preventDefault();
-      if (videoElement.current.paused) {
+      if (event.shiftKey) {
+        setPreview(!isPreviewing);
+      } else if (videoElement.current.paused) {
         videoElement.current.play().catch(console.error);
       } else {
         videoElement.current.pause();
       }
+    }
+    if (imageWrapper.current && !document.fullscreenElement) {
+      event.preventDefault();
+      setPreview(!isPreviewing);
     }
   };
 
@@ -101,11 +97,14 @@ export default function ImageViewer(): JSX.Element | null {
   const fKey = (event: React.KeyboardEvent) => {
     event.preventDefault();
     if (document.fullscreenElement) {
-      document.exitFullscreen().then(updateStep).catch(console.error);
+      document.exitFullscreen().catch(console.error);
     }
     const currentElement = videoElement.current || imageWrapper.current;
     if (currentElement) {
-      currentElement.requestFullscreen().then(updateStep).catch(console.error);
+      currentElement
+        .requestFullscreen()
+        .then(() => setPreview(false))
+        .catch(console.error);
     }
   };
 
@@ -134,7 +133,7 @@ export default function ImageViewer(): JSX.Element | null {
       <video
         key={file.fullPath}
         ref={videoElement}
-        className={styles.image}
+        className={classNames(styles.image, { [styles.preview]: isPreviewing })}
         controls
         loop
         onFocus={preventFocus}
@@ -149,14 +148,16 @@ export default function ImageViewer(): JSX.Element | null {
   const noFileOrFolder = !file && !rootFolder;
 
   return (
-    <div ref={imageWrapper} className={styles.imageWrapper}>
+    <div ref={imageWrapper} className={classNames(styles.imageWrapper, { [styles.preview]: isPreviewing })}>
       <TransformWrapper
-        wheel={{ step }}
         options={{
           disabled: noFileOrFolder,
           // @ts-ignore
           wrapperClass: styles.transformWrapper,
           contentClass: styles.transformComponent,
+        }}
+        doubleClick={{
+          mode: 'reset',
         }}
       >
         <TransformComponent>

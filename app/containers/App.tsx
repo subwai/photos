@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import React, { ReactNode } from 'react';
 import { createUseStyles } from 'react-jss';
 
@@ -15,9 +16,14 @@ type Props = {
 export default function App(props: Props) {
   const { children } = props;
   const styles = useStyles();
+
+  function maximizeWindow() {
+    ipcRenderer.invoke('maximize').catch(console.error);
+  }
+
   return (
     <>
-      <div className={styles.topBar} />
+      <div className={styles.topBar} onDoubleClick={maximizeWindow} />
       {children}
     </>
   );

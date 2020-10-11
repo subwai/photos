@@ -11,12 +11,6 @@ import { selectSelectedFolder, selectAutoSelectLastFolder, setSelectedFolder } f
 import { closeFolder, openFolder, selectOpenFolders } from '../folderVisibilitySlice';
 
 const useStyles = createUseStyles({
-  folder: {
-    padding: 0,
-    margin: 0,
-    marginLeft: 10,
-    borderRadius: 5,
-  },
   root: {
     marginLeft: 0,
     width: 'calc(100% - 1px)',
@@ -28,7 +22,6 @@ const useStyles = createUseStyles({
     padding: 4,
     boxSizing: 'border-box',
     fontSize: 14,
-    borderRadius: 5,
     verticalAlign: 'middle',
     whiteSpace: 'nowrap',
     cursor: 'pointer',

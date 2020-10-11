@@ -1,4 +1,4 @@
-import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions, dialog } from 'electron';
+import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions, dialog, MenuItem } from 'electron';
 import { getRootFolderPath, setRootFolderPath } from './utils/main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -15,7 +15,7 @@ export default class MenuBuilder {
 
   buildMenu(): Menu {
     if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
-      this.setupDevelopmentEnvironment();
+      this.setupContextMenu();
     }
 
     const template = process.platform === 'darwin' ? this.buildDarwinTemplate() : this.buildDefaultTemplate();
@@ -26,18 +26,43 @@ export default class MenuBuilder {
     return menu;
   }
 
-  setupDevelopmentEnvironment(): void {
+  setupContextMenu(): void {
     this.mainWindow.webContents.on('context-menu', (_, props) => {
-      const { x, y } = props;
+      const { x, y, srcURL } = props;
 
-      Menu.buildFromTemplate([
-        {
-          label: 'Inspect element',
-          click: () => {
-            this.mainWindow.webContents.inspectElement(x, y);
-          },
-        },
-      ]).popup({ window: this.mainWindow });
+      const menu = new Menu();
+
+      if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
+        menu.append(
+          new MenuItem({
+            label: 'Inspect Element',
+            click: () => {
+              this.mainWindow.webContents.inspectElement(x, y);
+            },
+          })
+        );
+      }
+
+      let url: URL | null;
+      try {
+        url = new URL(srcURL);
+      } catch (err) {
+        url = null;
+      }
+      if (url && url.hash) {
+        menu.append(
+          new MenuItem({
+            label: 'Reveal In Finder',
+            click: () => {
+              if (url && url.hash) {
+                shell.showItemInFolder(url.hash.substr(1));
+              }
+            },
+          })
+        );
+      }
+
+      menu.popup({ window: this.mainWindow });
     });
   }
 

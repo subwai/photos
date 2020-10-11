@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import { max } from 'lodash';
+import { max, orderBy } from 'lodash';
 import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
@@ -9,7 +9,7 @@ import Thumbnail from './Thumbnail';
 import useEventListener from '../../utils/useEventListener';
 import useAnimation from '../../utils/useAnimation';
 import { selectPlaying } from './playerSlice';
-import { selectGalleryScrollerHeight, setHeight } from './galleryScrollerSlice';
+import { selectGalleryScrollerHeight, selectGallerySort, setHeight, setSort } from './galleryScrollerSlice';
 import { selectHiddenFolders } from '../folderVisibilitySlice';
 import { setSelectedFile } from '../selectedFolderSlice';
 
@@ -24,6 +24,25 @@ const useStyles = createUseStyles({
     height: '100%',
     padding: 6,
     boxSizing: 'border-box',
+    position: 'relative',
+  },
+  sortContainer: {
+    position: 'absolute',
+    top: -15,
+    left: 15,
+    background: 'rgba(40,40,40,.9)',
+    width: 'max-content',
+    height: 'max-content',
+    border: '1px solid #555',
+    zIndex: 1,
+    borderRadius: 15,
+    padding: '5px 10px',
+  },
+  sort: {
+    background: 'transparent',
+    appearance: 'none',
+    color: '#ccc',
+    border: 0,
   },
   dragHandle: {
     width: '100%',
@@ -60,6 +79,7 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
   const container = useRef<HTMLDivElement>(null);
   const height = useSelector(selectGalleryScrollerHeight);
   const hiddenFolders = useSelector(selectHiddenFolders);
+  const sort = useSelector(selectGallerySort);
   const dispatch = useDispatch();
 
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
@@ -81,10 +101,14 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
     return () => clearTimeout(timeout);
   }, [folder, hiddenFolders]);
 
+  const sortedFiles = useMemo(() => {
+    return orderBy(files, ...sort.split(':'));
+  }, [files, sort]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
-      dispatch(setSelectedFile((files && files[selectedIndex]) || null));
-    }, 250);
+      dispatch(setSelectedFile((sortedFiles && sortedFiles[selectedIndex]) || null));
+    }, 100);
     const rule = sheet?.addRule(`file-${selectedIndex}`, {
       background: 'rgba(255,255,255,.1)',
     });
@@ -95,7 +119,7 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
       }
       clearTimeout(timeout);
     };
-  }, [files, selectedIndex]);
+  }, [sortedFiles, selectedIndex]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -142,7 +166,7 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
 
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    setSelectedIndex(Math.min(selectedIndex + 1, files ? files.length - 1 : 0));
+    setSelectedIndex(Math.min(selectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0));
   };
 
   useEventListener(
@@ -176,13 +200,13 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
   const currentScroll = scroll.animate ? animationScroll : scroll.current;
 
   useEffect(() => {
-    if (!files) {
+    if (!sortedFiles) {
       return;
     }
 
     const position = selectedIndex * height;
     const leftEdge = Math.max(0, position - height);
-    const rightEdge = Math.min((files.length + 1) * height, position + 2 * height);
+    const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
 
     const leftDiff = Math.abs(leftEdge - currentScroll);
     const rightDiff = Math.abs(rightEdge - (currentScroll + width));
@@ -196,13 +220,18 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
     } else {
       setScroll({ ...scroll, from: currentScroll, to: rightEdge - width, animate: true });
     }
-  }, [selectedIndex, width, height, files]);
+  }, [selectedIndex, width, height, sortedFiles]);
 
   useEffect(() => {
     if (scroll.animate && scroll.to === animationScroll) {
       setScroll({ ...scroll, current: scroll.to, animate: false });
     }
   }, [scroll, animationScroll]);
+
+  const onSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch(setSort(event.target.value));
+    setSelectedIndex(0);
+  };
 
   const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
     if (!scroll.animate) {
@@ -211,10 +240,10 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
   };
 
   const cellRenderer = ({ columnIndex, style }: { columnIndex: number; style: object }) => {
-    if (!files) {
+    if (!sortedFiles) {
       return null;
     }
-    const file = files[columnIndex];
+    const file = sortedFiles[columnIndex];
 
     return (
       <Thumbnail
@@ -231,17 +260,18 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
 
   return (
     <div ref={container} className={styles.galleryContainer} style={{ height: height + 12 }}>
-      <style>
-        {`.${styles.galleryContainer} .file-${selectedIndex}: {
-        background: rgba(255,255,255,.1);
-        }`}
-      </style>
       <div className={styles.dragHandle} onMouseDown={startDragging} />
+      <div className={styles.sortContainer}>
+        <select value={sort} onChange={onSortChange} className={styles.sort}>
+          <option value="fullPath:asc">Filename &#11014;</option>
+          <option value="fullPath:desc">Filename &#11015;</option>
+        </select>
+      </div>
       <div className={styles.scrollContainer}>
         <Grid
           cellRenderer={cellRenderer}
           columnWidth={height}
-          columnCount={files ? files.length : 0}
+          columnCount={sortedFiles ? sortedFiles.length : 0}
           rowHeight={height}
           rowCount={1}
           height={height}

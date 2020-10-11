@@ -69,7 +69,9 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
         key={key}
         className={classNames(styles.image, `file-${index}`)}
         alt=""
-        src={url.pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)).toString()}
+        src={`${url.pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)).toString()}#${
+          fileEntry.fullPath
+        }`}
         onError={() => setRequestThumbnail(true)}
         onClick={onClick}
         style={style}
@@ -82,7 +84,7 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
     <img
       className={classNames(styles.image, `file-${index}`)}
       alt=""
-      src={url.pathToFileURL(fileEntry.fullPath).toString()}
+      src={`${url.pathToFileURL(fileEntry.fullPath).toString()}#${fileEntry.fullPath}`}
       onClick={onClick}
       style={style}
       loading="lazy"
