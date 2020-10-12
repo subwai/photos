@@ -23,29 +23,37 @@ export function getRootFolderPath() {
 export async function readDirectoryRecursively(
   basePath: string,
   currentPath = '',
-  entry?: fs.Dirent
+  entry?: fs.Dirent,
+  level = 0
 ): Promise<FileEntry | null> {
   if (entry && !entry.isDirectory()) {
-    const extname = path.extname(entry.name);
+    const extname = path.extname(entry.name).toLowerCase();
 
     return includes(IMAGE_EXTENSIONS, extname) || includes(VIDEO_EXTENSIONS, extname)
-      ? Bluebird.resolve({
+      ? {
           name: entry.name,
           fullPath: path.join(basePath, currentPath),
           isFolder: false,
           children: null,
-        })
+          level,
+        }
       : null;
   }
+
+  console.log(path.join(basePath, currentPath));
 
   let children = <(FileEntry | null)[]>[];
   try {
     const entries = await readdirAsync(path.join(basePath, currentPath), {
       withFileTypes: true,
     });
-    children = await Bluebird.all(
-      entries.map((_entry) => readDirectoryRecursively(basePath, path.join(currentPath, _entry.name), _entry))
-    );
+    children = await entries.reduce(async (queue: Promise<(FileEntry | null)[]>, _entry: fs.Dirent) => {
+      const tree = await queue;
+
+      tree.push(await readDirectoryRecursively(basePath, path.join(currentPath, _entry.name), _entry, level + 1));
+
+      return tree;
+    }, Promise.resolve(children));
   } catch (err) {
     console.error(err.message);
   }
@@ -54,6 +62,7 @@ export async function readDirectoryRecursively(
     name: entry ? entry.name : basePath,
     fullPath: path.join(basePath, currentPath),
     isFolder: true,
+    level,
     children: children.filter((child): child is FileEntry => child !== null),
   };
 }

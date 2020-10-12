@@ -8,6 +8,7 @@ export default interface FileEntry {
   fullPath: string;
   isFolder: boolean;
   children: FileEntry[] | null;
+  level: number;
 }
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
@@ -15,11 +16,11 @@ export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
 export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp'];
 
 export function isImage(fileEntry: FileEntry) {
-  return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath));
+  return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
 export function isVideo(fileEntry: FileEntry) {
-  return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath));
+  return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
 export function findFirstFolder(fileEntry: FileEntry) {

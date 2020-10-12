@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
 import { selectSelectedFolder } from '../selectedFolderSlice';
+import useDebounce from '../../utils/useDebounce';
 
 const useStyles = createUseStyles({
   container: {
@@ -22,7 +23,7 @@ const useStyles = createUseStyles({
 
 export default function GalleryViewer(): JSX.Element {
   const styles = useStyles();
-  const selectedFolder = useSelector(selectSelectedFolder);
+  const selectedFolder = useDebounce(useSelector(selectSelectedFolder), 250);
 
   return (
     <div className={styles.container}>

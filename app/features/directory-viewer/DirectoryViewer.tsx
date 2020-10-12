@@ -1,18 +1,55 @@
-import React, { useRef, useState } from 'react';
-import { createUseStyles } from 'react-jss';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { createUseStyles, jss } from 'react-jss';
 
-import { max } from 'lodash';
-import { useSelector } from 'react-redux';
+import { each, map, max } from 'lodash';
+import { useDispatch, useSelector } from 'react-redux';
+import { StyleSheet } from 'jss';
 import Folder from './Folder';
 import useEventListener from '../../utils/useEventListener';
 import { selectRootFolder } from '../rootFolderSlice';
+import FileEntry from '../../utils/FileEntry';
+import { closeFolder, openFolder, selectOpenFolders } from '../folderVisibilitySlice';
+import { setSelectedFolder } from '../selectedFolderSlice';
+
+interface FolderListProps {
+  visibleFolders: FileEntry[];
+  rootFolder: FileEntry | null;
+  onSelectIndex: (index: number) => void;
+}
+
+const FolderList = memo(function FolderList({
+  visibleFolders,
+  rootFolder,
+  onSelectIndex,
+}: FolderListProps): JSX.Element {
+  return (
+    <>
+      {map(visibleFolders, (folder, index: number) => (
+        <Folder
+          key={folder.fullPath}
+          index={index}
+          fileEntry={folder}
+          isRoot={folder === rootFolder}
+          onClick={() => {
+            onSelectIndex(index);
+          }}
+        />
+      ))}
+    </>
+  );
+});
 
 const useStyles = createUseStyles({
   container: {
-    overflow: 'scroll',
+    overflow: 'auto',
     userSelect: 'none',
-    background: 'rgba(0,0,0,.2)',
     display: 'flex',
+  },
+  background: {
+    position: 'absolute',
+    background: 'rgba(0,0,0,.2)',
+    height: '100%',
+    zIndex: -1,
   },
   dragHandle: {
     position: 'absolute',
@@ -35,8 +72,8 @@ const useStyles = createUseStyles({
   folderNames: {
     flex: 1,
   },
-  folderNamesInner: {
-    width: 'max-content',
+  list: {
+    width: '100%!important',
   },
   folderVisibility: {},
 });
@@ -44,10 +81,58 @@ const useStyles = createUseStyles({
 export default function DirectoryViewer(): JSX.Element {
   const styles = useStyles();
   const rootFolder = useSelector(selectRootFolder);
+  const openFolders = useSelector(selectOpenFolders);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [width, setWidth] = useState<number>(250);
   const [dragStart, setDragging] = useState<number | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const dragHandle = useRef<HTMLDivElement>(null);
+  const [sheet, setSheet] = useState<StyleSheet<string> | null>();
+  const dispatch = useDispatch();
+
+  const visibleFolders = useMemo(() => {
+    function appendChildren(carry: FileEntry[], entry: FileEntry) {
+      const isOpen = openFolders[entry.fullPath] || entry === rootFolder;
+      if (entry.isFolder) {
+        carry.push(entry);
+      }
+      if (isOpen) {
+        each(entry.children, (child) => appendChildren(carry, child));
+      }
+    }
+
+    const carry: FileEntry[] = [];
+    if (rootFolder) {
+      appendChildren(carry, rootFolder);
+    }
+
+    return carry;
+  }, [rootFolder, openFolders]);
+
+  useEffect(() => {
+    const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
+    setSheet(x);
+
+    return () => {
+      jss.removeStyleSheet(x);
+    };
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      dispatch(setSelectedFolder(visibleFolders[selectedIndex]));
+    }, 250);
+    const rule = sheet?.addRule(`folder-${selectedIndex}`, {
+      background: 'rgba(255,255,255,.2)',
+    });
+
+    return () => {
+      if (rule) {
+        sheet?.deleteRule(rule.key);
+      }
+      clearTimeout(timeout);
+    };
+  }, [selectedIndex]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -86,20 +171,74 @@ export default function DirectoryViewer(): JSX.Element {
     dragStart !== null
   );
 
+  const findParentIndex = (index: number) => {
+    const selectedFolder = visibleFolders[index];
+    for (let i = index - 1; i >= 0; i -= 1) {
+      if (visibleFolders[i].level < selectedFolder.level) {
+        return i;
+      }
+    }
+
+    return 0;
+  };
+
+  const arrowLeft = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    const selectedFolder = visibleFolders[selectedIndex];
+    const isOpen = openFolders[selectedFolder.fullPath] || selectedFolder === rootFolder;
+    if (isOpen) {
+      dispatch(closeFolder(selectedFolder));
+    } else {
+      const parentIndex = findParentIndex(selectedIndex);
+      setSelectedIndex(parentIndex);
+      dispatch(closeFolder(visibleFolders[parentIndex]));
+    }
+  };
+  const arrowRight = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    const selectedFolder = visibleFolders[selectedIndex];
+    const isOpen = openFolders[selectedFolder.fullPath] || selectedFolder === rootFolder;
+    if (!isOpen) {
+      dispatch(openFolder(selectedFolder));
+    }
+  };
+  const arrowUp = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    setSelectedIndex(Math.max(selectedIndex - 1, 0));
+  };
+  const arrowDown = (event: React.KeyboardEvent) => {
+    event.preventDefault();
+    setSelectedIndex(Math.min(selectedIndex + 1, visibleFolders.length - 1));
+  };
+
+  useEventListener('keydown', (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case 'ArrowLeft':
+        return event.shiftKey && arrowLeft(event);
+      case 'ArrowRight':
+        return event.shiftKey && arrowRight(event);
+      case 'ArrowUp':
+        return !document.fullscreenElement && arrowUp(event);
+      case 'ArrowDown':
+        return !document.fullscreenElement && arrowDown(event);
+      default:
+        return false;
+    }
+  });
+
   return (
-    <>
-      <div ref={container} className={styles.container} style={{ width }}>
-        <div
-          ref={dragHandle}
-          className={styles.dragHandle}
-          role="separator"
-          onMouseDown={startDragging}
-          style={{ left: width - 1 }}
-        />
-        <div className={styles.folderNames}>
-          <div className={styles.folderNamesInner}>{rootFolder && <Folder fileEntry={rootFolder} />}</div>
-        </div>
+    <div ref={container} className={styles.container} style={{ width }}>
+      <div
+        ref={dragHandle}
+        className={styles.dragHandle}
+        role="separator"
+        onMouseDown={startDragging}
+        style={{ left: width - 1 }}
+      />
+      <div className={styles.folderNames}>
+        <FolderList visibleFolders={visibleFolders} rootFolder={rootFolder} onSelectIndex={setSelectedIndex} />
       </div>
-    </>
+      <div className={styles.background} style={{ width }} />
+    </div>
   );
 }

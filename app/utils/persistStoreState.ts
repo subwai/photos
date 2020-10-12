@@ -1,9 +1,9 @@
 import { debounce } from 'lodash';
 
-const persistStateRaw = (state: any) => {
+const persistStateRaw = () => {
   try {
-    const serializedState = JSON.stringify(state);
-    localStorage.setItem('state', serializedState);
+    // const serializedState = JSON.stringify(state);
+    // localStorage.setItem('state', serializedState);
   } catch {
     // ignore write errors
   }

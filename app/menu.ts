@@ -55,7 +55,8 @@ export default class MenuBuilder {
             label: 'Reveal In Finder',
             click: () => {
               if (url && url.hash) {
-                shell.showItemInFolder(url.hash.substr(1));
+                console.log(decodeURI(url.hash.substr(1)));
+                shell.showItemInFolder(decodeURI(url.hash.substr(1)));
               }
             },
           })

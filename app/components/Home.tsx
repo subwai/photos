@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
@@ -21,6 +21,7 @@ const useStyles = createUseStyles({
 export default function Home(): JSX.Element {
   const styles = useStyles();
   const rootFolderPath = useSelector(selectRootFolderPath);
+  const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -33,9 +34,15 @@ export default function Home(): JSX.Element {
     return () => {
       ipcRenderer.removeListener('current-folder-changed', handleFolderChanged);
     };
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
+    if (rootFolderPathCache === rootFolderPath) {
+      return () => {};
+    }
+
+    setRootFolderPathCache(rootFolderPath);
+
     const promise = Promise.resolve()
       .then(() => ipcRenderer.invoke('get-file-tree', rootFolderPath))
       .tap((folder: FileEntry) => dispatch(setRootFolder(folder)))

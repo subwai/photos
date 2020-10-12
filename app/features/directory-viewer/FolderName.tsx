@@ -41,20 +41,12 @@ const useStyles = createUseStyles({
 interface Props {
   fileEntry: FileEntry;
   subFolders: FileEntry[] | null;
-  level: number;
   isSelected: boolean;
   isOpen: boolean;
   onChangeOpen: () => void;
 }
 
-export default function FolderName({
-  fileEntry,
-  subFolders,
-  level,
-  isSelected,
-  isOpen,
-  onChangeOpen,
-}: Props): JSX.Element {
+export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const styles = useStyles({ hidden });
@@ -73,11 +65,11 @@ export default function FolderName({
       {subFolders && subFolders.length > 0 ? (
         <i
           className={classNames(styles.caretIcon, { 'fa-caret-down': isOpen, 'fa-caret-right': !isOpen })}
-          style={{ marginLeft: level * 10 }}
+          style={{ marginLeft: fileEntry.level * 10 }}
           onClick={onChangeOpen}
         />
       ) : (
-        <span className={styles.caretIcon} style={{ marginLeft: level * 10 }} />
+        <span className={styles.caretIcon} style={{ marginLeft: fileEntry.level * 10 }} />
       )}
       <FolderIcon fileEntry={fileEntry} />
       <i

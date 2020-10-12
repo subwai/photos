@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { max, orderBy } from 'lodash';
 import { Grid } from 'react-virtualized';
@@ -71,7 +71,7 @@ interface Props {
   width: number;
 }
 
-export default function GalleryScroller({ folder, width }: Props): JSX.Element | null {
+export default memo(function GalleryScroller({ folder, width }: Props): JSX.Element | null {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const styles = useStyles({ index: selectedIndex });
   const [dragStart, setDragging] = useState<number | null>(null);
@@ -107,10 +107,12 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      dispatch(setSelectedFile((sortedFiles && sortedFiles[selectedIndex]) || null));
+      if (sortedFiles && sortedFiles[selectedIndex]) {
+        dispatch(setSelectedFile(sortedFiles[selectedIndex]));
+      }
     }, 100);
     const rule = sheet?.addRule(`file-${selectedIndex}`, {
-      background: 'rgba(255,255,255,.1)',
+      background: 'rgba(255,255,255,.2)',
     });
 
     return () => {
@@ -283,4 +285,4 @@ export default function GalleryScroller({ folder, width }: Props): JSX.Element |
       </div>
     </div>
   );
-}
+});
