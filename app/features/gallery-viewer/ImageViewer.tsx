@@ -37,7 +37,8 @@ const useStyles = createUseStyles({
   preview: {
     position: 'absolute',
     width: '100%',
-    height: '100%',
+    height: 'calc(100% + 35px)',
+    top: -35,
     left: 0,
     zIndex: 2,
     background: 'rgba(20,20,20,.9)',

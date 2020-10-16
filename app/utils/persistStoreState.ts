@@ -1,11 +1,19 @@
 import { debounce } from 'lodash';
+import { RootState } from '../store';
 
-const persistStateRaw = () => {
+const persistStateRaw = (state: RootState) => {
   try {
-    // const serializedState = JSON.stringify(state);
-    // localStorage.setItem('state', serializedState);
-  } catch {
-    // ignore write errors
+    const clone = {
+      folderVisibility: state.folderVisibility,
+      galleryScroller: state.galleryScroller,
+      rootFolder: {
+        path: state.rootFolder.path,
+      },
+      router: state.router,
+    };
+    localStorage.setItem('state', JSON.stringify(clone));
+  } catch (err) {
+    console.error(err);
   }
 };
 

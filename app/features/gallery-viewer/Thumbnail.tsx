@@ -1,15 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
-import sha1 from 'sha1';
-import { ipcRenderer } from 'electron';
-import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import url from 'url';
-import Bluebird from 'bluebird';
-import { useSelector } from 'react-redux';
 import FileEntry, { isVideo } from '../../utils/FileEntry';
-import { selectCachePath } from '../rootFolderSlice';
+import useThumbnail from '../../utils/useThumbnail';
 
 const useStyles = createUseStyles({
   image: {
@@ -46,33 +39,16 @@ interface Props {
 
 export default function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
   const styles = useStyles();
-  const [key, setKey] = useState<string | undefined>(undefined);
-  const [requestThumbnail, setRequestThumbnail] = useState(false);
-  const cachePath = useSelector(selectCachePath);
+  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
 
-  useEffect(() => {
-    let promise = Bluebird.resolve();
-
-    if (requestThumbnail) {
-      promise = Bluebird.resolve()
-        .then(() => ipcRenderer.invoke('generate-thumbnail', fileEntry))
-        .then(() => setKey(uuidv4()))
-        .catch(console.error);
-    }
-
-    return () => promise.cancel();
-  }, [requestThumbnail]);
-
-  if (isVideo(fileEntry) && cachePath) {
+  if (isVideo(fileEntry)) {
     return (
       <img
         key={key}
         className={classNames(styles.image, `file-${index}`)}
         alt=""
-        src={`${url.pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}.png`)).toString()}#${
-          fileEntry.fullPath
-        }`}
-        onError={() => setRequestThumbnail(true)}
+        src={fullPath}
+        onError={() => setRequestThumbnail('video')}
         onClick={onClick}
         style={style}
         loading="lazy"
@@ -82,9 +58,11 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
 
   return (
     <img
+      key={key}
       className={classNames(styles.image, `file-${index}`)}
       alt=""
-      src={`${url.pathToFileURL(fileEntry.fullPath).toString()}#${fileEntry.fullPath}`}
+      src={fullPath}
+      onError={() => setRequestThumbnail('image')}
       onClick={onClick}
       style={style}
       loading="lazy"

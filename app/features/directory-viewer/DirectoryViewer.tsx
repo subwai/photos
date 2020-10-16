@@ -132,7 +132,7 @@ export default function DirectoryViewer(): JSX.Element {
       }
       clearTimeout(timeout);
     };
-  }, [selectedIndex]);
+  }, [visibleFolders, selectedIndex, sheet]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();

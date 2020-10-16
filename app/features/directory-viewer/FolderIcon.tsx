@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
-import url from 'url';
-import FileEntry, { findFirstImage } from '../../utils/FileEntry';
+import FileEntry, { findFirstImageOrVideo, isImage, isVideo } from '../../utils/FileEntry';
+import useThumbnail from '../../utils/useThumbnail';
 
 const useStyles = createUseStyles({
   previewIcon: {
@@ -31,12 +31,33 @@ interface Props {
   fileEntry: FileEntry;
 }
 
-export default function FolderIcon({ fileEntry }: Props): JSX.Element {
+export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
   const styles = useStyles();
-  const preview = useMemo(() => findFirstImage(fileEntry), [fileEntry.children]);
+  const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
+  const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
 
-  if (preview) {
-    return <img className={styles.previewIcon} alt="Preview" src={url.pathToFileURL(preview.fullPath).toString()} />;
+  if (preview && isVideo(preview)) {
+    return (
+      <img
+        key={key}
+        className={styles.previewIcon}
+        alt=""
+        src={fullPath}
+        onError={() => setRequestThumbnail('video')}
+      />
+    );
+  }
+
+  if (preview && isImage(preview)) {
+    return (
+      <img
+        key={key}
+        className={styles.previewIcon}
+        alt=""
+        src={fullPath}
+        onError={() => setRequestThumbnail('image')}
+      />
+    );
   }
 
   return <i className={classNames(styles.folderIcon, 'fa-folder')} />;

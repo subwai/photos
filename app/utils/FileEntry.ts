@@ -31,8 +31,8 @@ export function findLastFolder(fileEntry: FileEntry) {
   return fileEntry.children && findLast(fileEntry.children, 'isFolder');
 }
 
-export function findFirstImage(fileEntry: FileEntry) {
-  return fileEntry.children && find(fileEntry.children, isImage);
+export function findFirstImageOrVideo(fileEntry: FileEntry) {
+  return fileEntry.children && find(fileEntry.children, (child) => isImage(child) || isVideo(child));
 }
 
 export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: FoldersHash, list: FileEntry[] = []) {

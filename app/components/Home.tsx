@@ -6,7 +6,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import DirectoryViewer from '../features/directory-viewer/DirectoryViewer';
 import GalleryViewer from '../features/gallery-viewer/GalleryViewer';
 import FileEntry from '../utils/FileEntry';
-import { selectRootFolderPath, setRootFolder, setRootFolderPath, setCachePath } from '../features/rootFolderSlice';
+import {
+  selectRootFolderPath,
+  setRootFolder,
+  setRootFolderPath,
+  setCachePath,
+  selectRootFolder,
+} from '../features/rootFolderSlice';
 import { setSelectedFolder } from '../features/selectedFolderSlice';
 
 const useStyles = createUseStyles({
@@ -21,6 +27,7 @@ const useStyles = createUseStyles({
 export default function Home(): JSX.Element {
   const styles = useStyles();
   const rootFolderPath = useSelector(selectRootFolderPath);
+  const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
   const dispatch = useDispatch();
 
@@ -37,7 +44,7 @@ export default function Home(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (rootFolderPathCache === rootFolderPath) {
+    if (rootFolderPathCache === rootFolderPath && rootFolder !== null) {
       return () => {};
     }
 

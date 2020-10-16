@@ -14,9 +14,7 @@ export default class MenuBuilder {
   }
 
   buildMenu(): Menu {
-    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
-      this.setupContextMenu();
-    }
+    this.setupContextMenu();
 
     const template = process.platform === 'darwin' ? this.buildDarwinTemplate() : this.buildDefaultTemplate();
 

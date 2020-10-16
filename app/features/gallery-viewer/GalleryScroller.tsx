@@ -121,7 +121,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
       }
       clearTimeout(timeout);
     };
-  }, [sortedFiles, selectedIndex]);
+  }, [sortedFiles, selectedIndex, sheet]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();

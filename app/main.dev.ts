@@ -45,6 +45,7 @@ if (!fs.existsSync(getCachePath())) {
 
 app.commandLine.appendArgument('--enable-features=Metal');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
+app.commandLine.appendSwitch('trace-warnings');
 
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
