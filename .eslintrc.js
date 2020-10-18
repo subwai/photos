@@ -8,10 +8,12 @@ module.exports = {
     'jsx-a11y/media-has-caption': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
     'jsx-a11y/no-static-element-interactions': 'off',
+    'promise/always-return': 'off',
     'react-hooks/exhaustive-deps': 'off',
     'react/require-default-props': 'off',
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

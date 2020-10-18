@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { AutoSizer } from 'react-virtualized';
 import { useSelector } from 'react-redux';
@@ -6,6 +6,8 @@ import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
 import { selectSelectedFolder } from '../selectedFolderSlice';
 import useDebounce from '../../utils/useDebounce';
+import { findFolderAndIndex } from '../../utils/FileEntry';
+import { selectRootFolder } from '../rootFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -23,7 +25,21 @@ const useStyles = createUseStyles({
 
 export default function GalleryViewer(): JSX.Element {
   const styles = useStyles();
-  const selectedFolder = useDebounce(useSelector(selectSelectedFolder), 250);
+  const rootFolder = useSelector(selectRootFolder);
+  const selectedFolderPath = useDebounce(useSelector(selectSelectedFolder), 250);
+  const selectedFolder = useMemo(() => {
+    const { folder, index } = findFolderAndIndex(rootFolder, selectedFolderPath);
+
+    if (folder) {
+      if (folder.children !== null && index !== null) {
+        return folder.children[index];
+      }
+
+      return folder;
+    }
+
+    return null;
+  }, [selectedFolderPath, rootFolder]);
 
   return (
     <div className={styles.container}>
@@ -32,13 +48,7 @@ export default function GalleryViewer(): JSX.Element {
       </div>
       <div>
         <AutoSizer disableHeight style={{ width: '100%' }}>
-          {({ width }) => (
-            <GalleryScroller
-              key={selectedFolder ? selectedFolder.fullPath : undefined}
-              folder={selectedFolder}
-              width={width - 12}
-            />
-          )}
+          {({ width }) => <GalleryScroller key={selectedFolderPath} folder={selectedFolder} width={width - 12} />}
         </AutoSizer>
       </div>
     </div>

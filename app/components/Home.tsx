@@ -12,6 +12,8 @@ import {
   setRootFolderPath,
   setCachePath,
   selectRootFolder,
+  updateFile,
+  removeFile,
 } from '../features/rootFolderSlice';
 import { setSelectedFolder } from '../features/selectedFolderSlice';
 
@@ -35,11 +37,21 @@ export default function Home(): JSX.Element {
     function handleFolderChanged(_: Electron.IpcRendererEvent, newPath: string) {
       dispatch(setRootFolderPath(newPath));
     }
+    function handleFileChanged(_: Electron.IpcRendererEvent, entry: FileEntry) {
+      dispatch(updateFile(entry));
+    }
+    function handleFileRemoved(_: Electron.IpcRendererEvent, path: string) {
+      dispatch(removeFile(path));
+    }
 
     ipcRenderer.on('current-folder-changed', handleFolderChanged);
+    ipcRenderer.on('file-changed', handleFileChanged);
+    ipcRenderer.on('file-removed', handleFileRemoved);
 
     return () => {
       ipcRenderer.removeListener('current-folder-changed', handleFolderChanged);
+      ipcRenderer.removeListener('file-changed', handleFileChanged);
+      ipcRenderer.removeListener('file-removed', handleFileRemoved);
     };
   }, []);
 

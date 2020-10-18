@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 // eslint-disable-next-line import/no-cycle
-import FileEntry from '../utils/FileEntry';
+import FileEntry, { findFolderAndIndex } from '../utils/FileEntry';
 
 type State = {
   folder: FileEntry | null;
@@ -23,10 +23,26 @@ const rootFolderSlice = createSlice({
     setCachePath: (state, action) => {
       state.cachePath = action.payload;
     },
+    updateFile: (state, action) => {
+      const { folder, index } = findFolderAndIndex(state.folder, action.payload.fullPath);
+      if (folder && folder.children !== null) {
+        if (index !== null) {
+          folder.children[index] = action.payload;
+        } else {
+          folder.children.push(action.payload);
+        }
+      }
+    },
+    removeFile: (state, action) => {
+      const { folder, index } = findFolderAndIndex(state.folder, action.payload);
+      if (folder && folder.children !== null && index !== null) {
+        folder.children.splice(index, 1);
+      }
+    },
   },
 });
 
-export const { setRootFolder, setRootFolderPath, setCachePath } = rootFolderSlice.actions;
+export const { setRootFolder, setRootFolderPath, setCachePath, updateFile, removeFile } = rootFolderSlice.actions;
 
 export default rootFolderSlice.reducer;
 

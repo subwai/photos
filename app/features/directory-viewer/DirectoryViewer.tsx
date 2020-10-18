@@ -110,6 +110,12 @@ export default function DirectoryViewer(): JSX.Element {
   }, [rootFolder, openFolders]);
 
   useEffect(() => {
+    if (!visibleFolders[selectedIndex]) {
+      setSelectedIndex(0);
+    }
+  }, [visibleFolders]);
+
+  useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
     setSheet(x);
 
@@ -120,7 +126,9 @@ export default function DirectoryViewer(): JSX.Element {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      dispatch(setSelectedFolder(visibleFolders[selectedIndex]));
+      if (visibleFolders[selectedIndex]) {
+        dispatch(setSelectedFolder(visibleFolders[selectedIndex]));
+      }
     }, 250);
     const rule = sheet?.addRule(`folder-${selectedIndex}`, {
       background: 'rgba(255,255,255,.2)',
@@ -132,7 +140,7 @@ export default function DirectoryViewer(): JSX.Element {
       }
       clearTimeout(timeout);
     };
-  }, [visibleFolders, selectedIndex, sheet]);
+  }, [selectedIndex, sheet]);
 
   const startDragging = (event: React.MouseEvent) => {
     event.preventDefault();

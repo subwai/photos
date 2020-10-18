@@ -16,7 +16,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
 import './utils/configure-bluebird';
-import { getCachePath } from './utils/main/file-system';
+import FileSystem, { getCachePath } from './utils/main/file-system';
 import './utils/main/thumbnails';
 import MenuBuilder from './menu';
 
@@ -29,6 +29,7 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let fileSystem: FileSystem | null = null;
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -103,7 +104,10 @@ const createWindow = async () => {
     mainWindow = null;
   });
 
-  const menuBuilder = new MenuBuilder(mainWindow);
+  fileSystem = new FileSystem(mainWindow);
+  fileSystem.start();
+
+  const menuBuilder = new MenuBuilder(mainWindow, fileSystem);
   menuBuilder.buildMenu();
 
   // Remove this if your app does not use auto updates
@@ -134,6 +138,10 @@ app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) createWindow();
+});
+
+app.on('quit', () => {
+  fileSystem?.closeWatcher();
 });
 
 ipcMain.handle('maximize', () => {

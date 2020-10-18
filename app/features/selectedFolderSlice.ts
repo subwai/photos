@@ -6,7 +6,7 @@ import { RootState } from '../store';
 import FileEntry from '../utils/FileEntry';
 
 type State = {
-  folder: FileEntry | null;
+  folder: string | null;
   autoSelectLast: boolean;
   file: FileEntry | null;
 };
@@ -17,10 +17,10 @@ const selectedFolderSlice = createSlice({
   reducers: {
     setSelectedFolder: (state, action) => {
       if (action.payload?.folder) {
-        state.folder = action.payload.folder;
+        state.folder = action.payload.folder.fullPath;
         state.autoSelectLast = defaultTo(action.payload.autoSelectLast, false);
       } else {
-        state.folder = action.payload;
+        state.folder = action.payload.fullPath;
         state.autoSelectLast = false;
       }
     },

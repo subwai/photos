@@ -12,10 +12,11 @@ const useStyles = createUseStyles({
     objectFit: 'contain',
     boxSizing: 'border-box',
     cursor: 'pointer',
+    overflow: 'hidden',
     '&:after': {
       content: '"\\f1c5"',
       fontSize: 48,
-      fontFamily: 'Font Awesome 5 Free',
+      fontFamily: "'Font Awesome 5 Free'",
       color: '#333',
       display: 'inline-flex',
       position: 'absolute',

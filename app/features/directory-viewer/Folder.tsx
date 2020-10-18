@@ -44,7 +44,7 @@ interface Props {
 
 export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }: Props): JSX.Element {
   const styles = useStyles({ level: fileEntry.level });
-  const selectedFolder = useSelector(selectSelectedFolder);
+  const selectedFolderPath = useSelector(selectSelectedFolder);
   const autoSelectLast = useSelector(selectAutoSelectLastFolder);
   const openFolders = useSelector(selectOpenFolders);
   const dispatch = useDispatch();
@@ -53,7 +53,7 @@ export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }
     return fileEntry.children && filter(fileEntry.children, 'isFolder');
   }, [fileEntry.children]);
 
-  const isSelected = fileEntry === selectedFolder;
+  const isSelected = fileEntry.fullPath === selectedFolderPath;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
 
   useEffect(() => {

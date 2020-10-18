@@ -75,7 +75,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   const [selectedIndex, setSelectedIndex] = useState(0);
   const styles = useStyles({ index: selectedIndex });
   const [dragStart, setDragging] = useState<number | null>(null);
-  const [files, setFiles] = useState<FileEntry[] | null>(null);
+  const [flattenedFiles, setFlattenedFiles] = useState<FileEntry[] | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const height = useSelector(selectGalleryScrollerHeight);
   const hiddenFolders = useSelector(selectHiddenFolders);
@@ -95,15 +95,15 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setFiles(folder ? findAllFilesRecursive(folder, hiddenFolders) : null);
+      setFlattenedFiles(folder ? findAllFilesRecursive(folder, hiddenFolders) : null);
     }, 250);
 
     return () => clearTimeout(timeout);
   }, [folder, hiddenFolders]);
 
   const sortedFiles = useMemo(() => {
-    return orderBy(files, ...sort.split(':'));
-  }, [files, sort]);
+    return orderBy(flattenedFiles, ...sort.split(':'));
+  }, [flattenedFiles, sort]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {

@@ -1,5 +1,5 @@
 import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions, dialog, MenuItem } from 'electron';
-import { getRootFolderPath, setRootFolderPath } from './utils/main/file-system';
+import FileSystem from './utils/main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -9,8 +9,11 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
-  constructor(mainWindow: BrowserWindow) {
+  fileSystem: FileSystem;
+
+  constructor(mainWindow: BrowserWindow, fileSystem: FileSystem) {
     this.mainWindow = mainWindow;
+    this.fileSystem = fileSystem;
   }
 
   buildMenu(): Menu {
@@ -107,13 +110,13 @@ export default class MenuBuilder {
             dialog
               .showOpenDialog({
                 title: 'Select Folder',
-                defaultPath: getRootFolderPath(),
+                defaultPath: this.fileSystem.getRootFolderPath(),
                 properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
               })
               .then((result) => {
                 const folderPath = result.filePaths.pop();
                 if (folderPath) {
-                  setRootFolderPath(folderPath);
+                  this.fileSystem.setRootFolderPath(folderPath);
                   this.mainWindow.webContents.send('current-folder-changed', folderPath);
                 }
 

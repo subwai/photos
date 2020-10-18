@@ -31,10 +31,10 @@ interface Props {
 
 export default function FolderVisibility({ isRoot = true, fileEntry }: Props): JSX.Element {
   const dispatch = useDispatch();
-  const selectedFolder = useSelector(selectSelectedFolder);
+  const selectedFolderPath = useSelector(selectSelectedFolder);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const openFolders = useSelector(selectOpenFolders);
-  const isSelected = fileEntry === selectedFolder;
+  const isSelected = fileEntry.fullPath === selectedFolderPath;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const styles = useStyles({ hidden });
