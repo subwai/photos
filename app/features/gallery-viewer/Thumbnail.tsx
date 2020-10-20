@@ -5,10 +5,15 @@ import FileEntry, { isVideo } from '../../utils/FileEntry';
 import useThumbnail from '../../utils/useThumbnail';
 
 const useStyles = createUseStyles({
+  thumbnail: {
+    padding: '6px 0 2px',
+    boxSizing: 'border-box',
+  },
   image: {
+    width: '100%',
+    height: '100%',
     padding: 6,
     borderRadius: 5,
-    imageRendering: 'pixelated',
     objectFit: 'contain',
     boxSizing: 'border-box',
     cursor: 'pointer',
@@ -44,29 +49,31 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
 
   if (isVideo(fileEntry)) {
     return (
+      <div className={styles.thumbnail} style={style}>
+        <img
+          key={key}
+          className={classNames(styles.image, `file-${index}`)}
+          alt=""
+          src={fullPath}
+          onError={() => setRequestThumbnail('video')}
+          onClick={onClick}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.thumbnail} style={style}>
       <img
         key={key}
         className={classNames(styles.image, `file-${index}`)}
         alt=""
         src={fullPath}
-        onError={() => setRequestThumbnail('video')}
+        onError={() => setRequestThumbnail('image')}
         onClick={onClick}
-        style={style}
         loading="lazy"
       />
-    );
-  }
-
-  return (
-    <img
-      key={key}
-      className={classNames(styles.image, `file-${index}`)}
-      alt=""
-      src={fullPath}
-      onError={() => setRequestThumbnail('image')}
-      onClick={onClick}
-      style={style}
-      loading="lazy"
-    />
+    </div>
   );
 }

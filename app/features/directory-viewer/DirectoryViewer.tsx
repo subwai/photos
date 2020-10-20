@@ -41,7 +41,7 @@ const FolderList = memo(function FolderList({
 
 const useStyles = createUseStyles({
   container: {
-    overflow: 'auto',
+    overflow: 'overlay',
     userSelect: 'none',
     display: 'flex',
   },

@@ -68,8 +68,10 @@ export default class FileSystem {
       return;
     }
 
+    console.log(_, fileName);
+
     const fullPath = path.join(this.rootFolder, fileName);
-    const rootLevel = this.rootFolder.split('/').length;
+    const rootLevel = this.rootFolder.split(/[\\/]/).length;
 
     try {
       const stats = await statAsync(fullPath);
@@ -81,7 +83,7 @@ export default class FileSystem {
           fullPath,
           isFolder: stats.isDirectory(),
           children: stats.isDirectory() ? [] : null,
-          level: fullPath.split('/').length - rootLevel,
+          level: fullPath.split(/[\\/]/).length - rootLevel,
         });
       }
     } catch (err) {

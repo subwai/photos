@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { isEqual } from 'lodash';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 // eslint-disable-next-line import/no-cycle
@@ -27,7 +28,9 @@ const rootFolderSlice = createSlice({
       const { folder, index } = findFolderAndIndex(state.folder, action.payload.fullPath);
       if (folder && folder.children !== null) {
         if (index !== null) {
-          folder.children[index] = action.payload;
+          if (!isEqual(folder.children[index], action.payload)) {
+            folder.children[index] = action.payload;
+          }
         } else {
           folder.children.push(action.payload);
         }

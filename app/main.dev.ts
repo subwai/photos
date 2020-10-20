@@ -11,10 +11,12 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, ipcMain, systemPreferences } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
+import { BrowserWindow } from 'electron-acrylic-window';
+// import electronVibrancy from 'electron-vibrancy';
 import './utils/configure-bluebird';
 import FileSystem, { getCachePath } from './utils/main/file-system';
 import './utils/main/thumbnails';
@@ -66,14 +68,27 @@ const createWindow = async () => {
     await installExtensions();
   }
 
+  const RESOURCES_PATH = app.isPackaged
+    ? path.join(process.resourcesPath, 'resources')
+    : path.join(__dirname, '../resources');
+
+  const getAssetPath = (...paths: string[]): string => {
+    return path.join(RESOURCES_PATH, ...paths);
+  };
+
+  const windowsAeroEnabled = process.platform === 'win32' && systemPreferences.isAeroGlassEnabled();
+
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
-    vibrancy: 'under-window',
+    icon: getAssetPath('icon.png'),
+    vibrancy: windowsAeroEnabled ? 'dark' : 'under-window',
     transparent: true,
     backgroundColor: '#00000000',
     titleBarStyle: 'hiddenInset',
+    darkTheme: true,
+    frame: !windowsAeroEnabled,
     webPreferences:
       (process.env.NODE_ENV === 'development' || process.env.E2E_BUILD === 'true') && process.env.ERB_SECURE !== 'true'
         ? {
@@ -86,9 +101,7 @@ const createWindow = async () => {
 
   mainWindow.loadURL(`file://${__dirname}/app.html`);
 
-  // @TODO: Use 'ready-to-show' event
-  //        https://github.com/electron/electron/blob/master/docs/api/browser-window.md#using-ready-to-show-event
-  mainWindow.webContents.on('did-finish-load', () => {
+  mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
@@ -133,6 +146,13 @@ if (process.env.E2E_BUILD === 'true') {
 } else {
   app.on('ready', createWindow);
 }
+
+app.on('ready', () => {
+  const thumbsCachePath = path.join(getCachePath(), 'thumbs');
+  if (!fs.existsSync(thumbsCachePath)) {
+    fs.mkdirSync(thumbsCachePath);
+  }
+});
 
 app.on('activate', () => {
   // On macOS it's common to re-create a window in the app when the

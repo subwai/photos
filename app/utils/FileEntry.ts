@@ -63,7 +63,7 @@ export function findFolderAndIndex(
     return { folder: null, index: null };
   }
 
-  const levels = filePath.substr(rootFolder.fullPath.length).split('/').filter(identity);
+  const levels = filePath.substr(rootFolder.fullPath.length).split(/[\\/]/).filter(identity);
   let folder: FileEntry | null = rootFolder;
   let index = null;
 

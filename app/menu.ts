@@ -236,8 +236,26 @@ export default class MenuBuilder {
         label: '&File',
         submenu: [
           {
-            label: '&Open',
+            label: 'Open Folder',
             accelerator: 'Ctrl+O',
+            click: () => {
+              dialog
+                .showOpenDialog({
+                  title: 'Select Folder',
+                  defaultPath: this.fileSystem.getRootFolderPath(),
+                  properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
+                })
+                .then((result) => {
+                  const folderPath = result.filePaths.pop();
+                  if (folderPath) {
+                    this.fileSystem.setRootFolderPath(folderPath);
+                    this.mainWindow.webContents.send('current-folder-changed', folderPath);
+                  }
+
+                  return null;
+                })
+                .catch(console.error);
+            },
           },
           {
             label: '&Close',

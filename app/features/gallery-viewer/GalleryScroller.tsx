@@ -16,15 +16,19 @@ import { setSelectedFile } from '../selectedFolderSlice';
 const useStyles = createUseStyles({
   galleryContainer: {
     background: 'rgba(0,0,0,.3)',
-    overflowX: 'scroll',
+    overflow: 'hidden',
     whiteSpace: 'nowrap',
   },
   scrollContainer: {
     width: '100%',
     height: '100%',
-    padding: 6,
+    padding: '0 6px',
     boxSizing: 'border-box',
     position: 'relative',
+  },
+  grid: {
+    overflowX: 'overlay!important',
+    overflowY: 'hidden!important',
   },
   sortContainer: {
     position: 'absolute',
@@ -261,7 +265,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   };
 
   return (
-    <div ref={container} className={styles.galleryContainer} style={{ height: height + 12 }}>
+    <div ref={container} className={styles.galleryContainer} style={{ height }}>
       <div className={styles.dragHandle} onMouseDown={startDragging} />
       <div className={styles.sortContainer}>
         <select value={sort} onChange={onSortChange} className={styles.sort}>
@@ -271,10 +275,11 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
       </div>
       <div className={styles.scrollContainer}>
         <Grid
+          className={styles.grid}
           cellRenderer={cellRenderer}
           columnWidth={height}
           columnCount={sortedFiles ? sortedFiles.length : 0}
-          rowHeight={height}
+          rowHeight={height - 10}
           rowCount={1}
           height={height}
           width={width - 12}
