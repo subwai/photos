@@ -39,7 +39,7 @@ interface Props {
   selectPrevious?: () => void;
   selectNext?: () => void;
   closeParent?: () => void;
-  onClick?: () => void;
+  onClick?: (event: React.MouseEvent) => void;
 }
 
 export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }: Props): JSX.Element {
@@ -65,7 +65,9 @@ export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }
     }
   }, [isSelected]);
 
-  function onChangeOpen() {
+  function onChangeOpen(event: React.MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     dispatch(isOpen ? closeFolder(fileEntry) : openFolder(fileEntry));
   }
 

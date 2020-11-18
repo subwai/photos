@@ -43,7 +43,7 @@ interface Props {
   subFolders: FileEntry[] | null;
   isSelected: boolean;
   isOpen: boolean;
-  onChangeOpen: () => void;
+  onChangeOpen: (event: React.MouseEvent) => void;
 }
 
 export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
