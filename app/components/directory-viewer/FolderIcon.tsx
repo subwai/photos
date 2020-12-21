@@ -47,7 +47,7 @@ interface Props {
 }
 
 export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
-  const styles = useStyles();
+  const classes = useStyles();
   const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
   const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
 
@@ -55,7 +55,7 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
     return (
       <img
         key={key}
-        className={styles.previewIcon}
+        className={classes.previewIcon}
         alt=""
         src={fullPath}
         onError={() => setRequestThumbnail('video')}
@@ -67,7 +67,7 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
     return (
       <img
         key={key}
-        className={styles.previewIcon}
+        className={classes.previewIcon}
         alt=""
         src={fullPath}
         onError={() => setRequestThumbnail('image')}
@@ -75,5 +75,5 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
     );
   }
 
-  return <i className={classNames(styles.folderIcon, 'fa-folder')} />;
+  return <i className={classNames(classes.folderIcon, 'fa-folder')} />;
 }

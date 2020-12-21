@@ -3,8 +3,8 @@ import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUseStyles } from 'react-jss';
 import { filter } from 'lodash';
-import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../folderVisibilitySlice';
-import { selectSelectedFolder } from '../selectedFolderSlice';
+import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../slices/folderVisibilitySlice';
+import { selectSelectedFolder } from '../../slices/selectedFolderSlice';
 import FileEntry from '../../utils/FileEntry';
 
 const useStyles = createUseStyles({
@@ -37,7 +37,7 @@ export default function FolderVisibility({ isRoot = true, fileEntry }: Props): J
   const isSelected = fileEntry.fullPath === selectedFolderPath;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
-  const styles = useStyles({ hidden });
+  const classes = useStyles({ hidden });
 
   const subFolders = useMemo(() => {
     return fileEntry.children && filter(fileEntry.children, 'isFolder');
@@ -55,7 +55,7 @@ export default function FolderVisibility({ isRoot = true, fileEntry }: Props): J
     <>
       <i
         key={fileEntry.fullPath}
-        className={classNames(styles.eyeIcon, {
+        className={classNames(classes.eyeIcon, {
           'fa-eye': !hidden,
           'fa-eye-slash': hidden,
         })}

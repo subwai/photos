@@ -25,7 +25,7 @@ export default memo(function FolderList({
   overscanRowCount = 5,
   scroll,
 }: Props): JSX.Element {
-  const styles = useStyles();
+  const classes = useStyles();
 
   const currentIndex = Math.floor(scroll / rowHeight);
   const startIndex = Math.max(0, currentIndex - overscanRowCount);
@@ -33,7 +33,7 @@ export default memo(function FolderList({
   const itemsToRender = endIndex - startIndex;
 
   return (
-    <div className={styles.listContainer}>
+    <div className={classes.listContainer}>
       <div style={{ height: startIndex * rowHeight }} />
       {times(itemsToRender, (i) => rowRenderer({ index: startIndex + i }))}
       <div style={{ height: (rowCount - 1 - endIndex) * rowHeight }} />

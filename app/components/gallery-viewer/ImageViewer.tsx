@@ -7,8 +7,8 @@ import classNames from 'classnames';
 import { isVideo } from '../../utils/FileEntry';
 import useEventListener from '../../utils/useEventListener';
 import { play, pause, selectPlaying } from './playerSlice';
-import { selectRootFolder } from '../rootFolderSlice';
-import { selectSelectedFile } from '../selectedFolderSlice';
+import { selectRootFolder } from '../../slices/rootFolderSlice';
+import { selectSelectedFile } from '../../slices/selectedFolderSlice';
 import useDebounce from '../../utils/useDebounce';
 
 const useStyles = createUseStyles({
@@ -46,7 +46,7 @@ const useStyles = createUseStyles({
 });
 
 export default function ImageViewer(): JSX.Element | null {
-  const styles = useStyles();
+  const classes = useStyles();
   const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
   const selectedFile = useSelector(selectSelectedFile);
@@ -134,7 +134,7 @@ export default function ImageViewer(): JSX.Element | null {
       <video
         key={file.fullPath}
         ref={videoElement}
-        className={classNames(styles.image, { [styles.preview]: isPreviewing })}
+        className={classNames(classes.image, { [classes.preview]: isPreviewing })}
         controls
         loop
         onFocus={preventFocus}
@@ -149,24 +149,24 @@ export default function ImageViewer(): JSX.Element | null {
   const noFileOrFolder = !file && !rootFolder;
 
   return (
-    <div ref={imageWrapper} className={classNames(styles.imageWrapper, { [styles.preview]: isPreviewing })}>
+    <div ref={imageWrapper} className={classNames(classes.imageWrapper, { [classes.preview]: isPreviewing })}>
       <TransformWrapper
         options={{
           disabled: noFileOrFolder,
           // @ts-ignore
-          wrapperClass: styles.transformWrapper,
-          contentClass: styles.transformComponent,
+          wrapperClass: classes.transformWrapper,
+          contentClass: classes.transformComponent,
         }}
         doubleClick={{
           mode: 'reset',
         }}
       >
         <TransformComponent>
-          {noFileOrFolder && <h2 className={styles.selectText}>Select a folder</h2>}
+          {noFileOrFolder && <h2 className={classes.selectText}>Select a folder</h2>}
           {file && (
             <img
               ref={imageElement}
-              className={styles.image}
+              className={classes.image}
               alt={file.fullPath}
               src={url.pathToFileURL(file.fullPath).toString()}
             />

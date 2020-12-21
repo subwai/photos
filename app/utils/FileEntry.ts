@@ -1,7 +1,7 @@
 import { find, findIndex, findLast, identity, includes } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
-import { FoldersHash } from '../features/folderVisibilitySlice';
+import { FoldersHash } from '../slices/folderVisibilitySlice';
 
 export default interface FileEntry {
   name: string;

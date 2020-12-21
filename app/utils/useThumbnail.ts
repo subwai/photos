@@ -7,7 +7,7 @@ import url from 'url';
 import path from 'path';
 import sha1 from 'sha1';
 import { includes } from 'lodash';
-import { selectCachePath } from '../features/rootFolderSlice';
+import { selectCachePath } from '../slices/rootFolderSlice';
 import FileEntry, { isImage } from './FileEntry';
 
 const ignore = ['.gif'];

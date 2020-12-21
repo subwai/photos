@@ -3,8 +3,8 @@ import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
 import { useDispatch, useSelector } from 'react-redux';
-import DirectoryViewer from '../features/directory-viewer/DirectoryViewer';
-import GalleryViewer from '../features/gallery-viewer/GalleryViewer';
+import DirectoryViewer from './directory-viewer/DirectoryViewer';
+import GalleryViewer from './gallery-viewer/GalleryViewer';
 import FileEntry from '../utils/FileEntry';
 import {
   selectRootFolderPath,
@@ -14,8 +14,8 @@ import {
   selectRootFolder,
   updateFile,
   removeFile,
-} from '../features/rootFolderSlice';
-import { setSelectedFolder } from '../features/selectedFolderSlice';
+} from '../slices/rootFolderSlice';
+import { setSelectedFolder } from '../slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -27,7 +27,7 @@ const useStyles = createUseStyles({
 });
 
 export default function Home(): JSX.Element {
-  const styles = useStyles();
+  const classes = useStyles();
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export default function Home(): JSX.Element {
   }, []);
 
   return (
-    <div className={styles.container}>
+    <div className={classes.container}>
       <DirectoryViewer />
       <GalleryViewer />
     </div>

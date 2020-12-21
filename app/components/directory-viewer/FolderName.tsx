@@ -4,7 +4,7 @@ import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import FolderIcon from './FolderIcon';
 import FileEntry from '../../utils/FileEntry';
-import { selectHiddenFolders, toggleHiddenFolder } from '../folderVisibilitySlice';
+import { selectHiddenFolders, toggleHiddenFolder } from '../../slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -49,7 +49,7 @@ interface Props {
 export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
-  const styles = useStyles({ hidden });
+  const classes = useStyles({ hidden });
   const dispatch = useDispatch();
 
   function onChangeVisibility(event: React.MouseEvent) {
@@ -64,23 +64,23 @@ export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, 
     <>
       {subFolders && subFolders.length > 0 ? (
         <i
-          className={classNames(styles.caretIcon, { 'fa-caret-down': isOpen, 'fa-caret-right': !isOpen })}
+          className={classNames(classes.caretIcon, { 'fa-caret-down': isOpen, 'fa-caret-right': !isOpen })}
           style={{ marginLeft: fileEntry.level * 10 }}
           onClick={onChangeOpen}
         />
       ) : (
-        <span className={styles.caretIcon} style={{ marginLeft: fileEntry.level * 10 }} />
+        <span className={classes.caretIcon} style={{ marginLeft: fileEntry.level * 10 }} />
       )}
       <FolderIcon fileEntry={fileEntry} />
       <i
         key={fileEntry.fullPath}
-        className={classNames(styles.eyeIcon, {
+        className={classNames(classes.eyeIcon, {
           'fa-eye': !hidden,
           'fa-eye-slash': hidden,
         })}
         onClick={onChangeVisibility}
       />
-      <span className={styles.name}>{fileEntry.name}</span>
+      <span className={classes.name}>{fileEntry.name.replace(':', '/')}</span>
     </>
   );
 }

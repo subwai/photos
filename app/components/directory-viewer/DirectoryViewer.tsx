@@ -6,10 +6,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
 import Folder from './Folder';
 import useEventListener from '../../utils/useEventListener';
-import { selectRootFolder } from '../rootFolderSlice';
+import { selectRootFolder } from '../../slices/rootFolderSlice';
 import FileEntry from '../../utils/FileEntry';
-import { closeFolder, openFolder, selectOpenFolders } from '../folderVisibilitySlice';
-import { setSelectedFolder } from '../selectedFolderSlice';
+import { closeFolder, openFolder, selectOpenFolders } from '../../slices/folderVisibilitySlice';
+import { setSelectedFolder } from '../../slices/selectedFolderSlice';
 
 interface FolderListProps {
   visibleFolders: FileEntry[];
@@ -79,7 +79,7 @@ const useStyles = createUseStyles({
 });
 
 export default function DirectoryViewer(): JSX.Element {
-  const styles = useStyles();
+  const classes = useStyles();
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -235,18 +235,18 @@ export default function DirectoryViewer(): JSX.Element {
   });
 
   return (
-    <div ref={container} className={styles.container} style={{ width }}>
+    <div ref={container} className={classes.container} style={{ width }}>
       <div
         ref={dragHandle}
-        className={styles.dragHandle}
+        className={classes.dragHandle}
         role="separator"
         onMouseDown={startDragging}
         style={{ left: width - 1 }}
       />
-      <div className={styles.folderNames}>
+      <div className={classes.folderNames}>
         <FolderList visibleFolders={visibleFolders} rootFolder={rootFolder} onSelectIndex={setSelectedIndex} />
       </div>
-      <div className={styles.background} style={{ width }} />
+      <div className={classes.background} style={{ width }} />
     </div>
   );
 }

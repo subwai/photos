@@ -10,8 +10,8 @@ import useEventListener from '../../utils/useEventListener';
 import useAnimation from '../../utils/useAnimation';
 import { selectPlaying } from './playerSlice';
 import { selectGalleryScrollerHeight, selectGallerySort, setHeight, setSort } from './galleryScrollerSlice';
-import { selectHiddenFolders } from '../folderVisibilitySlice';
-import { setSelectedFile } from '../selectedFolderSlice';
+import { selectHiddenFolders } from '../../slices/folderVisibilitySlice';
+import { setSelectedFile } from '../../slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   galleryContainer: {
@@ -77,7 +77,7 @@ interface Props {
 
 export default memo(function GalleryScroller({ folder, width }: Props): JSX.Element | null {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const styles = useStyles({ index: selectedIndex });
+  const classes = useStyles({ index: selectedIndex });
   const [dragStart, setDragging] = useState<number | null>(null);
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntry[] | null>(null);
   const container = useRef<HTMLDivElement>(null);
@@ -265,17 +265,17 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   };
 
   return (
-    <div ref={container} className={styles.galleryContainer} style={{ height }}>
-      <div className={styles.dragHandle} onMouseDown={startDragging} />
-      <div className={styles.sortContainer}>
-        <select value={sort} onChange={onSortChange} className={styles.sort}>
+    <div ref={container} className={classes.galleryContainer} style={{ height }}>
+      <div className={classes.dragHandle} onMouseDown={startDragging} />
+      <div className={classes.sortContainer}>
+        <select value={sort} onChange={onSortChange} className={classes.sort}>
           <option value="fullPath:asc">Filename &#11014;</option>
           <option value="fullPath:desc">Filename &#11015;</option>
         </select>
       </div>
-      <div className={styles.scrollContainer}>
+      <div className={classes.scrollContainer}>
         <Grid
-          className={styles.grid}
+          className={classes.grid}
           cellRenderer={cellRenderer}
           columnWidth={height}
           columnCount={sortedFiles ? sortedFiles.length : 0}

@@ -44,15 +44,15 @@ interface Props {
 }
 
 export default function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
-  const styles = useStyles();
+  const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
 
   if (isVideo(fileEntry)) {
     return (
-      <div className={styles.thumbnail} style={style}>
+      <div className={classes.thumbnail} style={style}>
         <img
           key={key}
-          className={classNames(styles.image, `file-${index}`)}
+          className={classNames(classes.image, `file-${index}`)}
           alt=""
           src={fullPath}
           onError={() => setRequestThumbnail('video')}
@@ -64,10 +64,10 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
   }
 
   return (
-    <div className={styles.thumbnail} style={style}>
+    <div className={classes.thumbnail} style={style}>
       <img
         key={key}
-        className={classNames(styles.image, `file-${index}`)}
+        className={classNames(classes.image, `file-${index}`)}
         alt=""
         src={fullPath}
         onError={() => setRequestThumbnail('image')}

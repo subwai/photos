@@ -6,8 +6,8 @@ import classNames from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 import FileEntry, { findLastFolder } from '../../utils/FileEntry';
 import FolderName from './FolderName';
-import { selectAutoSelectLastFolder, selectSelectedFolder, setSelectedFolder } from '../selectedFolderSlice';
-import { closeFolder, openFolder, selectOpenFolders } from '../folderVisibilitySlice';
+import { selectAutoSelectLastFolder, selectSelectedFolder, setSelectedFolder } from '../../slices/selectedFolderSlice';
+import { closeFolder, openFolder, selectOpenFolders } from '../../slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles({
   root: {
@@ -43,7 +43,7 @@ interface Props {
 }
 
 export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }: Props): JSX.Element {
-  const styles = useStyles({ level: fileEntry.level });
+  const classes = useStyles({ level: fileEntry.level });
   const selectedFolderPath = useSelector(selectSelectedFolder);
   const autoSelectLast = useSelector(selectAutoSelectLastFolder);
   const openFolders = useSelector(selectOpenFolders);
@@ -73,7 +73,7 @@ export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }
 
   return (
     <>
-      <div className={classNames(styles.entry, `folder-${index}`)} onClick={onClick}>
+      <div className={classNames(classes.entry, `folder-${index}`)} onClick={onClick}>
         <FolderName
           {...{
             fileEntry,

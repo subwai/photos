@@ -4,10 +4,10 @@ import { AutoSizer } from 'react-virtualized';
 import { useSelector } from 'react-redux';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
-import { selectSelectedFolder } from '../selectedFolderSlice';
+import { selectSelectedFolder } from '../../slices/selectedFolderSlice';
 import useDebounce from '../../utils/useDebounce';
 import { findFolderAndIndex } from '../../utils/FileEntry';
-import { selectRootFolder } from '../rootFolderSlice';
+import { selectRootFolder } from '../../slices/rootFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
 });
 
 export default function GalleryViewer(): JSX.Element {
-  const styles = useStyles();
+  const classes = useStyles();
   const rootFolder = useSelector(selectRootFolder);
   const selectedFolderPath = useDebounce(useSelector(selectSelectedFolder), 250);
   const selectedFolder = useMemo(() => {
@@ -42,8 +42,8 @@ export default function GalleryViewer(): JSX.Element {
   }, [selectedFolderPath, rootFolder]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.imageContainer}>
+    <div className={classes.container}>
+      <div className={classes.imageContainer}>
         <ImageViewer />
       </div>
       <div>
