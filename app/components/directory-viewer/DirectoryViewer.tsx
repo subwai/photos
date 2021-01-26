@@ -129,7 +129,7 @@ export default function DirectoryViewer(): JSX.Element {
       if (visibleFolders[selectedIndex]) {
         dispatch(setSelectedFolder(visibleFolders[selectedIndex]));
       }
-    }, 250);
+    }, 100);
     const rule = sheet?.addRule(`folder-${selectedIndex}`, {
       background: 'rgba(255,255,255,.2)',
     });

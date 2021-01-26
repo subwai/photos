@@ -14,6 +14,7 @@ const useStyles = createUseStyles({
     imageRendering: 'pixelated',
     background: 'rgba(0,0,0,.3)',
     objectFit: 'cover',
+    position: 'relative',
     '&:after': {
       content: '"\\f1c5"',
       fontSize: 32,
