@@ -4,14 +4,14 @@ import { max, orderBy } from 'lodash';
 import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
-import FileEntry, { findAllFilesRecursive } from '../../utils/FileEntry';
+import FileEntry, { findAllFilesRecursive } from '../../models/FileEntry';
 import Thumbnail from './Thumbnail';
-import useEventListener from '../../utils/useEventListener';
-import useAnimation from '../../utils/useAnimation';
-import { selectPlaying } from './playerSlice';
-import { selectGalleryScrollerHeight, selectGallerySort, setHeight, setSort } from './galleryScrollerSlice';
-import { selectHiddenFolders } from '../../slices/folderVisibilitySlice';
-import { setSelectedFile } from '../../slices/selectedFolderSlice';
+import useEventListener from '../../hooks/useEventListener';
+import useAnimation from '../../hooks/useAnimation';
+import { selectPlaying } from '../../redux/slices/playerSlice';
+import { selectGalleryScrollerHeight, selectGallerySort, setHeight, setSort } from '../../redux/slices/galleryScrollerSlice';
+import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { setSelectedFile } from '../../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   galleryContainer: {

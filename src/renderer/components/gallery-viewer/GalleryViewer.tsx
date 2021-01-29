@@ -4,10 +4,10 @@ import { AutoSizer } from 'react-virtualized';
 import { useSelector } from 'react-redux';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
-import { selectSelectedFolder } from '../../slices/selectedFolderSlice';
-import useDebounce from '../../utils/useDebounce';
-import { findFolderAndIndex } from '../../utils/FileEntry';
-import { selectRootFolder } from '../../slices/rootFolderSlice';
+import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import useDebounce from '../../hooks/useDebounce';
+import { findFolderAndIndex } from '../../models/FileEntry';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 
 const useStyles = createUseStyles({
   container: {

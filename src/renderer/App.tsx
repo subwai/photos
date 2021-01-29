@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { createUseStyles } from 'react-jss';
 
 import './App.global.css';
-import { createUseStyles } from 'react-jss';
 import TopBar from './components/TopBar';
 import Home from './components/Home';
 

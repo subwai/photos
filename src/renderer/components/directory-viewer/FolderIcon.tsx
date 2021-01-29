@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
-import FileEntry, { findFirstImageOrVideo, isImage, isVideo } from '../../utils/FileEntry';
-import useThumbnail from '../../utils/useThumbnail';
+import FileEntry, { findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
+import useThumbnail from '../../hooks/useThumbnail';
 
 const useStyles = createUseStyles({
   previewIcon: {

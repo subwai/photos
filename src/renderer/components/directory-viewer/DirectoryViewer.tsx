@@ -5,11 +5,11 @@ import { each, map, max } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
 import Folder from './Folder';
-import useEventListener from '../../utils/useEventListener';
-import { selectRootFolder } from '../../slices/rootFolderSlice';
-import FileEntry from '../../utils/FileEntry';
-import { closeFolder, openFolder, selectOpenFolders } from '../../slices/folderVisibilitySlice';
-import { setSelectedFolder } from '../../slices/selectedFolderSlice';
+import useEventListener from '../../hooks/useEventListener';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import FileEntry from '../../models/FileEntry';
+import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 
 interface FolderListProps {
   visibleFolders: FileEntry[];

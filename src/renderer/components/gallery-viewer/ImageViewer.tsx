@@ -4,12 +4,12 @@ import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { useDispatch, useSelector } from 'react-redux';
 import url from 'url';
 import classNames from 'classnames';
-import { isVideo } from '../../utils/FileEntry';
-import useEventListener from '../../utils/useEventListener';
-import { play, pause, selectPlaying } from './playerSlice';
-import { selectRootFolder } from '../../slices/rootFolderSlice';
-import { selectSelectedFile } from '../../slices/selectedFolderSlice';
-import useDebounce from '../../utils/useDebounce';
+import { isVideo } from '../../models/FileEntry';
+import useEventListener from '../../hooks/useEventListener';
+import useDebounce from '../../hooks/useDebounce';
+import { play, pause, selectPlaying } from '../../redux/slices/playerSlice';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import { selectSelectedFile } from '../../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   image: {

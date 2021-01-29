@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { filter } from 'lodash';
 import classNames from 'classnames';
-
 import { useDispatch, useSelector } from 'react-redux';
-import FileEntry, { findLastFolder } from '../../utils/FileEntry';
+
+import FileEntry, { findLastFolder } from '../../models/FileEntry';
 import FolderName from './FolderName';
-import { selectAutoSelectLastFolder, selectSelectedFolder, setSelectedFolder } from '../../slices/selectedFolderSlice';
-import { closeFolder, openFolder, selectOpenFolders } from '../../slices/folderVisibilitySlice';
+import { selectAutoSelectLastFolder, selectSelectedFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles({
   root: {

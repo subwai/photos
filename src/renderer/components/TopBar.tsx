@@ -2,7 +2,7 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import { useSelector } from 'react-redux';
-import { selectSelectedFile } from '../slices/selectedFolderSlice';
+import { selectSelectedFile } from '../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   topBar: {

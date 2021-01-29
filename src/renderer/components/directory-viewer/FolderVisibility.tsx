@@ -3,9 +3,9 @@ import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUseStyles } from 'react-jss';
 import { filter } from 'lodash';
-import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../slices/folderVisibilitySlice';
-import { selectSelectedFolder } from '../../slices/selectedFolderSlice';
-import FileEntry from '../../utils/FileEntry';
+import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
+import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import FileEntry from '../../models/FileEntry';
 
 const useStyles = createUseStyles({
   eyeIcon: {
