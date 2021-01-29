@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -47,7 +47,13 @@ interface Props {
   onChangeOpen: (event: React.MouseEvent) => void;
 }
 
-export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
+export default memo(function FolderName({
+  fileEntry,
+  subFolders,
+  isSelected,
+  isOpen,
+  onChangeOpen,
+}: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const classes = useStyles({ hidden });
@@ -84,4 +90,4 @@ export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, 
       <span className={classes.name}>{fileEntry.name.replace(':', '/')}</span>
     </>
   );
-}
+});

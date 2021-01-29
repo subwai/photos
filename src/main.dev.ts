@@ -11,7 +11,7 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, ipcMain, systemPreferences, shell } from 'electron';
+import { app, systemPreferences, shell } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
@@ -19,6 +19,7 @@ import { BrowserWindow } from 'electron-acrylic-window';
 import './utils/configure-bluebird';
 import FileSystem, { getCachePath } from './main/file-system';
 import './main/thumbnails';
+import './main/general';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
@@ -82,6 +83,7 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     icon: getAssetPath('icon.png'),
+    resizable: true,
     vibrancy: windowsAeroEnabled
       ? {
           theme: 'dark',
@@ -166,15 +168,4 @@ app.on('activate', () => {
 
 app.on('quit', () => {
   fileSystem?.closeWatcher();
-});
-
-ipcMain.handle('maximize', () => {
-  if (!mainWindow) {
-    return;
-  }
-  if (mainWindow.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow.maximize();
-  }
 });

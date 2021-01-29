@@ -9,7 +9,7 @@ import useEventListener from '../../hooks/useEventListener';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import FileEntry from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { setSelectedFolder, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 
 interface FolderListProps {
   visibleFolders: FileEntry[];
@@ -22,6 +22,8 @@ const FolderList = memo(function FolderList({
   rootFolder,
   onSelectIndex,
 }: FolderListProps): JSX.Element {
+  const selectedFolderPath = useSelector(selectSelectedFolder);
+
   return (
     <>
       {map(visibleFolders, (folder, index: number) => (
@@ -30,9 +32,8 @@ const FolderList = memo(function FolderList({
           index={index}
           fileEntry={folder}
           isRoot={folder === rootFolder}
-          onClick={() => {
-            onSelectIndex(index);
-          }}
+          isSelected={folder.fullPath === selectedFolderPath}
+          onClick={onSelectIndex}
         />
       ))}
     </>

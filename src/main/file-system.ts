@@ -64,12 +64,12 @@ export default class FileSystem {
     this.watcher = fs.watch(this.rootFolder, { recursive: true }, this.handleFileWatchEvent);
   }
 
-  handleFileWatchEvent = async (_: string, fileName: string) => {
+  handleFileWatchEvent = async (eventType: string, fileName: string) => {
     if (!this.rootFolder) {
       return;
     }
 
-    console.log(_, fileName);
+    console.log(eventType, fileName);
 
     const fullPath = path.join(this.rootFolder, fileName);
     const rootLevel = this.rootFolder.split(/[\\/]/).length;
@@ -99,9 +99,9 @@ export default class FileSystem {
       return null;
     }
 
-    this.setRootFolderPath(rootPath);
-
-    return this.readFileTree(rootPath);
+    return Bluebird.resolve()
+      .then(() => this.readFileTree(rootPath))
+      .tap(() => this.setRootFolderPath(rootPath));
   };
 
   async readFileTree(rootPath: string) {

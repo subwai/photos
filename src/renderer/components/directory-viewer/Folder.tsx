@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import FileEntry, { findLastFolder } from '../../models/FileEntry';
 import FolderName from './FolderName';
-import { selectAutoSelectLastFolder, selectSelectedFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles({
@@ -34,17 +34,17 @@ const useStyles = createUseStyles({
 
 interface Props {
   isRoot?: boolean;
+  isSelected: boolean;
   index: number;
   fileEntry: FileEntry;
   selectPrevious?: () => void;
   selectNext?: () => void;
   closeParent?: () => void;
-  onClick?: (event: React.MouseEvent) => void;
+  onClick: (index: number) => void;
 }
 
-export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }: Props): JSX.Element {
+export default memo(function Folder({ isRoot = true, index, isSelected, fileEntry, onClick }: Props): JSX.Element {
   const classes = useStyles({ level: fileEntry.level });
-  const selectedFolderPath = useSelector(selectSelectedFolder);
   const autoSelectLast = useSelector(selectAutoSelectLastFolder);
   const openFolders = useSelector(selectOpenFolders);
   const dispatch = useDispatch();
@@ -53,7 +53,6 @@ export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }
     return fileEntry.children && filter(fileEntry.children, 'isFolder');
   }, [fileEntry.children]);
 
-  const isSelected = fileEntry.fullPath === selectedFolderPath;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
 
   useEffect(() => {
@@ -73,7 +72,7 @@ export default memo(function Folder({ isRoot = true, index, fileEntry, onClick }
 
   return (
     <>
-      <div className={classNames(classes.entry, `folder-${index}`)} onClick={onClick}>
+      <div className={classNames(classes.entry, `folder-${index}`)} onClick={() => onClick(index)}>
         <FolderName
           {...{
             fileEntry,

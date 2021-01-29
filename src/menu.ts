@@ -73,7 +73,9 @@ export default class MenuBuilder {
         );
       }
 
-      menu.popup({ window: <ElectronBrowserWindow>this.mainWindow });
+      if (menu.items.length > 0) {
+        menu.popup({ window: <ElectronBrowserWindow>this.mainWindow });
+      }
     });
   }
 

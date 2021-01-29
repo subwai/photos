@@ -20,7 +20,7 @@ const selectedFolderSlice = createSlice({
         state.folder = action.payload.folder.fullPath;
         state.autoSelectLast = defaultTo(action.payload.autoSelectLast, false);
       } else {
-        state.folder = action.payload.fullPath;
+        state.folder = action.payload?.fullPath;
         state.autoSelectLast = false;
       }
     },
