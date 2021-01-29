@@ -14,7 +14,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "electron-acrylic-window": "^0.4.7",
-    "sharp": "^0.26.2"
+    "electron-acrylic-window": "^0.5.5",
+    "fluent-ffmpeg": "^2.1.2",
+    "sharp": "^0.27.1"
   }
 }

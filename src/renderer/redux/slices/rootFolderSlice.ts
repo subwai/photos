@@ -3,7 +3,7 @@ import { isEqual } from 'lodash';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 // eslint-disable-next-line import/no-cycle
-import FileEntry, { findFolderAndIndex } from '../utils/FileEntry';
+import FileEntry, { findFolderAndIndex } from '../../models/FileEntry';
 
 type State = {
   folder: FileEntry | null;

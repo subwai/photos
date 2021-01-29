@@ -1,8 +1,8 @@
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
-import FileEntry, { isVideo } from '../../utils/FileEntry';
-import useThumbnail from '../../utils/useThumbnail';
+import FileEntry, { isVideo } from '../../models/FileEntry';
+import useThumbnail from '../../hooks/useThumbnail';
 
 const useStyles = createUseStyles({
   thumbnail: {

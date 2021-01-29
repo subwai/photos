@@ -5,7 +5,7 @@ import Promise from 'bluebird';
 import { useDispatch, useSelector } from 'react-redux';
 import DirectoryViewer from './directory-viewer/DirectoryViewer';
 import GalleryViewer from './gallery-viewer/GalleryViewer';
-import FileEntry from '../utils/FileEntry';
+import FileEntry from '../models/FileEntry';
 import {
   selectRootFolderPath,
   setRootFolder,
@@ -14,8 +14,8 @@ import {
   selectRootFolder,
   updateFile,
   removeFile,
-} from '../slices/rootFolderSlice';
-import { setSelectedFolder } from '../slices/selectedFolderSlice';
+} from '../redux/slices/rootFolderSlice';
+import { setSelectedFolder } from '../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   container: {

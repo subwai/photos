@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, ipcMain } from 'electron';
+import { BrowserWindow } from 'electron-acrylic-window';
 import Bluebird from 'bluebird';
 import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
-import FileEntry, { isImageOrVideo } from '../FileEntry';
+import FileEntry, { isImageOrVideo } from '../renderer/models/FileEntry';
 
 const readdirAsync: (
   arg1: fs.PathLike,

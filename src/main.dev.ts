@@ -16,10 +16,9 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
 import { BrowserWindow } from 'electron-acrylic-window';
-// import electronVibrancy from 'electron-vibrancy';
 import './utils/configure-bluebird';
-import FileSystem, { getCachePath } from './utils/main/file-system';
-import './utils/main/thumbnails';
+import FileSystem, { getCachePath } from './main/file-system';
+import './main/thumbnails';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
@@ -38,10 +37,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-if (
-  process.env.NODE_ENV === 'development' ||
-  process.env.DEBUG_PROD === 'true'
-) {
+if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true') {
   require('electron-debug')();
 }
 
@@ -86,7 +82,14 @@ const createWindow = async () => {
     width: 1024,
     height: 728,
     icon: getAssetPath('icon.png'),
-    vibrancy: windowsAeroEnabled ? 'dark' : 'under-window',
+    vibrancy: windowsAeroEnabled
+      ? {
+          theme: 'dark',
+          effect: 'blur',
+          maximumRefreshRate: 30,
+          disableOnBlur: false,
+        }
+      : 'under-window',
     transparent: true,
     backgroundColor: '#00000000',
     titleBarStyle: 'hiddenInset',

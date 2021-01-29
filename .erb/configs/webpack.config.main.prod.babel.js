@@ -28,6 +28,15 @@ export default merge(baseConfig, {
 
   entry: './src/main.dev.ts',
 
+  module: {
+    rules: [
+      {
+        test: /\.node$/,
+        loader: 'node-loader',
+      }
+    ]
+  },
+
   output: {
     path: path.join(__dirname, '../../'),
     filename: './src/main.prod.js',

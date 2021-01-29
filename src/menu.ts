@@ -1,5 +1,14 @@
-import { app, Menu, shell, BrowserWindow, MenuItemConstructorOptions, dialog, MenuItem } from 'electron';
-import FileSystem from './utils/main/file-system';
+import {
+  app,
+  Menu,
+  BrowserWindow as ElectronBrowserWindow,
+  shell,
+  MenuItemConstructorOptions,
+  dialog,
+  MenuItem,
+} from 'electron';
+import { BrowserWindow } from 'electron-acrylic-window';
+import FileSystem from './main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -64,7 +73,7 @@ export default class MenuBuilder {
         );
       }
 
-      menu.popup({ window: this.mainWindow });
+      menu.popup({ window: <ElectronBrowserWindow>this.mainWindow });
     });
   }
 

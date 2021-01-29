@@ -3,7 +3,7 @@ import { defaultTo } from 'lodash';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 // eslint-disable-next-line import/no-cycle
-import FileEntry from '../utils/FileEntry';
+import FileEntry from '../../models/FileEntry';
 
 type State = {
   folder: string | null;

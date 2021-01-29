@@ -1,10 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import { createUseStyles } from 'react-jss';
+import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'connected-react-router';
 
 import './App.global.css';
 import TopBar from './components/TopBar';
 import Home from './components/Home';
+import { history, configuredStore } from './redux/store';
+import { loadPersistedState, persistState } from './redux/persistStoreState';
 
 const aero = process.platform === 'win32';
 
@@ -16,18 +20,25 @@ const useStyles = createUseStyles({
   },
 });
 
+const store = configuredStore(loadPersistedState());
+
+store.subscribe(() => {
+  persistState(store.getState());
+});
+
 export default function App() {
   useStyles();
 
   return (
     <>
-      <TopBar />
-      <Router>
-        <Switch>
-          <Route path="/" component={Home} />
-        </Switch>
-      </Router>
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+          <TopBar />
+          <Switch>
+            <Route path="/" component={Home} />
+          </Switch>
+        </ConnectedRouter>
+      </Provider>
     </>
   );
 }
-

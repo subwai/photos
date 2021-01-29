@@ -4,7 +4,7 @@ import path from 'path';
 import sha1 from 'sha1';
 import sharp from 'sharp';
 import Bluebird from 'bluebird';
-import FileEntry from '../FileEntry';
+import FileEntry from '../renderer/models/FileEntry';
 import { getCachePath } from './file-system';
 
 async function getVideoDuration(command: ffmpeg.FfmpegCommand) {

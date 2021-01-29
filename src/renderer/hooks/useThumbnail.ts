@@ -7,8 +7,8 @@ import url from 'url';
 import path from 'path';
 import sha1 from 'sha1';
 import { includes } from 'lodash';
-import { selectCachePath } from '../slices/rootFolderSlice';
-import FileEntry, { isImage } from './FileEntry';
+import { selectCachePath } from '../redux/slices/rootFolderSlice';
+import FileEntry, { isImage } from '../models/FileEntry';
 
 const ignore = ['.gif'];
 
