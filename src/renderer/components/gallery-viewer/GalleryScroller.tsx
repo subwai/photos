@@ -198,6 +198,17 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
     animate: false,
   });
 
+  useEventListener(
+    'mousewheel',
+    (event) => {
+      // todo: min max width & start
+      // optimize render
+      // auto scrooll dir viewer
+      setScroll({ ...scroll, from: currentScroll, to: currentScroll + event.wheelDelta * 10, animate: true });
+    },
+    container.current
+  );
+
   useEffect(() => {
     setScroll({ current: 0, from: 0, to: 0, animate: false });
   }, [folder]);

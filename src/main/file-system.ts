@@ -76,15 +76,17 @@ export default class FileSystem {
 
     try {
       const stats = await statAsync(fullPath);
+      const level = fullPath.split(/[\\/]/).length - rootLevel;
+
       if (stats.isDirectory()) {
-        this.mainWindow.webContents.send('file-changed', await this.readFileTree(fullPath));
+        this.mainWindow.webContents.send('file-changed', await this.readFileTree(fullPath, level));
       } else if (isImageOrVideo(fullPath)) {
         this.mainWindow.webContents.send('file-changed', <FileEntry>{
           name: path.basename(fullPath),
           fullPath,
           isFolder: stats.isDirectory(),
           children: stats.isDirectory() ? [] : null,
-          level: fullPath.split(/[\\/]/).length - rootLevel,
+          level,
         });
       }
     } catch (err) {
@@ -104,7 +106,7 @@ export default class FileSystem {
       .tap(() => this.setRootFolderPath(rootPath));
   };
 
-  async readFileTree(rootPath: string) {
+  async readFileTree(rootPath: string, level = 0) {
     if (this.readFileTreePromiseMap[rootPath]) {
       this.readFileTreePromiseMap[rootPath].cancel();
     }
@@ -117,7 +119,7 @@ export default class FileSystem {
       return isImageOrVideo(entry.name);
     }
 
-    this.readFileTreePromiseMap[rootPath] = Bluebird.try(() => FileSystem.recursiveReadDir(rootPath, filter));
+    this.readFileTreePromiseMap[rootPath] = Bluebird.try(() => FileSystem.recursiveReadDir(rootPath, filter, level));
     const result = await this.readFileTreePromiseMap[rootPath];
     delete this.readFileTreePromiseMap[rootPath];
 
@@ -127,6 +129,7 @@ export default class FileSystem {
   static async recursiveReadDir(
     dir: string,
     filter?: (entry: FileEntry) => boolean,
+    level = 0,
     concurrency = 100
   ): Promise<FileEntry> {
     const root = <FileEntry>{
@@ -134,7 +137,7 @@ export default class FileSystem {
       fullPath: dir,
       isFolder: true,
       children: [],
-      level: 0,
+      level,
     };
 
     const queue = <QueueEntry[]>[[root, null]];

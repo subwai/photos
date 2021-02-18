@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
 import FileEntry, { isVideo } from '../../models/FileEntry';
@@ -43,7 +43,7 @@ interface Props {
   style: object;
 }
 
-export default function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
+export default memo(function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
   const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
 
@@ -76,4 +76,4 @@ export default function Thumbnail({ fileEntry, index, onClick, style }: Props): 
       />
     </div>
   );
-}
+});
