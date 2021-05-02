@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import _, { max, orderBy } from 'lodash';
+import { max, orderBy } from 'lodash';
 import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
