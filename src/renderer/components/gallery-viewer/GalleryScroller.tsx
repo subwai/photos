@@ -96,9 +96,11 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   const height = useSelector(selectGalleryScrollerHeight);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const sort = useSelector(selectGallerySort);
-  const syncScroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
+  const scroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
   const [animateTo, setAnimateTo] = useState(0);
   const dispatch = useDispatch();
+
+  const ref = useRef<HTMLDivElement>(null);
 
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
 
@@ -206,7 +208,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   );
 
   useEffect(() => {
-    syncScroll.current = {
+    scroll.current = {
       value: 0,
       from: 0,
       to: 0,
@@ -215,25 +217,26 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
     setAnimateTo(0);
   }, [folder]);
 
-  syncScroll.current.animated = useAnimation('linear', syncScroll.current.from, animateTo, 200);
-  const isAnimating = syncScroll.current.animated !== animateTo;
-  syncScroll.current.value = isAnimating ? syncScroll.current.animated : syncScroll.current.value;
+  scroll.current.animated = useAnimation('linear', scroll.current.from, animateTo, 200);
+  const isAnimating = scroll.current.animated !== animateTo;
+  scroll.current.value = isAnimating ? scroll.current.animated : scroll.current.value;
 
-  const setAnimateThrottled = useCallback(
-    _.throttle(() => {
-      syncScroll.current.from = syncScroll.current.value;
-      setAnimateTo(syncScroll.current.to);
-    }, 50),
-    [setAnimateTo]
-  );
+  const firstChild = ref.current?.firstChild as HTMLElement;
+
+  const scrollTo = (x: number) => {
+    const newEvent = new Event('scroll', { bubbles: true });
+    firstChild?.dispatchEvent(newEvent);
+    if (firstChild) {
+      firstChild.scrollLeft = Math.max(0, x);
+    }
+  };
 
   useEventListener(
     'wheel',
     (event: WheelEvent) => {
-      const rightEdge = (sortedFiles.length + 1) * height;
-
-      syncScroll.current.to = Math.max(0, Math.min(rightEdge - width, syncScroll.current.to + event.deltaY));
-      // setAnimateThrottled();
+      if (event.deltaY !== 0) {
+        scrollTo(firstChild?.scrollLeft + event.deltaY);
+      }
     },
     container.current
   );
@@ -247,16 +250,16 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
     const leftEdge = Math.max(0, position - height);
     const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
 
-    const leftDiff = Math.abs(leftEdge - syncScroll.current.value);
-    const rightDiff = Math.abs(rightEdge - (syncScroll.current.value + width));
+    const leftDiff = Math.abs(leftEdge - scroll.current.value);
+    const rightDiff = Math.abs(rightEdge - (scroll.current.value + width));
 
-    if (syncScroll.current.value < position && position + height < syncScroll.current.value + width) {
+    if (scroll.current.value < position && position + height < scroll.current.value + width) {
       return;
     }
 
-    syncScroll.current.from = syncScroll.current.value;
-    syncScroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
-    setAnimateTo(syncScroll.current.to);
+    scroll.current.from = scroll.current.value;
+    scroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
+    setAnimateTo(scroll.current.to);
   }, [selectedIndex, sortedFiles]);
 
   const onSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -266,8 +269,8 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
 
   const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
     if (!isAnimating) {
-      syncScroll.current.value = scrollLeft;
-      syncScroll.current.to = scrollLeft;
+      scroll.current.value = scrollLeft;
+      scroll.current.to = scrollLeft;
     }
   };
 
@@ -299,7 +302,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
           <option value="fullPath:desc">Filename &#11015;</option>
         </select>
       </div>
-      <div className={classes.scrollContainer}>
+      <div ref={ref} className={classes.scrollContainer}>
         <Grid
           className={classes.grid}
           cellRenderer={cellRenderer}
@@ -311,7 +314,7 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
           width={width - 12}
           overscanColumnCount={5}
           isScrollingOptOut
-          scrollLeft={isAnimating ? syncScroll.current.value : undefined}
+          scrollLeft={isAnimating ? scroll.current.value : undefined}
           onScroll={handleScroll}
         />
       </div>
