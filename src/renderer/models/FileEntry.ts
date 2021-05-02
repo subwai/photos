@@ -13,7 +13,7 @@ export default interface FileEntry {
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
 
-export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp'];
+export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp', '.avi'];
 
 export function isImage(fileEntry: FileEntry) {
   return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());

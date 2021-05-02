@@ -13,7 +13,7 @@ export default function useAnimation(easingName = 'linear', from: number, to: nu
   // The useAnimationTimer hook calls useState every animation frame ...
   // ... giving us elapsed time and causing a rerender as frequently ...
   // ... as possible for a smooth animation.
-  const elapsed = useAnimationTimer(duration, delay, to);
+  const elapsed = useAnimationTimer(duration, delay, [from, to]);
   // Amount of specified duration elapsed on a scale from 0 - 1
   const n = Math.min(1, elapsed / duration);
   // Return altered value based on our specified easing function

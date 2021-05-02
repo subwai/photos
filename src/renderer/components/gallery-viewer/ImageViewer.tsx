@@ -129,6 +129,14 @@ export default function ImageViewer(): JSX.Element | null {
     event.currentTarget.blur();
   }
 
+  if (!file && !rootFolder) {
+    return (
+      <div ref={imageWrapper} className={classes.imageWrapper}>
+        <h2 className={classes.selectText}>Select a folder</h2>
+      </div>
+    );
+  }
+
   if (file && isVideo(file)) {
     return (
       <video
@@ -146,13 +154,10 @@ export default function ImageViewer(): JSX.Element | null {
     );
   }
 
-  const noFileOrFolder = !file && !rootFolder;
-
   return (
     <div ref={imageWrapper} className={classNames(classes.imageWrapper, { [classes.preview]: isPreviewing })}>
       <TransformWrapper
         options={{
-          disabled: noFileOrFolder,
           // @ts-ignore
           wrapperClass: classes.transformWrapper,
           contentClass: classes.transformComponent,
@@ -162,7 +167,6 @@ export default function ImageViewer(): JSX.Element | null {
         }}
       >
         <TransformComponent>
-          {noFileOrFolder && <h2 className={classes.selectText}>Select a folder</h2>}
           {file && (
             <img
               ref={imageElement}

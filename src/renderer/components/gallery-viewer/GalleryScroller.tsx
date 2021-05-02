@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
+import React, { useEffect, useMemo, useRef, useState, memo, useCallback } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import { max, orderBy } from 'lodash';
-import { Grid, ScrollEventData } from 'react-virtualized';
+import _, { max, orderBy } from 'lodash';
+import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
 import FileEntry, { findAllFilesRecursive } from '../../models/FileEntry';
@@ -9,10 +9,14 @@ import Thumbnail from './Thumbnail';
 import useEventListener from '../../hooks/useEventListener';
 import useAnimation from '../../hooks/useAnimation';
 import { selectPlaying } from '../../redux/slices/playerSlice';
-import { selectGalleryScrollerHeight, selectGallerySort, setHeight, setSort } from '../../redux/slices/galleryScrollerSlice';
+import {
+  selectGalleryScrollerHeight,
+  selectGallerySort,
+  setHeight,
+  setSort,
+} from '../../redux/slices/galleryScrollerSlice';
 import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { setSelectedFile } from '../../redux/slices/selectedFolderSlice';
-import { MouseWheelInputEvent } from 'electron/main';
 
 const useStyles = createUseStyles({
   galleryContainer: {
@@ -76,6 +80,13 @@ interface Props {
   width: number;
 }
 
+interface Scroll {
+  value: number;
+  from: number;
+  to: number;
+  animated: number;
+}
+
 export default memo(function GalleryScroller({ folder, width }: Props): JSX.Element | null {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const classes = useStyles({ index: selectedIndex });
@@ -85,7 +96,8 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   const height = useSelector(selectGalleryScrollerHeight);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const sort = useSelector(selectGallerySort);
-  const syncScroll = useRef<number>(0);
+  const syncScroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
+  const [animateTo, setAnimateTo] = useState(0);
   const dispatch = useDispatch();
 
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
@@ -193,38 +205,35 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
     !playing
   );
 
-  const [scroll, setScroll] = useState<{ current: number; from: number; to: number; animate: boolean }>({
-    current: 0,
-    from: 0,
-    to: 0,
-    animate: false,
-  });
-
   useEffect(() => {
-    setScroll({ current: 0, from: 0, to: 0, animate: false });
+    syncScroll.current = {
+      value: 0,
+      from: 0,
+      to: 0,
+      animated: 0,
+    };
+    setAnimateTo(0);
   }, [folder]);
 
-  const animationScroll = useAnimation('linear', scroll.from, scroll.to, 200);
-  const currentScroll = scroll.animate ? animationScroll : scroll.current;
+  syncScroll.current.animated = useAnimation('linear', syncScroll.current.from, animateTo, 200);
+  const isAnimating = syncScroll.current.animated !== animateTo;
+  syncScroll.current.value = isAnimating ? syncScroll.current.animated : syncScroll.current.value;
+
+  const setAnimateThrottled = useCallback(
+    _.throttle(() => {
+      syncScroll.current.from = syncScroll.current.value;
+      setAnimateTo(syncScroll.current.to);
+    }, 50),
+    [setAnimateTo]
+  );
 
   useEventListener(
     'wheel',
     (event: WheelEvent) => {
-      // todo: min max width & start
-      // optimize render
-      // auto scrooll dir viewer
-
       const rightEdge = (sortedFiles.length + 1) * height;
-      const to = Math.max(0, Math.min(rightEdge - width, syncScroll.current + event.deltaY));
-      console.log(to);
 
-      setScroll({
-        ...scroll,
-        from: currentScroll,
-        to,
-        animate: true,
-      });
-      syncScroll.current = to;
+      syncScroll.current.to = Math.max(0, Math.min(rightEdge - width, syncScroll.current.to + event.deltaY));
+      // setAnimateThrottled();
     },
     container.current
   );
@@ -238,26 +247,17 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
     const leftEdge = Math.max(0, position - height);
     const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
 
-    const leftDiff = Math.abs(leftEdge - currentScroll);
-    const rightDiff = Math.abs(rightEdge - (currentScroll + width));
+    const leftDiff = Math.abs(leftEdge - syncScroll.current.value);
+    const rightDiff = Math.abs(rightEdge - (syncScroll.current.value + width));
 
-    if (currentScroll < position && position + height < currentScroll + width) {
+    if (syncScroll.current.value < position && position + height < syncScroll.current.value + width) {
       return;
     }
 
-    if (leftDiff < rightDiff) {
-      setScroll({ ...scroll, from: currentScroll, to: leftEdge, animate: true });
-    } else {
-      setScroll({ ...scroll, from: currentScroll, to: rightEdge - width, animate: true });
-    }
-  }, [selectedIndex, width, height, sortedFiles]);
-
-  useEffect(() => {
-    if (scroll.animate && scroll.to === animationScroll) {
-      setScroll({ ...scroll, current: scroll.to, animate: false });
-      syncScroll.current = scroll.to;
-    }
-  }, [scroll, animationScroll]);
+    syncScroll.current.from = syncScroll.current.value;
+    syncScroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
+    setAnimateTo(syncScroll.current.to);
+  }, [selectedIndex, sortedFiles]);
 
   const onSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch(setSort(event.target.value));
@@ -265,8 +265,9 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
   };
 
   const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
-    if (!scroll.animate) {
-      setScroll({ ...scroll, current: scrollLeft });
+    if (!isAnimating) {
+      syncScroll.current.value = scrollLeft;
+      syncScroll.current.to = scrollLeft;
     }
   };
 
@@ -309,7 +310,8 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
           height={height}
           width={width - 12}
           overscanColumnCount={5}
-          scrollLeft={scroll.animate ? animationScroll : undefined}
+          isScrollingOptOut
+          scrollLeft={isAnimating ? syncScroll.current.value : undefined}
           onScroll={handleScroll}
         />
       </div>
