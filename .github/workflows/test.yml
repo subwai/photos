@@ -19,6 +19,16 @@ jobs:
         with:
           node-version: 15
 
+      - name: Install vips (Linux)
+        run: sudo apt-get install vips
+        if: matrix.os == 'ubuntu-latest'
+      - name: Install vips (Windows)
+        run: choco install vips
+        if: matrix.os == 'windows-latest'
+      - name: Install vips (macOS)
+        run: brew install vips
+        if: matrix.os == 'macos-latest'
+
       - name: yarn install
         run: |
           yarn install --frozen-lockfile --network-timeout 300000

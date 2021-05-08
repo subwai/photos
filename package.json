@@ -100,7 +100,7 @@
     "email": "adam.h.lyren@gmail.com",
     "url": "https://github.com/subwai"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "GPL-3.0-only",
   "contributors": [],
   "jest": {
     "testURL": "http://localhost/",
