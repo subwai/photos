@@ -27,7 +27,7 @@ jobs:
         if: startsWith(matrix.os, 'macos')
 
       - name: Test deps
-        run: sudo find /usr -name glib-object.h
+        run: sudo find /usr -name glib-object.h && echo "Done"
         if: startsWith(matrix.os, 'ubuntu')
 
       - name: Test deps 2
