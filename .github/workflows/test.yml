@@ -20,7 +20,7 @@ jobs:
           node-version: 15
 
       - name: Install vips (Linux)
-        run: sudo apt-get install vips
+        run: sudo apt-get install libvips
         if: matrix.os == 'ubuntu-latest'
       - name: Install vips (Windows)
         run: choco install vips
