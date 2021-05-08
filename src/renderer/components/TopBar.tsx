@@ -38,7 +38,6 @@ const useStyles = createUseStyles({
     fontSize: 17,
     padding: '5px 17px',
     margin: 0,
-    cursor: 'pointer',
     transition: 'background 300ms',
     '&:hover': {
       background: 'rgba(255, 255, 255, .3)',
