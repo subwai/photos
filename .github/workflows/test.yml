@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Check out Git repository
@@ -25,6 +25,14 @@ jobs:
       - name: Install vips (macOS)
         run: brew install vips
         if: startsWith(matrix.os, 'macos')
+
+      - name: Test deps
+        run: find /usr -name glib-object.h
+        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: Test deps 2
+        run: pkg-config --cflags vips-cpp
+        if: startsWith(matrix.os, 'ubuntu')
 
       - name: yarn install
         run: |
