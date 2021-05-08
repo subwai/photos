@@ -22,6 +22,7 @@ jobs:
       - name: Install vips (Linux)
         run: |
           sudo apt-add-repository "deb http://archive.canonical.com/ubuntu hirsute main restricted"
+          sudo apt-get update
           sudo apt-get install libvips libvips-dev=8.10.5-2ubuntu1
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
