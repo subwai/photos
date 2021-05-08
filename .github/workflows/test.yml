@@ -23,7 +23,7 @@ jobs:
         run: |
           sudo apt-add-repository "deb http://archive.canonical.com/ubuntu hirsute main restricted"
           sudo apt-get update
-          sudo egrep -h -v '(^#)|(^$)' /etc/apt/sources.list $(ls /etc/apt/sources.list.d/*.list 2> /dev/null)
+          sudo cat /etc/apt/sources.list
           sudo apt-get install libvips libvips-dev=8.10.5-2ubuntu1
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
