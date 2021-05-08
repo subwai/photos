@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [macos-latest, windows-latest]
 
     steps:
       - name: Check out Git repository
@@ -19,14 +19,6 @@ jobs:
         with:
           node-version: 15
 
-      - name: Install vips (Linux)
-        run: |
-          sudo apt-add-repository "deb http://azure.archive.ubuntu.com/ubuntu/ hirsute main universe"
-          sudo apt-get update
-          sudo cat /etc/apt/sources.list
-          sudo apt-get install -t hirsute libvips libvips-dev libglib2.0 gcc gcc-10 g++ g++-10 libc-dev
-          sudo pkg-config --cflags vips-cpp
-        if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
         if: startsWith(matrix.os, 'macos')
