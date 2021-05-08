@@ -22,7 +22,7 @@ jobs:
       - name: Install vips (Linux)
         run: |
           sudo apt-get dist-upgrade hirsute
-          sudo apt-get install libvips libvips-dev
+          sudo apt-get install libvips libvips-dev/hirsute
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
