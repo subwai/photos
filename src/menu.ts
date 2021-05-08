@@ -1,4 +1,4 @@
-import { app, Menu, BrowserWindow, shell, MenuItemConstructorOptions, dialog, MenuItem } from 'electron';
+import { app, Menu, BrowserWindow, shell, MenuItemConstructorOptions, MenuItem } from 'electron';
 import FileSystem from './main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
