@@ -21,7 +21,7 @@ jobs:
 
       - name: Install vips (Linux)
         run: |
-          sudo apt-add-repository "deb http://archive.canonical.com/ubuntu hirsute main restricted"
+          sudo apt-add-repository "deb http://azure.archive.ubuntu.com/ubuntu/ hirsute universe"
           sudo apt-get update
           sudo cat /etc/apt/sources.list
           sudo apt-get install libvips libvips-dev=8.10.5-2ubuntu1
