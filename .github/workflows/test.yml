@@ -20,7 +20,7 @@ jobs:
           node-version: 15
 
       - name: Install vips (Linux)
-        run: sudo apt-get update && sudo apt-get install libvips libvips-dev
+        run: sudo apt-get update && sudo apt-get install libvips libvips-dev=8.10.5
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
