@@ -20,15 +20,11 @@ jobs:
           node-version: 15
 
       - name: Install vips (Linux)
-        run: sudo apt-get install libvips libvips-dev
+        run: sudo apt-get update && sudo apt-get install libvips libvips-dev
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
         if: startsWith(matrix.os, 'macos')
-
-      - name: Test deps
-        run: sudo find /usr -name glib-object.h && echo "Done"
-        if: startsWith(matrix.os, 'ubuntu')
 
       - name: Test deps 2
         run: pkg-config --cflags vips-cpp
