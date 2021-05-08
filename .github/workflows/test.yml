@@ -20,7 +20,7 @@ jobs:
           node-version: 15
 
       - name: Install vips (Linux)
-        run: sudo apt-get install libvips libvips-dev/hirsute
+        run: sudo apt-get install libvips libvips-dev=8.10.5-2ubuntu1
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
