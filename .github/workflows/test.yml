@@ -21,12 +21,16 @@ jobs:
 
       - name: Install vips (Linux)
         run: |
-          sudo apt-add-repository "deb http://archive.canonical.com/ubuntu hirsute restricted"
-          sudo apt-get install libvips libvips-dev
+          sudo apt-add-repository "deb http://archive.canonical.com/ubuntu hirsute main restricted"
+          sudo apt-get install libvips libvips-dev=8.10.5-2ubuntu1
         if: startsWith(matrix.os, 'ubuntu')
       - name: Install vips (macOS)
         run: brew install vips
         if: startsWith(matrix.os, 'macos')
+
+      - name: test deps
+        run: sudo egrep -h -v '(^#)|(^$)' /etc/apt/sources.list $(ls /etc/apt/sources.list.d/*.list 2> /dev/null)
+        if: startsWith(matrix.os, 'ubuntu')
 
       - name: yarn install
         run: |
