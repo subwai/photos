@@ -4,6 +4,7 @@ import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import { useDispatch, useSelector } from 'react-redux';
 import url from 'url';
 import classNames from 'classnames';
+import { ipcRenderer } from 'electron';
 import { isVideo } from '../../models/FileEntry';
 import useEventListener from '../../hooks/useEventListener';
 import useDebounce from '../../hooks/useDebounce';
@@ -25,6 +26,7 @@ const useStyles = createUseStyles({
     width: '100%',
     height: '100%',
     cursor: 'pointer',
+    display: 'flex',
   },
   transformWrapper: {
     width: '100%',
@@ -129,10 +131,16 @@ export default function ImageViewer(): JSX.Element | null {
     event.currentTarget.blur();
   }
 
+  function selectFolder() {
+    ipcRenderer.send('open-folder');
+  }
+
   if (!file && !rootFolder) {
     return (
       <div ref={imageWrapper} className={classes.imageWrapper}>
-        <h2 className={classes.selectText}>Select a folder</h2>
+        <h2 className={classes.selectText} onClick={selectFolder}>
+          Select a folder
+        </h2>
       </div>
     );
   }

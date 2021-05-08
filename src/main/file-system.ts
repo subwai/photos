@@ -1,5 +1,4 @@
-import { app, ipcMain } from 'electron';
-import { BrowserWindow } from 'electron-acrylic-window';
+import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import Bluebird from 'bluebird';
 import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
@@ -40,7 +39,27 @@ export default class FileSystem {
   start() {
     ipcMain.handle('get-cache-path', getCachePath);
     ipcMain.handle('get-file-tree', this.getFileTree);
+    ipcMain.on('open-folder', this.openFolder);
   }
+
+  openFolder = () => {
+    dialog
+      .showOpenDialog(this.mainWindow, {
+        title: 'Select Folder',
+        defaultPath: this.getRootFolderPath(),
+        properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
+      })
+      .then((result) => {
+        const folderPath = result.filePaths.pop();
+        if (folderPath) {
+          this.setRootFolderPath(folderPath);
+          this.mainWindow.webContents.send('current-folder-changed', folderPath);
+        }
+
+        return null;
+      })
+      .catch(console.error);
+  };
 
   getRootFolderPath() {
     return this.rootFolder;

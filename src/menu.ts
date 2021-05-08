@@ -1,13 +1,4 @@
-import {
-  app,
-  Menu,
-  BrowserWindow as ElectronBrowserWindow,
-  shell,
-  MenuItemConstructorOptions,
-  dialog,
-  MenuItem,
-} from 'electron';
-import { BrowserWindow } from 'electron-acrylic-window';
+import { app, Menu, BrowserWindow, shell, MenuItemConstructorOptions, dialog, MenuItem } from 'electron';
 import FileSystem from './main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
@@ -74,7 +65,7 @@ export default class MenuBuilder {
       }
 
       if (menu.items.length > 0) {
-        menu.popup({ window: <ElectronBrowserWindow>this.mainWindow });
+        menu.popup({ window: this.mainWindow });
       }
     });
   }
@@ -117,24 +108,7 @@ export default class MenuBuilder {
         {
           label: 'Open Folder',
           accelerator: 'Command+O',
-          click: () => {
-            dialog
-              .showOpenDialog({
-                title: 'Select Folder',
-                defaultPath: this.fileSystem.getRootFolderPath(),
-                properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
-              })
-              .then((result) => {
-                const folderPath = result.filePaths.pop();
-                if (folderPath) {
-                  this.fileSystem.setRootFolderPath(folderPath);
-                  this.mainWindow.webContents.send('current-folder-changed', folderPath);
-                }
-
-                return null;
-              })
-              .catch(console.error);
-          },
+          click: this.fileSystem.openFolder,
         },
       ],
     };
@@ -249,24 +223,7 @@ export default class MenuBuilder {
           {
             label: 'Open Folder',
             accelerator: 'Ctrl+O',
-            click: () => {
-              dialog
-                .showOpenDialog({
-                  title: 'Select Folder',
-                  defaultPath: this.fileSystem.getRootFolderPath(),
-                  properties: ['openDirectory', 'treatPackageAsDirectory', 'dontAddToRecent'],
-                })
-                .then((result) => {
-                  const folderPath = result.filePaths.pop();
-                  if (folderPath) {
-                    this.fileSystem.setRootFolderPath(folderPath);
-                    this.mainWindow.webContents.send('current-folder-changed', folderPath);
-                  }
-
-                  return null;
-                })
-                .catch(console.error);
-            },
+            click: this.fileSystem.openFolder,
           },
           {
             label: '&Close',

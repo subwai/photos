@@ -90,7 +90,7 @@ export default function TopBar() {
     ipcRenderer.invoke('close').catch(console.error);
   }
 
-  const isWindows = true;
+  const isWindows = process.platform === 'win32';
 
   return (
     <div className={classes.topBar}>

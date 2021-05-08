@@ -11,11 +11,11 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, systemPreferences, shell } from 'electron';
+import { app, systemPreferences, shell, BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
-import { BrowserWindow } from 'electron-acrylic-window';
+import { BrowserWindow as AcrylicBrowserWindow } from 'electron-acrylic-window';
 import './utils/configure-bluebird';
 import FileSystem, { getCachePath } from './main/file-system';
 import './main/thumbnails';
@@ -76,31 +76,41 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
-  const windowsAeroEnabled = process.platform === 'win32' && systemPreferences.isAeroGlassEnabled();
+  const getWindowOptions = (): BrowserWindowConstructorOptions => {
+    return {
+      show: false,
+      width: 1024,
+      height: 728,
+      icon: getAssetPath('icon.png'),
+      resizable: true,
+      transparent: true,
+      backgroundColor: '#00000000',
+      titleBarStyle: 'hiddenInset',
+      darkTheme: true,
+      frame: !isWindows,
+      webPreferences: {
+        nodeIntegration: true,
+      },
+    };
+  };
 
-  mainWindow = new BrowserWindow({
-    show: false,
-    width: 1024,
-    height: 728,
-    icon: getAssetPath('icon.png'),
-    resizable: true,
-    vibrancy: windowsAeroEnabled
-      ? {
+  const isWindows = process.platform === 'win32';
+  const windowsAeroEnabled = isWindows && systemPreferences.isAeroGlassEnabled();
+
+  mainWindow = windowsAeroEnabled
+    ? <BrowserWindow>new AcrylicBrowserWindow({
+        ...getWindowOptions(),
+        vibrancy: {
           theme: 'dark',
           effect: 'blur',
           maximumRefreshRate: 30,
           disableOnBlur: false,
-        }
-      : 'under-window',
-    transparent: true,
-    backgroundColor: '#00000000',
-    titleBarStyle: 'hiddenInset',
-    darkTheme: true,
-    frame: !windowsAeroEnabled,
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  });
+        },
+      })
+    : new BrowserWindow({
+        ...getWindowOptions(),
+        vibrancy: 'under-window',
+      });
 
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
