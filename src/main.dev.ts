@@ -90,6 +90,7 @@ const createWindow = async () => {
       frame: !isWindows,
       webPreferences: {
         nodeIntegration: true,
+        contextIsolation: false,
       },
     };
   };
