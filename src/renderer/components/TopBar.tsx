@@ -57,7 +57,7 @@ const useStyles = createUseStyles({
   },
   close: {
     '&:hover': {
-      background: 'rgba(255, 0, 0, .3)',
+      background: 'rgba(255, 0, 0, .5)',
     },
   },
 });

@@ -1,7 +1,6 @@
 {
   "name": "photos",
   "productName": "Photos",
-  "version": "1.0.0",
   "description": "Photos",
   "main": "./main.prod.js",
   "author": {

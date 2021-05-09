@@ -313,7 +313,6 @@ export default memo(function GalleryScroller({ folder, width }: Props): JSX.Elem
           height={height}
           width={width - 12}
           overscanColumnCount={5}
-          isScrollingOptOut
           scrollLeft={isAnimating ? scroll.current.value : undefined}
           onScroll={handleScroll}
         />

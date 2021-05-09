@@ -8,6 +8,7 @@ import FileEntry, { findLastFolder } from '../../models/FileEntry';
 import FolderName from './FolderName';
 import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
 
 const useStyles = createUseStyles({
   root: {
@@ -16,7 +17,6 @@ const useStyles = createUseStyles({
   },
   entry: {
     display: 'flex',
-    height: 40,
     padding: 4,
     boxSizing: 'border-box',
     fontSize: 14,
@@ -47,6 +47,7 @@ export default memo(function Folder({ isRoot = true, index, isSelected, fileEntr
   const classes = useStyles({ level: fileEntry.level });
   const autoSelectLast = useSelector(selectAutoSelectLastFolder);
   const openFolders = useSelector(selectOpenFolders);
+  const height = useSelector(selectFolderSize);
   const dispatch = useDispatch();
 
   const subFolders = useMemo(() => {
@@ -72,7 +73,7 @@ export default memo(function Folder({ isRoot = true, index, isSelected, fileEntr
 
   return (
     <>
-      <div className={classNames(classes.entry, `folder-${index}`)} onClick={() => onClick(index)}>
+      <div className={classNames(classes.entry, `folder-${index}`)} style={{ height }} onClick={() => onClick(index)}>
         <FolderName
           {...{
             fileEntry,

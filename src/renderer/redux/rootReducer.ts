@@ -7,6 +7,7 @@ import galleryScrollerReducer from './slices/galleryScrollerSlice';
 import folderVisibilityReducer from './slices/folderVisibilitySlice';
 import rootFolderReducer from './slices/rootFolderSlice';
 import selectedFolderReducer from './slices/selectedFolderSlice';
+import folderSizeReducer from './slices/folderSizeSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
@@ -16,5 +17,6 @@ export default function createRootReducer(history: History) {
     galleryScroller: galleryScrollerReducer,
     rootFolder: rootFolderReducer,
     selectedFolder: selectedFolderReducer,
+    folderSize: folderSizeReducer,
   });
 }

@@ -1,58 +1,26 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-
-import { each, map, max } from 'lodash';
+import { each, min, max } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
-import Folder from './Folder';
 import useEventListener from '../../hooks/useEventListener';
+import useDragging from '../../hooks/useDragging';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import FileEntry from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { setSelectedFolder, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
-
-interface FolderListProps {
-  visibleFolders: FileEntry[];
-  rootFolder: FileEntry | null;
-  onSelectIndex: (index: number) => void;
-}
-
-const FolderList = memo(function FolderList({
-  visibleFolders,
-  rootFolder,
-  onSelectIndex,
-}: FolderListProps): JSX.Element {
-  const selectedFolderPath = useSelector(selectSelectedFolder);
-
-  return (
-    <>
-      {map(visibleFolders, (folder, index: number) => (
-        <Folder
-          key={folder.fullPath}
-          index={index}
-          fileEntry={folder}
-          isRoot={folder === rootFolder}
-          isSelected={folder.fullPath === selectedFolderPath}
-          onClick={onSelectIndex}
-        />
-      ))}
-    </>
-  );
-});
+import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import FolderList from './FolderList';
+import { selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
 
 const useStyles = createUseStyles({
   container: {
     overflow: 'auto',
     userSelect: 'none',
     display: 'flex',
-  },
-  background: {
-    position: 'absolute',
+    flexDirection: 'column',
     background: 'rgba(0,0,0,.2)',
-    height: '100%',
-    zIndex: -1,
   },
-  dragHandle: {
+  dragHandleContainerResize: {
     position: 'absolute',
     height: '100%',
     width: 1,
@@ -76,18 +44,43 @@ const useStyles = createUseStyles({
   list: {
     width: '100%!important',
   },
-  folderVisibility: {},
+  containerFolderResize: {
+    padding: 10,
+  },
+  lineFolderResize: {
+    width: '100%',
+    background: '#888',
+    height: 1,
+    position: 'relative',
+  },
+  dragHandleFolderResize: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: 10,
+    background: '#888',
+    cursor: 'pointer',
+    left: 0,
+    top: -5,
+  },
 });
+
+const MIN_FOLDER_HEIGHT = 20;
+const MAX_FOLDER_HEIGHT = 150;
 
 export default function DirectoryViewer(): JSX.Element {
   const classes = useStyles();
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
+  const folderSize = useSelector(selectFolderSize);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [width, setWidth] = useState<number>(250);
-  const [dragStart, setDragging] = useState<number | null>(null);
+  const [folderResizeHandlePosition, setFolderResizeHandlePosition] = useState<number>(
+    (folderSize - MIN_FOLDER_HEIGHT) / (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) / width
+  );
   const container = useRef<HTMLDivElement>(null);
-  const dragHandle = useRef<HTMLDivElement>(null);
+  const dragHandleContainerResize = useRef<HTMLDivElement>(null);
+  const dragHandleFolderResize = useRef<HTMLSpanElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const dispatch = useDispatch();
 
@@ -143,41 +136,41 @@ export default function DirectoryViewer(): JSX.Element {
     };
   }, [selectedIndex, sheet]);
 
-  const startDragging = (event: React.MouseEvent) => {
-    event.preventDefault();
-    setDragging(event.pageX);
-  };
-
-  useEventListener(
-    'pointermove',
-    (event: MouseEvent) => {
-      event.preventDefault();
-      if (container.current === null || dragHandle.current === null || dragStart === null) {
+  useDragging(
+    dragHandleContainerResize,
+    ({ x }) => {
+      if (container.current === null || dragHandleContainerResize.current === null) {
         return;
       }
 
-      const newWidth = max([0, width + event.pageX - dragStart]) || 0;
+      const newWidth = max([0, width + x]) || 0;
       container.current.style.width = `${newWidth}px`;
-      dragHandle.current.style.left = `${newWidth - 1}px`;
+      dragHandleContainerResize.current.style.left = `${newWidth - 1}px`;
     },
-    window,
-    dragStart !== null
+    ({ x }) => {
+      setWidth(max([0, width + x]) || 0);
+    }
   );
 
-  useEventListener(
-    'pointerup',
-    (event: MouseEvent) => {
-      event.preventDefault();
-      if (dragStart === null) {
+  useDragging(
+    dragHandleFolderResize,
+    ({ x }) => {
+      if (dragHandleFolderResize.current === null) {
         return;
       }
 
-      const newWidth = max([0, width + event.pageX - dragStart]) || 0;
-      setDragging(null);
-      setWidth(newWidth);
+      const newPosition =
+        min([dragHandleFolderResize.current?.parentElement?.clientWidth, max([0, folderResizeHandlePosition + x])]) ||
+        0;
+      dragHandleFolderResize.current.style.left = `${newPosition}px`;
     },
-    window,
-    dragStart !== null
+    ({ x }) => {
+      const newPosition =
+        min([dragHandleFolderResize.current?.parentElement?.clientWidth, max([0, folderResizeHandlePosition + x])]) ||
+        0;
+      setFolderResizeHandlePosition(newPosition);
+      dispatch(setFolderSize((newPosition / width) * (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) + MIN_FOLDER_HEIGHT));
+    }
   );
 
   const findParentIndex = (index: number) => {
@@ -238,16 +231,23 @@ export default function DirectoryViewer(): JSX.Element {
   return (
     <div ref={container} className={classes.container} style={{ width }}>
       <div
-        ref={dragHandle}
-        className={classes.dragHandle}
+        ref={dragHandleContainerResize}
+        className={classes.dragHandleContainerResize}
         role="separator"
-        onMouseDown={startDragging}
         style={{ left: width - 1 }}
       />
       <div className={classes.folderNames}>
         <FolderList visibleFolders={visibleFolders} rootFolder={rootFolder} onSelectIndex={setSelectedIndex} />
       </div>
-      <div className={classes.background} style={{ width }} />
+      <div className={classes.containerFolderResize}>
+        <div className={classes.lineFolderResize}>
+          <span
+            ref={dragHandleFolderResize}
+            className={classes.dragHandleFolderResize}
+            style={{ left: folderResizeHandlePosition }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
