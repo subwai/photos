@@ -7,15 +7,13 @@ import FolderIcon from './FolderIcon';
 import FileEntry from '../../models/FileEntry';
 import { selectHiddenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
 
-const useStyles = createUseStyles({
+const useStyles = createUseStyles<string, { hidden: boolean }>({
   container: {
     flex: 1,
   },
   icon: {
-    height: 32,
     fontSize: 16,
     padding: '0 4px',
-    lineHeight: '32px',
     textAlign: 'center',
     verticalAlign: 'middle',
     display: 'inline-block',
@@ -31,8 +29,6 @@ const useStyles = createUseStyles({
   },
   name: {
     flex: 1,
-    height: 32,
-    lineHeight: '32px',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     padding: '0 4px',

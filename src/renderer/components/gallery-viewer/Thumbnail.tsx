@@ -4,6 +4,8 @@ import classNames from 'classnames';
 import FileEntry, { isVideo } from '../../models/FileEntry';
 import useThumbnail from '../../hooks/useThumbnail';
 
+export const THUMBNAIL_PADDING = 6;
+
 const useStyles = createUseStyles({
   thumbnail: {
     padding: '6px 0 2px',
@@ -12,7 +14,7 @@ const useStyles = createUseStyles({
   image: {
     width: '100%',
     height: '100%',
-    padding: 6,
+    padding: THUMBNAIL_PADDING,
     borderRadius: 5,
     objectFit: 'contain',
     boxSizing: 'border-box',

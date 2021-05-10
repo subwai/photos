@@ -10,7 +10,9 @@ import FileEntry from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FolderList from './FolderList';
-import { selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
+import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
+
+const FOLDER_RESIZE_PADDING = 10;
 
 const useStyles = createUseStyles({
   container: {
@@ -45,13 +47,19 @@ const useStyles = createUseStyles({
     width: '100%!important',
   },
   containerFolderResize: {
-    padding: 10,
+    padding: `0 ${FOLDER_RESIZE_PADDING}px`,
   },
   lineFolderResize: {
     width: '100%',
-    background: '#888',
-    height: 1,
     position: 'relative',
+    cursor: 'pointer',
+    padding: '10px 0',
+    '&:before': {
+      display: 'block',
+      content: '""',
+      height: 1,
+      background: '#888',
+    },
   },
   dragHandleFolderResize: {
     position: 'absolute',
@@ -59,14 +67,23 @@ const useStyles = createUseStyles({
     height: 10,
     borderRadius: 10,
     background: '#888',
-    cursor: 'pointer',
-    left: 0,
-    top: -5,
+    marginLeft: -5,
+    top: 5,
   },
 });
 
 const MIN_FOLDER_HEIGHT = 20;
 const MAX_FOLDER_HEIGHT = 150;
+
+function getFolderSizeFromPosition(position: number, width: number): number {
+  return (position / (width - FOLDER_RESIZE_PADDING * 2)) * (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) + MIN_FOLDER_HEIGHT;
+}
+
+function getPositionFromFolderSize(folderSize: number, width: number): number {
+  return (
+    ((folderSize - MIN_FOLDER_HEIGHT) / (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT)) * (width - FOLDER_RESIZE_PADDING * 2)
+  );
+}
 
 export default function DirectoryViewer(): JSX.Element {
   const classes = useStyles();
@@ -76,11 +93,13 @@ export default function DirectoryViewer(): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [width, setWidth] = useState<number>(250);
   const [folderResizeHandlePosition, setFolderResizeHandlePosition] = useState<number>(
-    (folderSize - MIN_FOLDER_HEIGHT) / (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) / width
+    getPositionFromFolderSize(folderSize, width)
   );
+
   const container = useRef<HTMLDivElement>(null);
   const dragHandleContainerResize = useRef<HTMLDivElement>(null);
-  const dragHandleFolderResize = useRef<HTMLSpanElement>(null);
+  const dragLineFolderResize = useRef<HTMLDivElement>(null);
+  const dragHandleFolderResize = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const dispatch = useDispatch();
 
@@ -146,32 +165,48 @@ export default function DirectoryViewer(): JSX.Element {
       const newWidth = max([0, width + x]) || 0;
       container.current.style.width = `${newWidth}px`;
       dragHandleContainerResize.current.style.left = `${newWidth - 1}px`;
+
+      if (dragHandleFolderResize.current) {
+        dragHandleFolderResize.current.style.left = `${getPositionFromFolderSize(folderSize, newWidth)}px`;
+      }
     },
+    () => {},
     ({ x }) => {
-      setWidth(max([0, width + x]) || 0);
+      const newWidth = max([0, width + x]) || 0;
+      setWidth(newWidth);
+      setFolderResizeHandlePosition(getPositionFromFolderSize(folderSize, newWidth));
     }
   );
 
   useDragging(
-    dragHandleFolderResize,
+    dragLineFolderResize,
     ({ x }) => {
       if (dragHandleFolderResize.current === null) {
         return;
       }
 
-      const newPosition =
-        min([dragHandleFolderResize.current?.parentElement?.clientWidth, max([0, folderResizeHandlePosition + x])]) ||
-        0;
+      const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
       dragHandleFolderResize.current.style.left = `${newPosition}px`;
     },
     ({ x }) => {
-      const newPosition =
-        min([dragHandleFolderResize.current?.parentElement?.clientWidth, max([0, folderResizeHandlePosition + x])]) ||
-        0;
+      if (dragHandleFolderResize.current === null) {
+        return;
+      }
+
+      setFolderResizeHandlePosition(x);
+      dragHandleFolderResize.current.style.left = `${x}px`;
+    },
+    ({ x }) => {
+      const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
       setFolderResizeHandlePosition(newPosition);
-      dispatch(setFolderSize((newPosition / width) * (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) + MIN_FOLDER_HEIGHT));
+      dispatch(setFolderSize(getFolderSizeFromPosition(newPosition, width)));
     }
   );
+
+  const resetFolderSize = () => {
+    dispatch(setFolderSize(DEFAULT_FOLDER_SIZE));
+    setFolderResizeHandlePosition(getPositionFromFolderSize(DEFAULT_FOLDER_SIZE, width));
+  };
 
   const findParentIndex = (index: number) => {
     const selectedFolder = visibleFolders[index];
@@ -240,11 +275,12 @@ export default function DirectoryViewer(): JSX.Element {
         <FolderList visibleFolders={visibleFolders} rootFolder={rootFolder} onSelectIndex={setSelectedIndex} />
       </div>
       <div className={classes.containerFolderResize}>
-        <div className={classes.lineFolderResize}>
+        <div className={classes.lineFolderResize} ref={dragLineFolderResize}>
           <span
-            ref={dragHandleFolderResize}
             className={classes.dragHandleFolderResize}
+            ref={dragHandleFolderResize}
             style={{ left: folderResizeHandlePosition }}
+            onDoubleClick={resetFolderSize}
           />
         </div>
       </div>

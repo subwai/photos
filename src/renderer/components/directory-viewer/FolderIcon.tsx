@@ -6,14 +6,14 @@ import useThumbnail from '../../hooks/useThumbnail';
 
 const useStyles = createUseStyles({
   previewIcon: {
-    width: 32,
-    height: 32,
+    height: '100%',
     borderRadius: 5,
     padding: '0 4px',
     verticalAlign: 'middle',
     imageRendering: 'pixelated',
     background: 'rgba(0,0,0,.3)',
     objectFit: 'cover',
+    aspectRatio: 1,
     position: 'relative',
     '&:after': {
       content: '"\\f1c5"',
@@ -32,10 +32,7 @@ const useStyles = createUseStyles({
     },
   },
   folderIcon: {
-    width: 32,
-    height: 32,
     padding: '0 4px',
-    lineHeight: '32px',
     fontSize: 22,
     textAlign: 'center',
     verticalAlign: 'middle',

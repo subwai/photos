@@ -9,6 +9,7 @@ type DragState = {
 export default function useDragging(
   target: React.RefObject<HTMLElement>,
   onDrag: (state: DragState) => void,
+  onStart: (state: DragState) => void,
   onEnd: (state: DragState) => void
 ) {
   const [dragStart, setDragStart] = useState<DragState | null>(null);
@@ -24,7 +25,17 @@ export default function useDragging(
     'pointerdown',
     (event: MouseEvent) => {
       event.preventDefault();
+      const currentTarget = event.currentTarget as HTMLElement;
       setDragStart({ x: event.pageX, y: event.pageY });
+      onStart(
+        getDiff(
+          {
+            x: currentTarget.offsetLeft || 0,
+            y: currentTarget.offsetTop || 0,
+          },
+          event
+        )
+      );
     },
     target.current
   );

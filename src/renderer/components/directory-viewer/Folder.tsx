@@ -10,7 +10,7 @@ import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slice
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
 
-const useStyles = createUseStyles({
+const useStyles = createUseStyles<string, { level: number }>({
   root: {
     marginLeft: 0,
     width: 'calc(100% - 1px)',
@@ -20,6 +20,7 @@ const useStyles = createUseStyles({
     padding: 4,
     boxSizing: 'border-box',
     fontSize: 14,
+    alignItems: 'center',
     verticalAlign: 'middle',
     whiteSpace: 'nowrap',
     cursor: 'pointer',
