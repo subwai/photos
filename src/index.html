@@ -14,6 +14,7 @@
         }
       })();
     </script>
+    <script src="http://localhost:8097"></script>
   </head>
   <body>
     <div id="root"></div>
@@ -28,9 +29,6 @@
         // Dynamically insert the bundled app script in the renderer process
         const port = process.env.PORT || 1212;
         scripts.push(`http://localhost:${port}/dist/renderer.dev.js`);
-
-        // React devtools
-        scripts.push('http://localhost:8097');
       } else {
         scripts.push('./dist/renderer.prod.js');
       }

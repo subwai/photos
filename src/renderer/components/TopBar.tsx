@@ -38,7 +38,7 @@ const useStyles = createUseStyles({
     fontSize: 17,
     padding: '5px 17px',
     margin: 0,
-    transition: 'background 300ms',
+    transition: 'background 200ms',
     '&:hover': {
       background: 'rgba(255, 255, 255, .3)',
     },

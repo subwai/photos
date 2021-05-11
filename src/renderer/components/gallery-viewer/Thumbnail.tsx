@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
-import FileEntry, { isVideo } from '../../models/FileEntry';
+import { FileEntryModel, isVideo } from '../../models/FileEntry';
 import useThumbnail from '../../hooks/useThumbnail';
 
 export const THUMBNAIL_PADDING = 6;
@@ -39,7 +39,7 @@ const useStyles = createUseStyles({
 });
 
 interface Props {
-  fileEntry: FileEntry;
+  fileEntry: FileEntryModel;
   index: number;
   onClick: (event: React.MouseEvent) => void;
   style: object;

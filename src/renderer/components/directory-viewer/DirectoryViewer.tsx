@@ -5,18 +5,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
 import useEventListener from '../../hooks/useEventListener';
 import useDragging from '../../hooks/useDragging';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import FileEntry from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FolderList from './FolderList';
 import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 
 const FOLDER_RESIZE_PADDING = 10;
 
 const useStyles = createUseStyles({
   container: {
-    overflow: 'auto',
     userSelect: 'none',
     display: 'flex',
     flexDirection: 'column',
@@ -42,6 +41,7 @@ const useStyles = createUseStyles({
   },
   folderNames: {
     flex: 1,
+    overflow: 'auto',
   },
   list: {
     width: '100%!important',
@@ -272,7 +272,7 @@ export default function DirectoryViewer(): JSX.Element {
         style={{ left: width - 1 }}
       />
       <div className={classes.folderNames}>
-        <FolderList visibleFolders={visibleFolders} rootFolder={rootFolder} onSelectIndex={setSelectedIndex} />
+        <FolderList visibleFolders={visibleFolders} onSelectIndex={setSelectedIndex} />
       </div>
       <div className={classes.containerFolderResize}>
         <div className={classes.lineFolderResize} ref={dragLineFolderResize}>

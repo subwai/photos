@@ -8,7 +8,7 @@ import path from 'path';
 import sha1 from 'sha1';
 import { includes } from 'lodash';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
-import FileEntry, { isImage } from '../models/FileEntry';
+import FileEntry, { FileEntryModel, isImage } from '../models/FileEntry';
 
 const ignore = ['.gif'];
 
@@ -17,7 +17,7 @@ function isIgnored(fileEntry?: FileEntry | null) {
 }
 
 export default function useThumbnail(
-  fileEntry?: FileEntry | null
+  fileEntry?: FileEntryModel | null
 ): [string | undefined, string | undefined, React.Dispatch<React.SetStateAction<string | null>>] {
   const [key, setKey] = useState<string | undefined>(undefined);
   const [requestThumbnail, setRequestThumbnail] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function useThumbnail(
 
     if (requestThumbnail && !useOriginal && fileEntry) {
       promise = Bluebird.resolve()
-        .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry))
+        .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
         .then(() => setKey(uuidv4()))
         .catch(() => setUseOriginal(true));
     }

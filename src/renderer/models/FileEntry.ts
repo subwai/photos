@@ -1,4 +1,4 @@
-import { find, findIndex, findLast, identity, includes } from 'lodash';
+import { forEach, find, findIndex, findLast, identity, includes, map } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
@@ -6,9 +6,72 @@ import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
 export default interface FileEntry {
   name: string;
   fullPath: string;
+  objectPath?: string;
   isFolder: boolean;
   children: FileEntry[] | null;
   level: number;
+}
+
+export class FileEntryModel implements FileEntry {
+  children: FileEntryModel[] | null;
+
+  fullPath: string;
+
+  objectPath: string | undefined;
+
+  isFolder: boolean;
+
+  level: number;
+
+  name: string;
+
+  parent: FileEntryModel | undefined;
+
+  listeners: Function[];
+
+  constructor(props: { parent: FileEntryModel } & FileEntry) {
+    this.children = props.children ? this.convertToFileEntryModels(props.children) : null;
+    this.fullPath = props.fullPath;
+    this.objectPath = props.objectPath;
+    this.isFolder = props.isFolder;
+    this.level = props.level;
+    this.name = props.name;
+    this.parent = props.parent;
+
+    this.listeners = [];
+  }
+
+  values() {
+    return {
+      name: this.name,
+      fullPath: this.fullPath,
+      objectPath: this.objectPath,
+      isFolder: this.isFolder,
+      children: null,
+      level: this.level,
+    };
+  }
+
+  convertToFileEntryModels(children: FileEntry[]) {
+    return map<FileEntry, FileEntryModel>(children, (child, index) =>
+      child instanceof FileEntryModel
+        ? child
+        : new FileEntryModel({
+            ...child,
+            objectPath: `${this.objectPath ? `${this.objectPath}.` : ''}children[${index}]`,
+            parent: this,
+          })
+    );
+  }
+
+  addEventListener(callback: Function) {
+    this.listeners.push(callback);
+  }
+
+  onUpdate() {
+    this.parent?.onUpdate();
+    forEach(this.listeners, (callback) => callback());
+  }
 }
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];

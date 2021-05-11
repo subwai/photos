@@ -7,15 +7,10 @@ import Folder from './Folder';
 
 interface FolderListProps {
   visibleFolders: FileEntry[];
-  rootFolder: FileEntry | null;
   onSelectIndex: (index: number) => void;
 }
 
-const FolderList = memo(function FolderList({
-  visibleFolders,
-  rootFolder,
-  onSelectIndex,
-}: FolderListProps): JSX.Element {
+export default memo(function FolderList({ visibleFolders, onSelectIndex }: FolderListProps): JSX.Element {
   const selectedFolderPath = useSelector(selectSelectedFolder);
 
   return (
@@ -24,8 +19,7 @@ const FolderList = memo(function FolderList({
         <Folder
           key={folder.fullPath}
           index={index}
-          fileEntry={folder}
-          isRoot={folder === rootFolder}
+          objectPath={folder.objectPath}
           isSelected={folder.fullPath === selectedFolderPath}
           onClick={onSelectIndex}
         />
@@ -33,5 +27,3 @@ const FolderList = memo(function FolderList({
     </>
   );
 });
-
-export default FolderList;

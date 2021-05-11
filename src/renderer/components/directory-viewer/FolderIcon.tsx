@@ -1,14 +1,18 @@
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
+import { useSelector } from 'react-redux';
 import FileEntry, { findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
 import useThumbnail from '../../hooks/useThumbnail';
+import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
+
+const SIDE_MARGIN = 4;
 
 const useStyles = createUseStyles({
   previewIcon: {
     height: '100%',
     borderRadius: 5,
-    padding: '0 4px',
+    margin: `0 ${SIDE_MARGIN}px`,
     verticalAlign: 'middle',
     imageRendering: 'pixelated',
     background: 'rgba(0,0,0,.3)',
@@ -32,8 +36,7 @@ const useStyles = createUseStyles({
     },
   },
   folderIcon: {
-    padding: '0 4px',
-    fontSize: 22,
+    margin: `0 ${SIDE_MARGIN}px`,
     textAlign: 'center',
     verticalAlign: 'middle',
     composes: 'fas',
@@ -48,6 +51,7 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
   const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
   const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
+  const height = useSelector(selectFolderSize);
 
   if (preview && isVideo(preview)) {
     return (
@@ -73,5 +77,5 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
     );
   }
 
-  return <i className={classNames(classes.folderIcon, 'fa-folder')} />;
+  return <i className={classNames(classes.folderIcon, 'fa-folder')} style={{ fontSize: height - SIDE_MARGIN * 2 }} />;
 }

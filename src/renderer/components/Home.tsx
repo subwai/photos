@@ -3,6 +3,7 @@ import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
 import { useDispatch, useSelector } from 'react-redux';
+import path from 'path';
 import DirectoryViewer from './directory-viewer/DirectoryViewer';
 import GalleryViewer from './gallery-viewer/GalleryViewer';
 import FileEntry from '../models/FileEntry';
@@ -16,6 +17,7 @@ import {
   removeFile,
 } from '../redux/slices/rootFolderSlice';
 import { setSelectedFolder } from '../redux/slices/selectedFolderSlice';
+import FileSystemService from '../utils/FileSystemService';
 
 const useStyles = createUseStyles({
   container: {
@@ -40,8 +42,8 @@ export default function Home(): JSX.Element {
     function handleFileChanged(_: Electron.IpcRendererEvent, entry: FileEntry) {
       dispatch(updateFile(entry));
     }
-    function handleFileRemoved(_: Electron.IpcRendererEvent, path: string) {
-      dispatch(removeFile(path));
+    function handleFileRemoved(_: Electron.IpcRendererEvent, fullPath: string) {
+      dispatch(removeFile(fullPath));
     }
 
     ipcRenderer.on('current-folder-changed', handleFolderChanged);
@@ -63,9 +65,20 @@ export default function Home(): JSX.Element {
     setRootFolderPathCache(rootFolderPath);
 
     const promise = Promise.resolve()
-      .then(() => ipcRenderer.invoke('get-file-tree', rootFolderPath))
-      .tap((folder: FileEntry) => dispatch(setRootFolder(folder)))
-      .tap((folder: FileEntry) => dispatch(setSelectedFolder(folder)))
+      .then(() => (rootFolderPath ? FileSystemService.getChildren(rootFolderPath) : null))
+      .then((children) =>
+        rootFolderPath
+          ? {
+              name: path.basename(rootFolderPath),
+              fullPath: rootFolderPath,
+              isFolder: true,
+              children,
+              level: 0,
+            }
+          : null
+      )
+      .tap((folder: FileEntry | null) => dispatch(setRootFolder(folder)))
+      .tap((folder: FileEntry | null) => dispatch(setSelectedFolder(folder)))
       .catch(console.error);
 
     return () => promise.cancel();

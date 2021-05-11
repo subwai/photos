@@ -1,14 +1,15 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { AutoSizer } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { max } from 'lodash';
+import Promise from 'bluebird';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
-import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { SELECTED_FOLDER_UPDATE_DEBOUNCE, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import useDebounce from '../../hooks/useDebounce';
-import { findFolderAndIndex } from '../../models/FileEntry';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import FileEntry, { FileEntryModel, findFolderAndIndex } from '../../models/FileEntry';
+import { selectRootFolder, updateFile } from '../../redux/slices/rootFolderSlice';
 import {
   selectGalleryScrollerHeight,
   selectGallerySort,
@@ -17,6 +18,7 @@ import {
 } from '../../redux/slices/galleryScrollerSlice';
 import useDragging from '../../hooks/useDragging';
 import { THUMBNAIL_PADDING } from './Thumbnail';
+import FileSystemService from '../../utils/FileSystemService';
 
 const useStyles = createUseStyles({
   container: {
@@ -80,13 +82,17 @@ export default function GalleryViewer(): JSX.Element {
   const rootFolder = useSelector(selectRootFolder);
   const container = useRef<HTMLDivElement>(null);
   const dragHandle = useRef<HTMLDivElement>(null);
-  const selectedFolderPath = useDebounce(useSelector(selectSelectedFolder), 250);
+  const selectedFolderPath = useDebounce(useSelector(selectSelectedFolder), SELECTED_FOLDER_UPDATE_DEBOUNCE);
   const height = useSelector(selectGalleryScrollerHeight);
   const sort = useSelector(selectGallerySort);
+  const updateFolderPromise = useRef<Promise<void | false>>();
   const dispatch = useDispatch();
 
   const selectedFolder = useMemo(() => {
-    const { folder, index } = findFolderAndIndex(rootFolder, selectedFolderPath);
+    const { folder, index } = findFolderAndIndex(rootFolder, selectedFolderPath) as {
+      folder: FileEntryModel;
+      index: number;
+    };
 
     if (folder) {
       if (folder.children !== null && index !== null) {
@@ -98,6 +104,31 @@ export default function GalleryViewer(): JSX.Element {
 
     return null;
   }, [selectedFolderPath, rootFolder]);
+
+  useEffect(() => {
+    function getAndUpdateFolder(entry: FileEntryModel | FileEntry) {
+      return FileSystemService.getChildren(entry.fullPath, { priority: 1 }).then((children) => {
+        if (children) {
+          dispatch(updateFile({ ...entry, children }));
+        }
+
+        return children;
+      });
+    }
+
+    function updateFoldersRecursively(entry: FileEntryModel | FileEntry): Promise<void | false> {
+      return Promise.resolve()
+        .then(() => entry.children || getAndUpdateFolder(entry))
+        .then((children) => Promise.all(children.map((child) => child.isFolder && updateFoldersRecursively(child))))
+        .then(() => {});
+    }
+
+    if (selectedFolder) {
+      updateFolderPromise.current = updateFoldersRecursively(selectedFolder);
+    }
+
+    return () => updateFolderPromise.current?.cancel();
+  }, [selectedFolder]);
 
   useDragging(
     dragHandle,

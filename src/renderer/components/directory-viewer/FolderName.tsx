@@ -16,7 +16,7 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
     padding: '0 4px',
     textAlign: 'center',
     verticalAlign: 'middle',
-    display: 'inline-block',
+    display: 'inline-table',
     boxSizing: 'border-box',
   },
   caretIcon: {

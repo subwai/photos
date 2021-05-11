@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import { orderBy } from 'lodash';
+import { orderBy, throttle } from 'lodash';
 import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
-import FileEntry, { findAllFilesRecursive } from '../../models/FileEntry';
+import uuid from 'uuid';
+import FileEntry, { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
 import Thumbnail from './Thumbnail';
 import useEventListener from '../../hooks/useEventListener';
 import useAnimation from '../../hooks/useAnimation';
@@ -25,10 +26,15 @@ const useStyles = createUseStyles({
     overflowX: 'overlay!important',
     overflowY: 'hidden!important',
   },
+  count: {
+    position: 'absolute',
+    right: 2,
+    bottom: 5,
+  },
 });
 
 interface Props {
-  folder?: FileEntry | null;
+  folder?: FileEntryModel | null;
   width: number;
   height: number;
 }
@@ -44,16 +50,19 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const classes = useStyles();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntry[] | null>(null);
-  const container = useRef<HTMLDivElement>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const sort = useSelector(selectGallerySort);
   const scroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
   const [animateTo, setAnimateTo] = useState(0);
   const dispatch = useDispatch();
-
   const ref = useRef<HTMLDivElement>(null);
-
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
+  const [update, triggerUpdate] = useState<string | null>(null);
+
+  const triggerUpdateThrottled = throttle(triggerUpdate, 2000);
+  useEffect(() => {
+    folder?.addEventListener(() => setTimeout(() => triggerUpdateThrottled(uuid.v4()), 0));
+  }, [folder]);
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
@@ -70,7 +79,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
     }, 250);
 
     return () => clearTimeout(timeout);
-  }, [folder, hiddenFolders]);
+  }, [update, folder, hiddenFolders]);
 
   const sortedFiles = useMemo(() => {
     return orderBy(flattenedFiles, ...sort.split(':'));
@@ -157,7 +166,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
         scrollTo(firstChild?.scrollLeft + event.deltaY);
       }
     },
-    container.current
+    ref.current
   );
 
   useEffect(() => {
@@ -222,6 +231,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
         scrollLeft={isAnimating ? scroll.current.value : undefined}
         onScroll={handleScroll}
       />
+      <div className={classes.count}>{sortedFiles ? sortedFiles.length : 0}</div>
     </div>
   );
 });

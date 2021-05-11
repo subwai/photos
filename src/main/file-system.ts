@@ -4,14 +4,10 @@ import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
 import FileEntry, { isImageOrVideo } from '../renderer/models/FileEntry';
 
-const readdirAsync: (
-  arg1: fs.PathLike,
-  arg2: BaseEncodingOptions & { withFileTypes: true }
-) => Bluebird<fs.Dirent[]> = Bluebird.promisify(fs.readdir);
+const readdirAsync: (arg1: fs.PathLike, arg2: BaseEncodingOptions & { withFileTypes: true }) => Bluebird<fs.Dirent[]> =
+  Bluebird.promisify(fs.readdir);
 
 const statAsync: (arg1: fs.PathLike) => Bluebird<fs.Stats> = Bluebird.promisify(fs.stat);
-
-type QueueEntry = [entry: FileEntry, parent: FileEntry | null];
 
 export function getCachePath() {
   return path.join(app.getPath('cache'), 'org.adamlyren.Photos');
@@ -38,8 +34,11 @@ export default class FileSystem {
 
   start() {
     ipcMain.handle('get-cache-path', getCachePath);
-    ipcMain.handle('get-file-tree', this.getFileTree);
+    ipcMain.handle('get-children', (_: Electron.IpcMainInvokeEvent, fullPath: string) => this.getChildren(fullPath));
     ipcMain.on('open-folder', this.openFolder);
+    ipcMain.on('set-root-folder', (_: Electron.IpcMainInvokeEvent, fullPath: string) =>
+      this.setRootFolderPath(fullPath)
+    );
   }
 
   openFolder = () => {
@@ -98,13 +97,13 @@ export default class FileSystem {
       const level = fullPath.split(/[\\/]/).length - rootLevel;
 
       if (stats.isDirectory()) {
-        this.mainWindow.webContents.send('file-changed', await this.readFileTree(fullPath, level));
+        this.mainWindow.webContents.send('file-changed', await this.getChildren(fullPath));
       } else if (isImageOrVideo(fullPath)) {
         this.mainWindow.webContents.send('file-changed', <FileEntry>{
           name: path.basename(fullPath),
           fullPath,
           isFolder: stats.isDirectory(),
-          children: stats.isDirectory() ? [] : null,
+          children: null,
           level,
         });
       }
@@ -115,78 +114,19 @@ export default class FileSystem {
     }
   };
 
-  getFileTree = async (_: Electron.IpcMainInvokeEvent, rootPath: string) => {
-    if (!rootPath) {
-      return null;
-    }
+  getChildren = async (fullPath: string): Promise<FileEntry[]> => {
+    const files = await readdirAsync(fullPath, { withFileTypes: true });
+    const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
+    const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
-    return Bluebird.resolve()
-      .then(() => this.readFileTree(rootPath))
-      .tap(() => this.setRootFolderPath(rootPath));
-  };
+    console.log('Scanning', fullPath);
 
-  async readFileTree(rootPath: string, level = 0) {
-    if (this.readFileTreePromiseMap[rootPath]) {
-      this.readFileTreePromiseMap[rootPath].cancel();
-    }
-
-    function filter(entry: FileEntry) {
-      if (entry.isFolder) {
-        return true;
-      }
-
-      return isImageOrVideo(entry.name);
-    }
-
-    this.readFileTreePromiseMap[rootPath] = Bluebird.try(() => FileSystem.recursiveReadDir(rootPath, filter, level));
-    const result = await this.readFileTreePromiseMap[rootPath];
-    delete this.readFileTreePromiseMap[rootPath];
-
-    return result;
-  }
-
-  static async recursiveReadDir(
-    dir: string,
-    filter?: (entry: FileEntry) => boolean,
-    level = 0,
-    concurrency = 100
-  ): Promise<FileEntry> {
-    const root = <FileEntry>{
-      name: path.basename(dir),
-      fullPath: dir,
-      isFolder: true,
-      children: [],
+    return files.map((file) => ({
+      name: file.name,
+      fullPath: path.resolve(fullPath, file.name),
+      isFolder: file.isDirectory(),
+      children: null,
       level,
-    };
-
-    const queue = <QueueEntry[]>[[root, null]];
-    const visit = async (entry: FileEntry, parent: FileEntry | null) => {
-      if (filter && !filter(entry)) return;
-      if (entry.isFolder) {
-        console.log(`Scanning ${entry.fullPath}`);
-        queue.push(
-          ...(await readdirAsync(entry.fullPath, { withFileTypes: true })).map<QueueEntry>((file) => [
-            {
-              name: file.name,
-              fullPath: path.join(entry.fullPath, file.name),
-              isFolder: file.isDirectory(),
-              children: file.isDirectory() ? [] : null,
-              level: entry.level + 1,
-            },
-            entry,
-          ])
-        );
-      }
-
-      if (parent && parent.children) {
-        parent.children.push(entry);
-      }
-    };
-    while (queue.length) {
-      // eslint-disable-next-line no-await-in-loop
-      await Promise.all(queue.splice(0, concurrency).map(([entry, parent]) => visit(entry, parent)));
-    }
-
-    return root;
-  }
+    }));
+  };
 }

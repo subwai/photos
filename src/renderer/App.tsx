@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 
 import './App.global.css';
+import { ipcRenderer } from 'electron';
 import TopBar from './components/TopBar';
 import Home from './components/Home';
 import { history, configuredStore } from './redux/store';
@@ -21,6 +22,10 @@ const useStyles = createUseStyles({
 });
 
 const store = configuredStore(loadPersistedState());
+
+if (store.getState().rootFolder.path) {
+  ipcRenderer.send('set-root-folder', store.getState().rootFolder.path);
+}
 
 store.subscribe(() => {
   persistState(store.getState());
