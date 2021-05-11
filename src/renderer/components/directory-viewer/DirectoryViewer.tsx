@@ -1,16 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import { each, min, max } from 'lodash';
+import { each, min, max, find, throttle } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
+import uuid from 'uuid';
 import useEventListener from '../../hooks/useEventListener';
 import useDragging from '../../hooks/useDragging';
-import FileEntry from '../../models/FileEntry';
+import { FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FolderList from './FolderList';
 import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import useFileEventListener from '../../hooks/useFileEventListener';
 
 const FOLDER_RESIZE_PADDING = 10;
 
@@ -101,10 +103,11 @@ export default function DirectoryViewer(): JSX.Element {
   const dragLineFolderResize = useRef<HTMLDivElement>(null);
   const dragHandleFolderResize = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
+  const [update, triggerUpdate] = useState<string>(uuid.v4());
   const dispatch = useDispatch();
 
   const visibleFolders = useMemo(() => {
-    function appendChildren(carry: FileEntry[], entry: FileEntry) {
+    function appendChildren(carry: FileEntryModel[], entry: FileEntryModel) {
       const isOpen = openFolders[entry.fullPath] || entry === rootFolder;
       if (entry.isFolder) {
         carry.push(entry);
@@ -114,13 +117,34 @@ export default function DirectoryViewer(): JSX.Element {
       }
     }
 
-    const carry: FileEntry[] = [];
+    const carry: FileEntryModel[] = [];
     if (rootFolder) {
       appendChildren(carry, rootFolder);
     }
 
     return carry;
-  }, [rootFolder, openFolders]);
+  }, [rootFolder, openFolders, update]);
+
+  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+
+  useFileEventListener(
+    'all',
+    ({ target }: { target: FileEntryModel }) => {
+      if (find(openFolders, (_, path: string) => path.indexOf(target.fullPath) !== -1)) {
+        triggerUpdateThrottled();
+      }
+    },
+    rootFolder
+  );
+  useFileEventListener(
+    'remove',
+    ({ target }: { target: FileEntryModel }) => {
+      if (find(openFolders, (_, path: string) => path.indexOf(target.fullPath) !== -1)) {
+        triggerUpdateThrottled();
+      }
+    },
+    rootFolder
+  );
 
   useEffect(() => {
     if (!visibleFolders[selectedIndex]) {
@@ -153,7 +177,7 @@ export default function DirectoryViewer(): JSX.Element {
       }
       clearTimeout(timeout);
     };
-  }, [selectedIndex, sheet]);
+  }, [selectedIndex, sheet, dispatch]);
 
   useDragging(
     dragHandleContainerResize,

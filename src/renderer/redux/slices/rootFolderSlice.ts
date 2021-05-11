@@ -31,21 +31,13 @@ const rootFolderSlice = createSlice({
       };
       if (folder && folder.children !== null) {
         if (index !== null) {
-          folder.children[index] = new FileEntryModel({
-            ...action.payload,
-            objectPath: `${folder.objectPath ? `${folder.objectPath}.` : ''}children[${index}]`,
-            parent: folder,
-          });
+          folder.children[index].children = folder.children[index].convertToFileEntryModels(action.payload.children);
+          folder.children[index].triggerEventSoon('update');
         } else {
-          folder.children.push(
-            new FileEntryModel({
-              ...action.payload,
-              objectPath: `${folder.objectPath ? `${folder.objectPath}.` : ''}children[${index}]`,
-              parent: folder,
-            })
-          );
+          const newFile = new FileEntryModel(Object.assign(action.payload, { parent: folder }));
+          folder.children.push(newFile);
+          newFile.triggerEventSoon('add');
         }
-        folder.onUpdate();
       }
     },
     removeFile: (state, action) => {
@@ -54,8 +46,8 @@ const rootFolderSlice = createSlice({
         index: number;
       };
       if (folder && folder.children !== null && index !== null) {
-        folder.children.splice(index, 1);
-        folder.onUpdate();
+        const [deletedFolder] = folder.children.splice(index, 1);
+        deletedFolder.triggerEventSoon('remove');
       }
     },
   },

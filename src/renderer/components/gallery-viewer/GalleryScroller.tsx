@@ -5,7 +5,7 @@ import { Grid } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
 import uuid from 'uuid';
-import FileEntry, { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
+import { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
 import Thumbnail from './Thumbnail';
 import useEventListener from '../../hooks/useEventListener';
 import useAnimation from '../../hooks/useAnimation';
@@ -13,6 +13,7 @@ import { selectPlaying } from '../../redux/slices/playerSlice';
 import { selectGallerySort } from '../../redux/slices/galleryScrollerSlice';
 import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { setSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import useFileEventListener from '../../hooks/useFileEventListener';
 
 const useStyles = createUseStyles({
   scrollContainer: {
@@ -34,7 +35,7 @@ const useStyles = createUseStyles({
 });
 
 interface Props {
-  folder?: FileEntryModel | null;
+  folder: FileEntryModel | null;
   width: number;
   height: number;
 }
@@ -49,7 +50,7 @@ interface Scroll {
 export default memo(function GalleryScroller({ folder, width, height }: Props): JSX.Element | null {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const classes = useStyles();
-  const [flattenedFiles, setFlattenedFiles] = useState<FileEntry[] | null>(null);
+  const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const sort = useSelector(selectGallerySort);
   const scroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
@@ -59,10 +60,8 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
 
-  const triggerUpdateThrottled = throttle(triggerUpdate, 2000);
-  useEffect(() => {
-    folder?.addEventListener(() => setTimeout(() => triggerUpdateThrottled(uuid.v4()), 0));
-  }, [folder]);
+  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+  useFileEventListener('all', triggerUpdateThrottled, folder);
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
@@ -73,13 +72,18 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
     };
   }, []);
 
+  const updateFlattenedFiles = () => {
+    setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
+  };
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setFlattenedFiles(folder ? findAllFilesRecursive(folder, hiddenFolders) : null);
-    }, 250);
+    const timeout = setTimeout(updateFlattenedFiles, 250);
 
     return () => clearTimeout(timeout);
-  }, [update, folder, hiddenFolders]);
+  }, [folder, hiddenFolders]);
+
+  const calculateAllFilesRecursiveThrottled = useMemo(() => throttle(updateFlattenedFiles, 2000), [setFlattenedFiles]);
+  useEffect(calculateAllFilesRecursiveThrottled, [update]);
 
   const sortedFiles = useMemo(() => {
     return orderBy(flattenedFiles, ...sort.split(':'));
@@ -105,7 +109,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
       }
       clearTimeout(timeout);
     };
-  }, [sortedFiles, selectedIndex, sheet]);
+  }, [sortedFiles, selectedIndex, sheet, dispatch]);
 
   const playing = useSelector(selectPlaying);
 

@@ -7,7 +7,7 @@ import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../.
 import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FileEntry from '../../models/FileEntry';
 
-const useStyles = createUseStyles({
+const useStyles = createUseStyles<string, { hidden: boolean }>({
   eyeIcon: {
     width: 32,
     height: 40,

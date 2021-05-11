@@ -64,7 +64,7 @@ export default function ImageViewer(): JSX.Element | null {
     if (playing) {
       dispatch(pause());
     }
-  }, [selectedFile]);
+  }, [selectedFile, dispatch]);
 
   const space = (event: React.KeyboardEvent) => {
     if (videoElement.current) {

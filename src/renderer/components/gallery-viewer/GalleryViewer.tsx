@@ -1,15 +1,15 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { AutoSizer } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
-import { max } from 'lodash';
+import { max, throttle } from 'lodash';
 import Promise from 'bluebird';
 import ImageViewer from './ImageViewer';
 import GalleryScroller from './GalleryScroller';
 import { SELECTED_FOLDER_UPDATE_DEBOUNCE, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import useDebounce from '../../hooks/useDebounce';
-import FileEntry, { FileEntryModel, findFolderAndIndex } from '../../models/FileEntry';
-import { selectRootFolder, updateFile } from '../../redux/slices/rootFolderSlice';
+import { FileEntryModel, findFolderAndIndex } from '../../models/FileEntry';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import {
   selectGalleryScrollerHeight,
   selectGallerySort,
@@ -19,6 +19,7 @@ import {
 import useDragging from '../../hooks/useDragging';
 import { THUMBNAIL_PADDING } from './Thumbnail';
 import FileSystemService from '../../utils/FileSystemService';
+import useFileEventListener from '../../hooks/useFileEventListener';
 
 const useStyles = createUseStyles({
   container: {
@@ -85,7 +86,8 @@ export default function GalleryViewer(): JSX.Element {
   const selectedFolderPath = useDebounce(useSelector(selectSelectedFolder), SELECTED_FOLDER_UPDATE_DEBOUNCE);
   const height = useSelector(selectGalleryScrollerHeight);
   const sort = useSelector(selectGallerySort);
-  const updateFolderPromise = useRef<Promise<void | false>>();
+  const updateFolderPromise = useRef<Promise<void>>();
+  const [, triggerUpdate] = useState<void>();
   const dispatch = useDispatch();
 
   const selectedFolder = useMemo(() => {
@@ -105,21 +107,26 @@ export default function GalleryViewer(): JSX.Element {
     return null;
   }, [selectedFolderPath, rootFolder]);
 
-  useEffect(() => {
-    function getAndUpdateFolder(entry: FileEntryModel | FileEntry) {
-      return FileSystemService.getChildren(entry.fullPath, { priority: 1 }).then((children) => {
-        if (children) {
-          dispatch(updateFile({ ...entry, children }));
-        }
+  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(), 2000), [triggerUpdate]);
+  useFileEventListener('all', triggerUpdateThrottled, selectedFolder);
 
-        return children;
-      });
+  useEffect(() => {
+    function getAndUpdateFolder(entry: FileEntryModel): Promise<FileEntryModel[]> {
+      if (!entry.children) {
+        return FileSystemService.getChildren(entry.fullPath, { priority: 1 })
+          .then((children) => children && entry.addChildren(children))
+          .then(() => entry.children || []);
+      }
+
+      return Promise.resolve([]);
     }
 
-    function updateFoldersRecursively(entry: FileEntryModel | FileEntry): Promise<void | false> {
+    function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
       return Promise.resolve()
         .then(() => entry.children || getAndUpdateFolder(entry))
-        .then((children) => Promise.all(children.map((child) => child.isFolder && updateFoldersRecursively(child))))
+        .then((children) =>
+          Promise.all(children.map((child) => (child.isFolder ? updateFoldersRecursively(child) : Promise.resolve())))
+        )
         .then(() => {});
     }
 

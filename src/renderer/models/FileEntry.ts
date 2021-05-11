@@ -1,4 +1,4 @@
-import { forEach, find, findIndex, findLast, identity, includes, map } from 'lodash';
+import { find, findIndex, findLast, identity, includes, map } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
@@ -6,7 +6,6 @@ import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
 export default interface FileEntry {
   name: string;
   fullPath: string;
-  objectPath?: string;
   isFolder: boolean;
   children: FileEntry[] | null;
   level: number;
@@ -17,8 +16,6 @@ export class FileEntryModel implements FileEntry {
 
   fullPath: string;
 
-  objectPath: string | undefined;
-
   isFolder: boolean;
 
   level: number;
@@ -27,51 +24,73 @@ export class FileEntryModel implements FileEntry {
 
   parent: FileEntryModel | undefined;
 
-  listeners: Function[];
+  listeners: { [key: string]: Set<Function> };
 
   constructor(props: { parent: FileEntryModel } & FileEntry) {
     this.children = props.children ? this.convertToFileEntryModels(props.children) : null;
     this.fullPath = props.fullPath;
-    this.objectPath = props.objectPath;
     this.isFolder = props.isFolder;
     this.level = props.level;
     this.name = props.name;
     this.parent = props.parent;
+    this.listeners = {
+      all: new Set(),
+      update: new Set(),
+      add: new Set(),
+      remove: new Set(),
+    };
+  }
 
-    this.listeners = [];
+  get isRoot() {
+    return !this.parent;
   }
 
   values() {
     return {
       name: this.name,
       fullPath: this.fullPath,
-      objectPath: this.objectPath,
       isFolder: this.isFolder,
       children: null,
       level: this.level,
     };
   }
 
+  addChildren(children: FileEntry[]) {
+    if (!this.children) {
+      this.children = this.convertToFileEntryModels(children);
+      this.triggerEvent('update');
+    }
+  }
+
   convertToFileEntryModels(children: FileEntry[]) {
-    return map<FileEntry, FileEntryModel>(children, (child, index) =>
-      child instanceof FileEntryModel
-        ? child
-        : new FileEntryModel({
-            ...child,
-            objectPath: `${this.objectPath ? `${this.objectPath}.` : ''}children[${index}]`,
-            parent: this,
-          })
+    return map<FileEntry, FileEntryModel>(children, (child) =>
+      child instanceof FileEntryModel ? child : new FileEntryModel(Object.assign(child, { parent: this }))
     );
   }
 
-  addEventListener(callback: Function) {
-    this.listeners.push(callback);
+  addEventListener(eventName: string, callback: (event: FileEntryEvent) => void) {
+    this.listeners[eventName] = this.listeners[eventName] || new Set();
+    this.listeners[eventName].add(callback);
   }
 
-  onUpdate() {
-    this.parent?.onUpdate();
-    forEach(this.listeners, (callback) => callback());
+  removeEventListener(eventName: string, callback: (event: FileEntryEvent) => void) {
+    this.listeners[eventName].delete(callback);
   }
+
+  triggerEvent(eventName: string, target: FileEntryModel | null = this) {
+    this.listeners[eventName].forEach((callback) => callback({ target }));
+    this.listeners.all.forEach((callback) => callback({ target }));
+    this.parent?.triggerEvent(eventName, target);
+    this.parent?.triggerEvent('all', target);
+  }
+
+  triggerEventSoon(eventName: string, target: FileEntryModel | null = this) {
+    setTimeout(() => this.triggerEvent(eventName, target), 0);
+  }
+}
+
+export interface FileEntryEvent {
+  target: FileEntryModel;
 }
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
@@ -100,7 +119,7 @@ export function findLastFolder(fileEntry: FileEntry) {
   return fileEntry.children && findLast(fileEntry.children, 'isFolder');
 }
 
-export function findFirstImageOrVideo(fileEntry: FileEntry) {
+export function findFirstImageOrVideo(fileEntry: FileEntryModel) {
   return fileEntry.children && find(fileEntry.children, (child) => isImage(child) || isVideo(child));
 }
 

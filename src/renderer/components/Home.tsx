@@ -55,7 +55,7 @@ export default function Home(): JSX.Element {
       ipcRenderer.removeListener('file-changed', handleFileChanged);
       ipcRenderer.removeListener('file-removed', handleFileRemoved);
     };
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     if (rootFolderPathCache === rootFolderPath && rootFolder !== null) {
@@ -65,7 +65,7 @@ export default function Home(): JSX.Element {
     setRootFolderPathCache(rootFolderPath);
 
     const promise = Promise.resolve()
-      .then(() => (rootFolderPath ? FileSystemService.getChildren(rootFolderPath) : null))
+      .then(() => (rootFolderPath ? FileSystemService.getChildren(rootFolderPath, { priority: 2 }) : null))
       .then((children) =>
         rootFolderPath
           ? {

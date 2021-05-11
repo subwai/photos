@@ -2,11 +2,11 @@ import React, { memo } from 'react';
 import { useSelector } from 'react-redux';
 import { map } from 'lodash';
 import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
-import FileEntry from '../../models/FileEntry';
+import { FileEntryModel } from '../../models/FileEntry';
 import Folder from './Folder';
 
 interface FolderListProps {
-  visibleFolders: FileEntry[];
+  visibleFolders: FileEntryModel[];
   onSelectIndex: (index: number) => void;
 }
 
@@ -19,7 +19,7 @@ export default memo(function FolderList({ visibleFolders, onSelectIndex }: Folde
         <Folder
           key={folder.fullPath}
           index={index}
-          objectPath={folder.objectPath}
+          fileEntry={folder}
           isSelected={folder.fullPath === selectedFolderPath}
           onClick={onSelectIndex}
         />

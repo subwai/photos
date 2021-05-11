@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import classNames from 'classnames';
 import { useSelector } from 'react-redux';
-import FileEntry, { findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
+import { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
 import useThumbnail from '../../hooks/useThumbnail';
 import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
 
@@ -44,7 +44,7 @@ const useStyles = createUseStyles({
 });
 
 interface Props {
-  fileEntry: FileEntry;
+  fileEntry: FileEntryModel;
 }
 
 export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {

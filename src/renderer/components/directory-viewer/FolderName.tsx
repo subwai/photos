@@ -1,10 +1,10 @@
 import classNames from 'classnames';
-import React, { memo } from 'react';
+import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 
 import FolderIcon from './FolderIcon';
-import FileEntry from '../../models/FileEntry';
+import { FileEntryModel } from '../../models/FileEntry';
 import { selectHiddenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
@@ -36,20 +36,14 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
 });
 
 interface Props {
-  fileEntry: FileEntry;
-  subFolders: FileEntry[] | null;
+  fileEntry: FileEntryModel;
+  subFolders: FileEntryModel[] | null;
   isSelected: boolean;
   isOpen: boolean;
   onChangeOpen: (event: React.MouseEvent) => void;
 }
 
-export default memo(function FolderName({
-  fileEntry,
-  subFolders,
-  isSelected,
-  isOpen,
-  onChangeOpen,
-}: Props): JSX.Element {
+export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const classes = useStyles({ hidden });
@@ -86,4 +80,4 @@ export default memo(function FolderName({
       <span className={classes.name}>{fileEntry.name.replace(':', '/')}</span>
     </>
   );
-});
+}
