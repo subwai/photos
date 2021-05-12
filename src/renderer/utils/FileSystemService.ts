@@ -1,9 +1,9 @@
 import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
 import { orderBy } from 'lodash';
+// eslint-disable-next-line import/no-cycle
 import FileEntry from '../models/FileEntry';
 
-// const queue = new PQueue({ concurrency: 1 });
 const promises = new Map();
 
 interface Job {
@@ -13,7 +13,7 @@ interface Job {
   cancelled: boolean;
 }
 
-interface Options {
+export interface FileSystemOptions {
   priority?: number;
 }
 
@@ -24,7 +24,7 @@ class PromiseQueue {
 
   nextTick: NodeJS.Timeout | null = null;
 
-  add<T>(callback: Function, options: Options = {}): Promise<T> {
+  add<T>(callback: Function, options: FileSystemOptions = {}): Promise<T> {
     return new Promise((resolve, reject, onCancel) => {
       const job = {
         callback,
@@ -81,7 +81,7 @@ class PromiseQueue {
 
 const queue = new PromiseQueue();
 
-const getChildren = (fullPath: string, options: Options = {}): Promise<FileEntry[]> => {
+const getChildren = (fullPath: string, options: FileSystemOptions = {}): Promise<FileEntry[]> => {
   if (promises.has(fullPath)) {
     return promises.get(fullPath);
   }

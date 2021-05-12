@@ -11,11 +11,10 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, systemPreferences, shell, BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
+import { app, shell, BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
-import { BrowserWindow as AcrylicBrowserWindow } from 'electron-acrylic-window';
 import './utils/configure-bluebird';
 import FileSystem, { getCachePath } from './main/file-system';
 import './main/thumbnails';
@@ -76,18 +75,20 @@ const createWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  const isWindows = process.platform === 'win32';
+
   const getWindowOptions = (): BrowserWindowConstructorOptions => {
     return {
       show: false,
       width: 1024,
       height: 728,
       icon: getAssetPath('icon.png'),
-      resizable: true,
-      transparent: true,
+      transparent: !isWindows,
       backgroundColor: '#00000000',
-      titleBarStyle: 'hiddenInset',
+      titleBarStyle: !isWindows ? 'hiddenInset' : 'default',
       darkTheme: true,
-      frame: !isWindows,
+      frame: isWindows,
+      vibrancy: 'under-window',
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -95,23 +96,11 @@ const createWindow = async () => {
     };
   };
 
-  const isWindows = process.platform === 'win32';
-  const windowsAeroEnabled = isWindows && systemPreferences.isAeroGlassEnabled();
+  mainWindow = new BrowserWindow(getWindowOptions());
 
-  mainWindow = windowsAeroEnabled
-    ? <BrowserWindow>new AcrylicBrowserWindow({
-        ...getWindowOptions(),
-        vibrancy: {
-          theme: 'dark',
-          effect: 'blur',
-          maximumRefreshRate: 30,
-          disableOnBlur: false,
-        },
-      })
-    : new BrowserWindow({
-        ...getWindowOptions(),
-        vibrancy: 'under-window',
-      });
+  if (isWindows) {
+    mainWindow.setMenuBarVisibility(false);
+  }
 
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 

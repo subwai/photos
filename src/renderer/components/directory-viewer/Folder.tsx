@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, memo, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { filter } from 'lodash';
+import { filter, throttle } from 'lodash';
 import classNames from 'classnames';
 import uuid from 'uuid';
 import { useDispatch, useSelector } from 'react-redux';
@@ -61,7 +61,8 @@ export default memo(function Folder({ index, isSelected, fileEntry, onClick }: P
 
   const isRoot = fileEntry === rootFolder;
 
-  useFileEventListener('all', () => triggerUpdate(uuid.v4()), fileEntry);
+  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+  useFileEventListener('all', triggerUpdateThrottled, fileEntry);
 
   useEffect(() => {
     if (fileEntry.isFolder && fileEntry.children === null) {

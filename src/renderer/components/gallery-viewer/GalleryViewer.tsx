@@ -18,7 +18,6 @@ import {
 } from '../../redux/slices/galleryScrollerSlice';
 import useDragging from '../../hooks/useDragging';
 import { THUMBNAIL_PADDING } from './Thumbnail';
-import FileSystemService from '../../utils/FileSystemService';
 import useFileEventListener from '../../hooks/useFileEventListener';
 
 const useStyles = createUseStyles({
@@ -111,19 +110,9 @@ export default function GalleryViewer(): JSX.Element {
   useFileEventListener('all', triggerUpdateThrottled, selectedFolder);
 
   useEffect(() => {
-    function getAndUpdateFolder(entry: FileEntryModel): Promise<FileEntryModel[]> {
-      if (!entry.children) {
-        return FileSystemService.getChildren(entry.fullPath, { priority: 1 })
-          .then((children) => children && entry.addChildren(children))
-          .then(() => entry.children || []);
-      }
-
-      return Promise.resolve([]);
-    }
-
     function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
       return Promise.resolve()
-        .then(() => entry.children || getAndUpdateFolder(entry))
+        .then(() => entry.children || entry.loadChildren({ priority: 1 }))
         .then((children) =>
           Promise.all(children.map((child) => (child.isFolder ? updateFoldersRecursively(child) : Promise.resolve())))
         )

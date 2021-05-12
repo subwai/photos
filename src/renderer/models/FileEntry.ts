@@ -1,7 +1,10 @@
 import { find, findIndex, findLast, identity, includes, map } from 'lodash';
 import path from 'path';
+import Promise from 'bluebird';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
+// eslint-disable-next-line import/no-cycle
+import FileSystemService, { FileSystemOptions } from '../utils/FileSystemService';
 
 export default interface FileEntry {
   name: string;
@@ -26,7 +29,7 @@ export class FileEntryModel implements FileEntry {
 
   listeners: { [key: string]: Set<Function> };
 
-  constructor(props: { parent: FileEntryModel } & FileEntry) {
+  constructor(props: { parent?: FileEntryModel } & FileEntry) {
     this.children = props.children ? this.convertToFileEntryModels(props.children) : null;
     this.fullPath = props.fullPath;
     this.isFolder = props.isFolder;
@@ -66,6 +69,16 @@ export class FileEntryModel implements FileEntry {
     return map<FileEntry, FileEntryModel>(children, (child) =>
       child instanceof FileEntryModel ? child : new FileEntryModel(Object.assign(child, { parent: this }))
     );
+  }
+
+  loadChildren(options: FileSystemOptions = {}): Promise<FileEntryModel[]> {
+    if (!this.isFolder) {
+      return Promise.resolve([]);
+    }
+
+    return FileSystemService.getChildren(this.fullPath, options)
+      .then((children) => children && this.addChildren(children))
+      .then(() => this.children || []);
   }
 
   addEventListener(eventName: string, callback: (event: FileEntryEvent) => void) {

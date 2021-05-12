@@ -12,7 +12,7 @@ import useAnimation from '../../hooks/useAnimation';
 import { selectPlaying } from '../../redux/slices/playerSlice';
 import { selectGallerySort } from '../../redux/slices/galleryScrollerSlice';
 import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { setSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import { selectSelectedFile, setSelectedFile } from '../../redux/slices/selectedFolderSlice';
 import useFileEventListener from '../../hooks/useFileEventListener';
 
 const useStyles = createUseStyles({
@@ -52,6 +52,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
   const classes = useStyles();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
+  const selectedFile = useSelector(selectSelectedFile);
   const sort = useSelector(selectGallerySort);
   const scroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
   const [animateTo, setAnimateTo] = useState(0);
@@ -95,7 +96,7 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (sortedFiles && sortedFiles[selectedIndex]) {
+      if (sortedFiles && sortedFiles[selectedIndex] && sortedFiles[selectedIndex] !== selectedFile) {
         dispatch(setSelectedFile(sortedFiles[selectedIndex]));
       }
     }, 100);

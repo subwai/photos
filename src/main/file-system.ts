@@ -22,11 +22,21 @@ export default class FileSystem {
 
   readFileTreePromiseMap: { [key: string]: Bluebird<FileEntry> } = {};
 
-  blackList: Set<string>;
+  blackList: Map<string, number>;
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
-    this.blackList = new Set();
+    this.blackList = new Map();
+    setInterval(() => this.cleanBlacklist(), 5000);
+  }
+
+  cleanBlacklist() {
+    const now = new Date().valueOf();
+    this.blackList.forEach((expire, fullPath) => {
+      if (expire < now) {
+        this.blackList.delete(fullPath);
+      }
+    });
   }
 
   closeWatcher() {
@@ -95,7 +105,8 @@ export default class FileSystem {
     const fullPath = path.resolve(this.rootFolder, fileName);
     const rootLevel = this.rootFolder.split(/[\\/]/).length;
 
-    if (this.blackList.has(fullPath)) {
+    const expires = this.blackList.get(fullPath);
+    if (expires && expires < new Date().valueOf()) {
       return;
     }
 
@@ -124,12 +135,11 @@ export default class FileSystem {
   getChildren = async (fullPath: string): Promise<FileEntry[]> => {
     console.log('Scanning', fullPath);
 
+    this.blackList.set(fullPath, new Date().valueOf() + 500);
     const files = await readdirAsync(fullPath, { withFileTypes: true });
     const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
 
     const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
-    // this.blackList.add(fullPath);
-    // setTimeout(() => this.blackList.delete(fullPath), 1000);
 
     return files.map((file) => ({
       name: file.name,

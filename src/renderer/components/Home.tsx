@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import path from 'path';
 import DirectoryViewer from './directory-viewer/DirectoryViewer';
 import GalleryViewer from './gallery-viewer/GalleryViewer';
-import FileEntry from '../models/FileEntry';
+import FileEntry, { FileEntryModel } from '../models/FileEntry';
 import {
   selectRootFolderPath,
   setRootFolder,
@@ -17,12 +17,11 @@ import {
   removeFile,
 } from '../redux/slices/rootFolderSlice';
 import { setSelectedFolder } from '../redux/slices/selectedFolderSlice';
-import FileSystemService from '../utils/FileSystemService';
 
 const useStyles = createUseStyles({
   container: {
     display: 'flex',
-    height: 'calc(100% - 35px)',
+    height: process.platform === 'win32' ? '100%' : 'calc(100% - 35px)',
     margin: '0 1px 1px 1px',
     position: 'relative',
   },
@@ -64,21 +63,22 @@ export default function Home(): JSX.Element {
 
     setRootFolderPathCache(rootFolderPath);
 
+    const root = rootFolderPath
+      ? new FileEntryModel({
+          name: path.basename(rootFolderPath),
+          fullPath: rootFolderPath,
+          isFolder: true,
+          children: null,
+          level: 0,
+        })
+      : null;
+
+    dispatch(setRootFolder(root));
+    dispatch(setSelectedFolder(root));
+
     const promise = Promise.resolve()
-      .then(() => (rootFolderPath ? FileSystemService.getChildren(rootFolderPath, { priority: 2 }) : null))
-      .then((children) =>
-        rootFolderPath
-          ? {
-              name: path.basename(rootFolderPath),
-              fullPath: rootFolderPath,
-              isFolder: true,
-              children,
-              level: 0,
-            }
-          : null
-      )
-      .tap((folder: FileEntry | null) => dispatch(setRootFolder(folder)))
-      .tap((folder: FileEntry | null) => dispatch(setSelectedFolder(folder)))
+      .then(() => root?.loadChildren({ priority: 2 }))
+      .then((children) => Promise.map(children || [], (child) => child.loadChildren({ priority: 2 })))
       .catch(console.error);
 
     return () => promise.cancel();

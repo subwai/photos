@@ -2,7 +2,6 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { ipcRenderer } from 'electron';
 import { useSelector } from 'react-redux';
-import classNames from 'classnames';
 import { selectSelectedFile } from '../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
@@ -35,10 +34,11 @@ const useStyles = createUseStyles({
   button: {
     background: 'transparent',
     color: '#eee',
-    fontSize: 17,
+    fontSize: 11,
     padding: '5px 17px',
     margin: 0,
     transition: 'background 200ms',
+    fontFamily: 'Segoe MDL2 Assets',
     '&:hover': {
       background: 'rgba(255, 255, 255, .3)',
     },
@@ -62,7 +62,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function TopBar() {
+export default function TopBar(): JSX.Element | null {
   const classes = useStyles();
   const selectedFile = useSelector(selectSelectedFile);
 
@@ -75,67 +75,44 @@ export default function TopBar() {
     ipcRenderer.invoke('maximize').catch(console.error);
   }
 
-  function minimizeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    e.preventDefault();
-    e.stopPropagation();
+  // function minimizeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //
+  //   ipcRenderer.invoke('minimize').catch(console.error);
+  // }
+  //
+  // function closeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //
+  //   ipcRenderer.invoke('close').catch(console.error);
+  // }
 
-    ipcRenderer.invoke('minimize').catch(console.error);
+  if (process.platform !== 'darwin') {
+    return null;
   }
 
-  function closeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    ipcRenderer.invoke('close').catch(console.error);
-  }
-
-  const isWindows = process.platform === 'win32';
+  // const isWindows = process.platform === 'win32';
 
   return (
-    <div className={classes.topBar}>
-      <div className={classes.dragArea} onDoubleClick={maximizeWindow}>
+    <div className={classes.topBar} onDoubleClick={maximizeWindow}>
+      <div className={classes.dragArea}>
         <span className={classes.fileName}>{selectedFile?.name}</span>
       </div>
-      {isWindows && (
-        <div className={classes.actionButtons}>
-          <button type="button" className={classes.button} onClick={minimizeWindow}>
-            <svg
-              focusable="false"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              className={classNames('fa-window-minimize', classes.icon, classes.minimizeIcon)}
-            >
-              <path
-                fill="currentColor"
-                d="M640 247.5v17a16 16 0 0 1-16 16H16a16 16 0 0 1-16-16v-17a16 16 0 0 1 16-16h608a16 16 0 0 1 16 16z"
-              />
-            </svg>
-          </button>
-          <button type="button" className={classes.button} onClick={maximizeWindow}>
-            <svg
-              focusable="false"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-              className={classNames('fa-window-maximize', classes.icon, classes.maximizeIcon)}
-            >
-              <path fill="currentColor" d="M0 0v512h512V0H0zm464 464H48V48h416v416z" />
-            </svg>
-          </button>
-          <button type="button" className={classNames(classes.button, classes.close)} onClick={closeWindow}>
-            <svg
-              focusable="false"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 333 512"
-              className={classNames('fa-window-close', classes.icon, classes.closeIcon)}
-            >
-              <path
-                fill="currentColor"
-                d="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z"
-              />
-            </svg>
-          </button>
-        </div>
-      )}
+      {/* {isWindows && ( */}
+      {/*  <div className={classes.actionButtons}> */}
+      {/*    <button type="button" className={classes.button} onClick={minimizeWindow}> */}
+      {/*      &#xE921; */}
+      {/*    </button> */}
+      {/*    <button type="button" className={classes.button} onClick={maximizeWindow}> */}
+      {/*      &#xE922; */}
+      {/*    </button> */}
+      {/*    <button type="button" className={classNames(classes.button, classes.close)} onClick={closeWindow}> */}
+      {/*      &#xE8BB; */}
+      {/*    </button> */}
+      {/*  </div> */}
+      {/* )} */}
     </div>
   );
 }
