@@ -12,7 +12,7 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
   },
   icon: {
     fontSize: 16,
-    padding: '0 4px',
+    padding: '8px 4px',
     textAlign: 'center',
     verticalAlign: 'middle',
     display: 'inline-table',
@@ -28,7 +28,6 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
   },
   name: {
     flex: 1,
-    overflow: 'hidden',
     textOverflow: 'ellipsis',
     padding: '0 4px',
   },

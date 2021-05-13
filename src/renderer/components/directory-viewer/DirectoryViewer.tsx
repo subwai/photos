@@ -44,6 +44,7 @@ const useStyles = createUseStyles({
   folderNames: {
     flex: 1,
     overflow: 'auto',
+    display: 'flex',
   },
   list: {
     width: '100%!important',
