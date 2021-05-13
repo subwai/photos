@@ -1,9 +1,9 @@
+import classNames from 'classnames';
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
-import classNames from 'classnames';
 import { useSelector } from 'react-redux';
-import { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
 import useThumbnail from '../../hooks/useThumbnail';
+import { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
 import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
 
 const SIDE_MARGIN = 4;

@@ -1,27 +1,27 @@
+import Promise from 'bluebird';
+import { ipcRenderer } from 'electron';
+import path from 'path';
 import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { ipcRenderer } from 'electron';
-import Promise from 'bluebird';
 import { useDispatch, useSelector } from 'react-redux';
-import path from 'path';
-import DirectoryViewer from './directory-viewer/DirectoryViewer';
-import GalleryViewer from './gallery-viewer/GalleryViewer';
 import FileEntry, { FileEntryModel } from '../models/FileEntry';
 import {
+  removeFile,
+  selectRootFolder,
   selectRootFolderPath,
+  setCachePath,
   setRootFolder,
   setRootFolderPath,
-  setCachePath,
-  selectRootFolder,
   updateFile,
-  removeFile,
 } from '../redux/slices/rootFolderSlice';
 import { setSelectedFolder } from '../redux/slices/selectedFolderSlice';
+import DirectoryViewer from './directory-viewer/DirectoryViewer';
+import GalleryViewer from './gallery-viewer/GalleryViewer';
 
 const useStyles = createUseStyles({
   container: {
     display: 'flex',
-    height: process.platform === 'win32' ? '100%' : 'calc(100% - 35px)',
+    height: 'calc(100% - 35px)',
     margin: '0 1px 1px 1px',
     position: 'relative',
   },

@@ -1,8 +1,8 @@
+import { map } from 'lodash';
 import React, { memo } from 'react';
 import { useSelector } from 'react-redux';
-import { map } from 'lodash';
-import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import { FileEntryModel } from '../../models/FileEntry';
+import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import Folder from './Folder';
 
 interface FolderListProps {

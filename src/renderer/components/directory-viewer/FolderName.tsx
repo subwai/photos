@@ -2,10 +2,9 @@ import classNames from 'classnames';
 import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-
-import FolderIcon from './FolderIcon';
 import { FileEntryModel } from '../../models/FileEntry';
 import { selectHiddenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
+import FolderIcon from './FolderIcon';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
   container: {

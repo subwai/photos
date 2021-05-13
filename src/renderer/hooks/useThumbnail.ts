@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
 import Bluebird from 'bluebird';
 import { ipcRenderer } from 'electron';
-import { v4 as uuidv4 } from 'uuid';
-import url from 'url';
-import path from 'path';
-import sha1 from 'sha1';
 import { includes } from 'lodash';
-import { selectCachePath } from '../redux/slices/rootFolderSlice';
+import path from 'path';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import sha1 from 'sha1';
+import url from 'url';
+import { v4 as uuidv4 } from 'uuid';
 import FileEntry, { FileEntryModel, isImage } from '../models/FileEntry';
+import { selectCachePath } from '../redux/slices/rootFolderSlice';
 
 const ignore = ['.gif'];
 

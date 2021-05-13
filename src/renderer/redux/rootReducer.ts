@@ -1,13 +1,13 @@
 /* eslint-disable import/no-cycle */
-import { combineReducers } from 'redux';
 import { connectRouter } from 'connected-react-router';
 import { History } from 'history';
-import playerReducer from './slices/playerSlice';
-import galleryScrollerReducer from './slices/galleryScrollerSlice';
+import { combineReducers } from 'redux';
+import folderSizeReducer from './slices/folderSizeSlice';
 import folderVisibilityReducer from './slices/folderVisibilitySlice';
+import galleryScrollerReducer from './slices/galleryScrollerSlice';
+import playerReducer from './slices/playerSlice';
 import rootFolderReducer from './slices/rootFolderSlice';
 import selectedFolderReducer from './slices/selectedFolderSlice';
-import folderSizeReducer from './slices/folderSizeSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({

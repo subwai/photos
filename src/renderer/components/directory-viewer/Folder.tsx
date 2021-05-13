@@ -1,19 +1,18 @@
-import React, { useEffect, useMemo, memo, useRef, useState } from 'react';
-import { createUseStyles } from 'react-jss';
-import { filter, throttle } from 'lodash';
-import classNames from 'classnames';
-import uuid from 'uuid';
-import { useDispatch, useSelector } from 'react-redux';
-
 import Promise from 'bluebird';
-import FileEntry, { FileEntryModel, findLastFolder } from '../../models/FileEntry';
-import FolderName from './FolderName';
-import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
-import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
-import FileSystemService from '../../utils/FileSystemService';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import classNames from 'classnames';
+import { filter, throttle } from 'lodash';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { createUseStyles } from 'react-jss';
+import { useDispatch, useSelector } from 'react-redux';
+import uuid from 'uuid';
 import useFileEventListener from '../../hooks/useFileEventListener';
+import FileEntry, { FileEntryModel, findLastFolder } from '../../models/FileEntry';
+import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
+import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import FileSystemService from '../../utils/FileSystemService';
+import FolderName from './FolderName';
 
 const useStyles = createUseStyles<string, { level: number }>({
   root: {

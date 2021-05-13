@@ -1,24 +1,24 @@
+import Promise from 'bluebird';
+import { max, throttle } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
-import { AutoSizer } from 'react-virtualized';
 import { useDispatch, useSelector } from 'react-redux';
-import { max, throttle } from 'lodash';
-import Promise from 'bluebird';
-import ImageViewer from './ImageViewer';
-import GalleryScroller from './GalleryScroller';
-import { SELECTED_FOLDER_UPDATE_DEBOUNCE, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { AutoSizer } from 'react-virtualized';
 import useDebounce from '../../hooks/useDebounce';
+import useDragging from '../../hooks/useDragging';
+import useFileEventListener from '../../hooks/useFileEventListener';
 import { FileEntryModel, findFolderAndIndex } from '../../models/FileEntry';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import {
   selectGalleryScrollerHeight,
   selectGallerySort,
   setHeight,
   setSort,
 } from '../../redux/slices/galleryScrollerSlice';
-import useDragging from '../../hooks/useDragging';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
+import { SELECTED_FOLDER_UPDATE_DEBOUNCE, selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import GalleryScroller from './GalleryScroller';
+import ImageViewer from './ImageViewer';
 import { THUMBNAIL_PADDING } from './Thumbnail';
-import useFileEventListener from '../../hooks/useFileEventListener';
 
 const useStyles = createUseStyles({
   container: {
@@ -162,10 +162,28 @@ export default function GalleryViewer(): JSX.Element {
         </div>
         <AutoSizer disableHeight style={{ width: '100%' }}>
           {({ width }) => (
-            <GalleryScroller key={selectedFolderPath} folder={selectedFolder} width={width} height={height} />
+            <GalleryScrollerWrapper
+              selectedFolderPath={selectedFolderPath}
+              folder={selectedFolder}
+              width={width}
+              height={height}
+            />
           )}
         </AutoSizer>
       </div>
     </div>
   );
 }
+
+interface GalleryScrollerWrapperProps {
+  selectedFolderPath: string | null;
+  folder: FileEntryModel | null;
+  width: number;
+  height: number;
+}
+
+const GalleryScrollerWrapper = ({ selectedFolderPath, folder, width, height }: GalleryScrollerWrapperProps) => {
+  const debouncedWidth = useDebounce(width, 1000);
+
+  return <GalleryScroller key={selectedFolderPath} folder={folder} width={debouncedWidth} height={height} />;
+};

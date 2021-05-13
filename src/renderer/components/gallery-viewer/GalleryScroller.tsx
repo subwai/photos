@@ -1,19 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState, memo } from 'react';
-import { createUseStyles, jss } from 'react-jss';
-import { orderBy, throttle } from 'lodash';
-import { Grid } from 'react-virtualized';
-import { useDispatch, useSelector } from 'react-redux';
 import { StyleSheet } from 'jss';
+import { orderBy, throttle } from 'lodash';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { createUseStyles, jss } from 'react-jss';
+import { useDispatch, useSelector } from 'react-redux';
+import { Grid } from 'react-virtualized';
 import uuid from 'uuid';
-import { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
-import Thumbnail from './Thumbnail';
-import useEventListener from '../../hooks/useEventListener';
 import useAnimation from '../../hooks/useAnimation';
-import { selectPlaying } from '../../redux/slices/playerSlice';
-import { selectGallerySort } from '../../redux/slices/galleryScrollerSlice';
-import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { selectSelectedFile, setSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import useEventListener from '../../hooks/useEventListener';
 import useFileEventListener from '../../hooks/useFileEventListener';
+import { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
+import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { selectGallerySort } from '../../redux/slices/galleryScrollerSlice';
+import { selectPlaying } from '../../redux/slices/playerSlice';
+import { selectSelectedFile, setSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import Thumbnail from './Thumbnail';
 
 const useStyles = createUseStyles({
   scrollContainer: {

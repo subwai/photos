@@ -260,6 +260,10 @@ export default merge(baseConfig, {
       disableDotRule: false,
     },
     before() {
+      if (process.env.NO_MAIN) {
+        return;
+      }
+
       console.log('Starting Main Process...');
       spawn('npm', ['run', 'start:main'], {
         shell: true,

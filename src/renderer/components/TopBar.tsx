@@ -1,6 +1,7 @@
+import classNames from 'classnames';
+import { ipcRenderer } from 'electron';
 import React from 'react';
 import { createUseStyles } from 'react-jss';
-import { ipcRenderer } from 'electron';
 import { useSelector } from 'react-redux';
 import { selectSelectedFile } from '../redux/slices/selectedFolderSlice';
 
@@ -12,7 +13,7 @@ const useStyles = createUseStyles({
   },
   fileName: {
     margin: 0,
-    padding: 4,
+    padding: '7px 4px 4px',
     textAlign: 'center',
     textOverflow: 'ellipsis',
     fontSize: 14,
@@ -25,7 +26,14 @@ const useStyles = createUseStyles({
     '-webkitBoxOrient': 'vertical',
     justifyContent: 'center',
     overflow: 'hidden',
-    paddingTop: 5,
+  },
+  resizer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: 4,
+    '-webkitAppRegion': 'no-drag',
   },
   actionButtons: {
     display: 'flex',
@@ -66,53 +74,39 @@ export default function TopBar(): JSX.Element | null {
   const classes = useStyles();
   const selectedFile = useSelector(selectSelectedFile);
 
-  function maximizeWindow(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent> | React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) {
-    e.preventDefault();
-    e.stopPropagation();
-
+  function maximizeWindow() {
     ipcRenderer.invoke('maximize').catch(console.error);
   }
 
-  // function minimizeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //
-  //   ipcRenderer.invoke('minimize').catch(console.error);
-  // }
-  //
-  // function closeWindow(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //
-  //   ipcRenderer.invoke('close').catch(console.error);
-  // }
-
-  if (process.platform !== 'darwin') {
-    return null;
+  function minimizeWindow() {
+    ipcRenderer.invoke('minimize').catch(console.error);
   }
 
-  // const isWindows = process.platform === 'win32';
+  function closeWindow() {
+    ipcRenderer.invoke('close').catch(console.error);
+  }
+
+  const isMac = process.platform === 'darwin';
 
   return (
-    <div className={classes.topBar} onDoubleClick={maximizeWindow}>
+    <div className={classes.topBar}>
       <div className={classes.dragArea}>
         <span className={classes.fileName}>{selectedFile?.name}</span>
       </div>
-      {/* {isWindows && ( */}
-      {/*  <div className={classes.actionButtons}> */}
-      {/*    <button type="button" className={classes.button} onClick={minimizeWindow}> */}
-      {/*      &#xE921; */}
-      {/*    </button> */}
-      {/*    <button type="button" className={classes.button} onClick={maximizeWindow}> */}
-      {/*      &#xE922; */}
-      {/*    </button> */}
-      {/*    <button type="button" className={classNames(classes.button, classes.close)} onClick={closeWindow}> */}
-      {/*      &#xE8BB; */}
-      {/*    </button> */}
-      {/*  </div> */}
-      {/* )} */}
+      {!isMac && (
+        <div className={classes.actionButtons}>
+          <button type="button" className={classes.button} onClick={minimizeWindow}>
+            &#xE921;
+          </button>
+          <button type="button" className={classes.button} onClick={maximizeWindow}>
+            &#xE922;
+          </button>
+          <button type="button" className={classNames(classes.button, classes.close)} onClick={closeWindow}>
+            &#xE8BB;
+          </button>
+        </div>
+      )}
+      <div className={classes.resizer} />
     </div>
   );
 }

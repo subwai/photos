@@ -1,11 +1,11 @@
 import classNames from 'classnames';
-import React, { useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { createUseStyles } from 'react-jss';
 import { filter } from 'lodash';
+import React, { useMemo } from 'react';
+import { createUseStyles } from 'react-jss';
+import { useDispatch, useSelector } from 'react-redux';
+import FileEntry from '../../models/FileEntry';
 import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
 import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
-import FileEntry from '../../models/FileEntry';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
   eyeIcon: {

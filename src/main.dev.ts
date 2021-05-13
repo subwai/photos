@@ -9,17 +9,17 @@
  * `./src/main.prod.js` using webpack. This gives us some performance wins.
  */
 import 'core-js/stable';
-import 'regenerator-runtime/runtime';
-import path from 'path';
-import { app, shell, BrowserWindow, BrowserWindowConstructorOptions } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import { app, BrowserWindow, BrowserWindowConstructorOptions, shell } from 'electron';
 import log from 'electron-log';
+import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
-import './utils/configure-bluebird';
+import path from 'path';
+import 'regenerator-runtime/runtime';
 import FileSystem, { getCachePath } from './main/file-system';
-import './main/thumbnails';
 import './main/general';
+import './main/thumbnails';
 import MenuBuilder from './menu';
+import './utils/configure-bluebird';
 
 export default class AppUpdater {
   constructor() {
@@ -48,6 +48,7 @@ if (!fs.existsSync(getCachePath())) {
 app.commandLine.appendArgument('--enable-features=Metal');
 app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
 app.commandLine.appendSwitch('trace-warnings');
+app.commandLine.appendSwitch('disable-color-correct-rendering');
 
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
@@ -76,6 +77,7 @@ const createWindow = async () => {
   };
 
   const isWindows = process.platform === 'win32';
+  const isMac = process.platform === 'darwin';
 
   const getWindowOptions = (): BrowserWindowConstructorOptions => {
     return {
@@ -85,11 +87,11 @@ const createWindow = async () => {
       icon: getAssetPath('icon.png'),
       transparent: !isWindows,
       backgroundColor: '#00000000',
-      titleBarStyle: !isWindows ? 'hiddenInset' : 'default',
-      darkTheme: true,
-      frame: isWindows,
+      titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
+      frame: false,
       vibrancy: 'under-window',
       webPreferences: {
+        nativeWindowOpen: true,
         nodeIntegration: true,
         contextIsolation: false,
       },

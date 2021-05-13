@@ -1,5 +1,5 @@
-import { ipcRenderer } from 'electron';
 import Promise from 'bluebird';
+import { ipcRenderer } from 'electron';
 import { orderBy } from 'lodash';
 // eslint-disable-next-line import/no-cycle
 import FileEntry from '../models/FileEntry';

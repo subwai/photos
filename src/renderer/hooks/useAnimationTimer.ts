@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { shallowEqual } from 'react-redux';
 
 export default function useAnimationTimer(duration = 1000, delay = 0, dependencies: ReadonlyArray<unknown>) {

@@ -1,15 +1,14 @@
+import { ConnectedRouter } from 'connected-react-router';
+import { ipcRenderer } from 'electron';
 import React from 'react';
-import { Switch, Route } from 'react-router-dom';
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
-import { ConnectedRouter } from 'connected-react-router';
-
+import { Route, Switch } from 'react-router-dom';
 import './App.global.css';
-import { ipcRenderer } from 'electron';
-import TopBar from './components/TopBar';
 import Home from './components/Home';
-import { history, configuredStore } from './redux/store';
+import TopBar from './components/TopBar';
 import { loadPersistedState, persistState } from './redux/persistStoreState';
+import { configuredStore, history } from './redux/store';
 
 const aero = process.platform === 'win32';
 

@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createUseStyles } from 'react-jss';
-import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
-import { useDispatch, useSelector } from 'react-redux';
-import url from 'url';
 import classNames from 'classnames';
 import { ipcRenderer } from 'electron';
-import { isVideo } from '../../models/FileEntry';
-import useEventListener from '../../hooks/useEventListener';
+import React, { useEffect, useRef, useState } from 'react';
+import { createUseStyles } from 'react-jss';
+import { useDispatch, useSelector } from 'react-redux';
+import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
+import url from 'url';
 import useDebounce from '../../hooks/useDebounce';
-import { play, pause, selectPlaying } from '../../redux/slices/playerSlice';
+import useEventListener from '../../hooks/useEventListener';
+import { isVideo } from '../../models/FileEntry';
+import { pause, play, selectPlaying } from '../../redux/slices/playerSlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import { selectSelectedFile } from '../../redux/slices/selectedFolderSlice';
 

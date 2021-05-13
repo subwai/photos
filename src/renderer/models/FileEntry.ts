@@ -1,6 +1,6 @@
+import Promise from 'bluebird';
 import { find, findIndex, findLast, identity, includes, map } from 'lodash';
 import path from 'path';
-import Promise from 'bluebird';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
 // eslint-disable-next-line import/no-cycle

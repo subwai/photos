@@ -1,18 +1,18 @@
+import { StyleSheet } from 'jss';
+import { each, find, max, min, throttle } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
-import { each, min, max, find, throttle } from 'lodash';
 import { useDispatch, useSelector } from 'react-redux';
-import { StyleSheet } from 'jss';
 import uuid from 'uuid';
-import useEventListener from '../../hooks/useEventListener';
 import useDragging from '../../hooks/useDragging';
+import useEventListener from '../../hooks/useEventListener';
+import useFileEventListener from '../../hooks/useFileEventListener';
 import { FileEntryModel } from '../../models/FileEntry';
+import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FolderList from './FolderList';
-import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import useFileEventListener from '../../hooks/useFileEventListener';
 
 const FOLDER_RESIZE_PADDING = 10;
 
@@ -100,7 +100,7 @@ export default function DirectoryViewer(): JSX.Element {
 
   const container = useRef<HTMLDivElement>(null);
   const dragHandleContainerResize = useRef<HTMLDivElement>(null);
-  const dragLineFolderResize = useRef<HTMLDivElement>(null);
+  const sliderFolderResize = useRef<HTMLDivElement>(null);
   const dragHandleFolderResize = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string>(uuid.v4());
@@ -203,7 +203,7 @@ export default function DirectoryViewer(): JSX.Element {
   );
 
   useDragging(
-    dragLineFolderResize,
+    sliderFolderResize,
     ({ x }) => {
       if (dragHandleFolderResize.current === null) {
         return;
@@ -299,7 +299,7 @@ export default function DirectoryViewer(): JSX.Element {
         <FolderList visibleFolders={visibleFolders} onSelectIndex={setSelectedIndex} />
       </div>
       <div className={classes.containerFolderResize}>
-        <div className={classes.lineFolderResize} ref={dragLineFolderResize}>
+        <div className={classes.lineFolderResize} ref={sliderFolderResize}>
           <span
             className={classes.dragHandleFolderResize}
             ref={dragHandleFolderResize}
