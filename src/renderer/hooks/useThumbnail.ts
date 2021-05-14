@@ -47,9 +47,9 @@ export default function useThumbnail(
   if (!fileEntry) {
     fullPath = undefined;
   } else if (useOriginal) {
-    fullPath = fileEntry.fullPath;
+    fullPath = url.pathToFileURL(fileEntry.fullPath).toString();
   } else if (!cachePath) {
-    fullPath = isImage(fileEntry) ? fileEntry.fullPath : undefined;
+    fullPath = isImage(fileEntry) ? url.pathToFileURL(fileEntry.fullPath).toString() : undefined;
   } else {
     const extension = isImage(fileEntry) ? path.extname(fileEntry.name) : '.jpg';
     fullPath = `${url

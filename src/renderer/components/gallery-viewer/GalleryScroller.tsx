@@ -114,14 +114,39 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
 
   const playing = useSelector(selectPlaying);
 
+  const maybeScrollAnimate = (nextSelectedIndex: number) => {
+    if (!sortedFiles) {
+      return;
+    }
+
+    const position = nextSelectedIndex * height;
+    const leftEdge = Math.max(0, position - height);
+    const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
+
+    const leftDiff = Math.abs(leftEdge - scroll.current.value);
+    const rightDiff = Math.abs(rightEdge - (scroll.current.value + width));
+
+    if (scroll.current.value < position && position + height < scroll.current.value + width) {
+      return;
+    }
+
+    scroll.current.from = scroll.current.value;
+    scroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
+    setAnimateTo(scroll.current.to);
+  };
+
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    setSelectedIndex(Math.max(selectedIndex - 1, 0));
+    const nextSelectedIndex = Math.max(selectedIndex - 1, 0);
+    setSelectedIndex(nextSelectedIndex);
+    maybeScrollAnimate(nextSelectedIndex);
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    setSelectedIndex(Math.min(selectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0));
+    const nextSelectedIndex = Math.min(selectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0);
+    setSelectedIndex(nextSelectedIndex);
+    maybeScrollAnimate(nextSelectedIndex);
   };
 
   useEventListener(
@@ -173,27 +198,6 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
     },
     ref.current
   );
-
-  useEffect(() => {
-    if (!sortedFiles) {
-      return;
-    }
-
-    const position = selectedIndex * height;
-    const leftEdge = Math.max(0, position - height);
-    const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
-
-    const leftDiff = Math.abs(leftEdge - scroll.current.value);
-    const rightDiff = Math.abs(rightEdge - (scroll.current.value + width));
-
-    if (scroll.current.value < position && position + height < scroll.current.value + width) {
-      return;
-    }
-
-    scroll.current.from = scroll.current.value;
-    scroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
-    setAnimateTo(scroll.current.to);
-  }, [selectedIndex, sortedFiles]);
 
   const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
     if (!isAnimating) {
