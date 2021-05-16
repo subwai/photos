@@ -1,5 +1,5 @@
-import { StyleSheet } from 'jss';
-import { each, find, max, min, throttle } from 'lodash';
+import { Rule, StyleSheet } from 'jss';
+import { each, find, max, min, reduce, throttle } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,10 +8,10 @@ import useDragging from '../../hooks/useDragging';
 import useEventListener from '../../hooks/useEventListener';
 import useFileEventListener from '../../hooks/useFileEventListener';
 import { FileEntryModel } from '../../models/FileEntry';
-import { DEFAULT_FOLDER_SIZE, selectFolderSize, setFolderSize } from '../../redux/slices/folderSizeSlice';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
+import { FOLDER_ICON_SIDE_MARGIN } from './FolderIcon';
 import FolderList from './FolderList';
 
 const FOLDER_RESIZE_PADDING = 10;
@@ -75,26 +75,25 @@ const useStyles = createUseStyles({
   },
 });
 
-const MIN_FOLDER_HEIGHT = 20;
-const MAX_FOLDER_HEIGHT = 150;
+const MIN_FOLDER_SIZE = 20;
+const MAX_FOLDER_SIZE = 150;
+const DEFAULT_FOLDER_SIZE = 40;
 
 function getFolderSizeFromPosition(position: number, width: number): number {
-  return (position / (width - FOLDER_RESIZE_PADDING * 2)) * (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT) + MIN_FOLDER_HEIGHT;
+  return (position / (width - FOLDER_RESIZE_PADDING * 2)) * (MAX_FOLDER_SIZE - MIN_FOLDER_SIZE) + MIN_FOLDER_SIZE;
 }
 
 function getPositionFromFolderSize(folderSize: number, width: number): number {
-  return (
-    ((folderSize - MIN_FOLDER_HEIGHT) / (MAX_FOLDER_HEIGHT - MIN_FOLDER_HEIGHT)) * (width - FOLDER_RESIZE_PADDING * 2)
-  );
+  return ((folderSize - MIN_FOLDER_SIZE) / (MAX_FOLDER_SIZE - MIN_FOLDER_SIZE)) * (width - FOLDER_RESIZE_PADDING * 2);
 }
 
 export default function DirectoryViewer(): JSX.Element {
   const classes = useStyles();
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
-  const folderSize = useSelector(selectFolderSize);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [locallySelectedFolder, setLocallySelectedFolder] = useState<FileEntryModel | null>(rootFolder);
   const [width, setWidth] = useState<number>(250);
+  const [folderSize, setFolderSize] = useState<number>(DEFAULT_FOLDER_SIZE);
   const [folderResizeHandlePosition, setFolderResizeHandlePosition] = useState<number>(
     getPositionFromFolderSize(folderSize, width)
   );
@@ -103,8 +102,10 @@ export default function DirectoryViewer(): JSX.Element {
   const dragHandleContainerResize = useRef<HTMLDivElement>(null);
   const sliderFolderResize = useRef<HTMLDivElement>(null);
   const dragHandleFolderResize = useRef<HTMLDivElement>(null);
+  const scrollContainer = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string>(uuid.v4());
+  const folderSizeRules = useRef<Rule[]>();
   const dispatch = useDispatch();
 
   const visibleFolders = useMemo(() => {
@@ -125,6 +126,20 @@ export default function DirectoryViewer(): JSX.Element {
 
     return carry;
   }, [rootFolder, openFolders, update]);
+
+  const visibleFoldersIndex = useMemo(
+    () =>
+      reduce<FileEntryModel, { [key: string]: number }>(
+        visibleFolders,
+        (index, folder, key) => {
+          index[folder.fullPath] = Number(key);
+
+          return index;
+        },
+        {}
+      ),
+    [visibleFolders]
+  );
 
   const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
 
@@ -148,14 +163,15 @@ export default function DirectoryViewer(): JSX.Element {
   );
 
   useEffect(() => {
-    if (!visibleFolders[selectedIndex]) {
-      setSelectedIndex(0);
+    if (!locallySelectedFolder) {
+      setLocallySelectedFolder(visibleFolders[0]);
     }
   }, [visibleFolders]);
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
     setSheet(x);
+    updateFolderSizeJssRule(folderSize, x);
 
     return () => {
       jss.removeStyleSheet(x);
@@ -164,11 +180,9 @@ export default function DirectoryViewer(): JSX.Element {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (visibleFolders[selectedIndex]) {
-        dispatch(setSelectedFolder(visibleFolders[selectedIndex]));
-      }
+      dispatch(setSelectedFolder(locallySelectedFolder));
     }, 100);
-    const rule = sheet?.addRule(`folder-${selectedIndex}`, {
+    const rule = sheet?.addRule(`folder-${locallySelectedFolder?.objectPath}`, {
       background: 'rgba(255,255,255,.2)',
     });
 
@@ -178,7 +192,7 @@ export default function DirectoryViewer(): JSX.Element {
       }
       clearTimeout(timeout);
     };
-  }, [selectedIndex, sheet, dispatch]);
+  }, [locallySelectedFolder, sheet, dispatch]);
 
   useDragging(
     dragHandleContainerResize,
@@ -211,6 +225,8 @@ export default function DirectoryViewer(): JSX.Element {
       }
 
       const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
+      const newSize = getFolderSizeFromPosition(newPosition, width);
+      updateFolderSizeJssRuleThrottled(newSize);
       dragHandleFolderResize.current.style.left = `${newPosition}px`;
     },
     ({ x }) => {
@@ -218,59 +234,115 @@ export default function DirectoryViewer(): JSX.Element {
         return;
       }
 
+      const newSize = getFolderSizeFromPosition(x, width);
       setFolderResizeHandlePosition(x);
+      setFolderSize(newSize);
+      updateFolderSizeJssRule(newSize);
       dragHandleFolderResize.current.style.left = `${x}px`;
     },
     ({ x }) => {
       const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
+      const newSize = getFolderSizeFromPosition(newPosition, width);
       setFolderResizeHandlePosition(newPosition);
-      dispatch(setFolderSize(getFolderSizeFromPosition(newPosition, width)));
+      setFolderSize(newSize);
+      updateFolderSizeJssRule(newSize);
     }
   );
 
   const resetFolderSize = () => {
-    dispatch(setFolderSize(DEFAULT_FOLDER_SIZE));
+    updateFolderSizeJssRule(DEFAULT_FOLDER_SIZE);
+    setFolderSize(DEFAULT_FOLDER_SIZE);
     setFolderResizeHandlePosition(getPositionFromFolderSize(DEFAULT_FOLDER_SIZE, width));
   };
 
-  const findParentIndex = (index: number) => {
-    const selectedFolder = visibleFolders[index];
-    for (let i = index - 1; i >= 0; i -= 1) {
-      if (visibleFolders[i].level < selectedFolder.level) {
-        return i;
-      }
+  const updateFolderSizeJssRule = (newSize: number, jssSheet: StyleSheet<string> | null | undefined = sheet) => {
+    if (!jssSheet) {
+      return;
     }
 
-    return 0;
+    if (folderSizeRules.current) {
+      each(folderSizeRules.current, (rule) => jssSheet.deleteRule(rule.key));
+    }
+    folderSizeRules.current = [
+      jssSheet.addRule('folder-size', { height: `${newSize}px` }),
+      jssSheet.addRule('folder-icon', { fontSize: newSize - FOLDER_ICON_SIDE_MARGIN * 2 }),
+    ];
   };
+  const updateFolderSizeJssRuleThrottled = throttle(updateFolderSizeJssRule, 100);
 
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const selectedFolder = visibleFolders[selectedIndex];
-    const isOpen = openFolders[selectedFolder.fullPath] || selectedFolder === rootFolder;
+    if (!locallySelectedFolder) {
+      return;
+    }
+
+    const isOpen = openFolders[locallySelectedFolder.fullPath] || locallySelectedFolder === rootFolder;
     if (isOpen) {
-      dispatch(closeFolder(selectedFolder));
-    } else {
-      const parentIndex = findParentIndex(selectedIndex);
-      setSelectedIndex(parentIndex);
-      dispatch(closeFolder(visibleFolders[parentIndex]));
+      dispatch(closeFolder(locallySelectedFolder));
+    } else if (locallySelectedFolder.parent) {
+      setLocallySelectedFolder(locallySelectedFolder.parent);
+      dispatch(closeFolder(locallySelectedFolder.parent));
     }
   };
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const selectedFolder = visibleFolders[selectedIndex];
-    const isOpen = openFolders[selectedFolder.fullPath] || selectedFolder === rootFolder;
+    if (!locallySelectedFolder) {
+      return;
+    }
+
+    const isOpen = openFolders[locallySelectedFolder.fullPath] || locallySelectedFolder === rootFolder;
     if (!isOpen) {
-      dispatch(openFolder(selectedFolder));
+      dispatch(openFolder(locallySelectedFolder));
     }
   };
   const arrowUp = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    setSelectedIndex(Math.max(selectedIndex - 1, 0));
+    if (!locallySelectedFolder) {
+      return;
+    }
+
+    const index = visibleFoldersIndex[locallySelectedFolder.fullPath];
+    if (visibleFolders[index - 1]) {
+      setLocallySelectedFolder(visibleFolders[index - 1]);
+      maybeScrollUp(index - 1);
+    }
   };
   const arrowDown = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    setSelectedIndex(Math.min(selectedIndex + 1, visibleFolders.length - 1));
+    if (!locallySelectedFolder) {
+      return;
+    }
+
+    const index = visibleFoldersIndex[locallySelectedFolder.fullPath];
+    if (visibleFolders[index + 1]) {
+      setLocallySelectedFolder(visibleFolders[index + 1]);
+      maybeScrollDown(index + 1);
+    }
+  };
+
+  const maybeScrollUp = (index: number) => {
+    if (!scrollContainer.current) {
+      return;
+    }
+
+    const maxTopPosition = Math.max(index - 2, 0) * folderSize;
+    const currentTopPosition = scrollContainer.current.scrollTop;
+
+    if (maxTopPosition < currentTopPosition) {
+      scrollContainer.current.scrollTop = maxTopPosition;
+    }
+  };
+  const maybeScrollDown = (index: number) => {
+    if (!scrollContainer.current) {
+      return;
+    }
+
+    const minBottomPosition = Math.min(index + 2, visibleFolders.length) * folderSize;
+    const currentBottomPosition = scrollContainer.current.scrollTop + scrollContainer.current.clientHeight;
+
+    if (minBottomPosition > currentBottomPosition) {
+      scrollContainer.current.scrollTop = minBottomPosition - scrollContainer.current.clientHeight;
+    }
   };
 
   useEventListener('keydown', (event: React.KeyboardEvent) => {
@@ -296,8 +368,8 @@ export default function DirectoryViewer(): JSX.Element {
         role="separator"
         style={{ left: width - 1 }}
       />
-      <div className={classes.folderNames}>
-        <FolderList visibleFolders={visibleFolders} onSelectIndex={setSelectedIndex} />
+      <div ref={scrollContainer} className={classes.folderNames}>
+        <FolderList visibleFolders={visibleFolders} onSelectFolder={setLocallySelectedFolder} />
       </div>
       <div className={classes.containerFolderResize}>
         <div className={classes.lineFolderResize} ref={sliderFolderResize}>

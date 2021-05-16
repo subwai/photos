@@ -48,6 +48,15 @@ export class FileEntryModel implements FileEntry {
     return !this.parent;
   }
 
+  get objectPath(): string {
+    return this.fullPath
+      .toLowerCase()
+      .replace(/[a-z]:[\\/]+/, '')
+      .replaceAll(' ', '_')
+      .replaceAll('/', '.')
+      .replaceAll('\\', '.');
+  }
+
   values() {
     return {
       name: this.name,

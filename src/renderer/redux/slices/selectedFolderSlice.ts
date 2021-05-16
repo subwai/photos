@@ -1,14 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { defaultTo } from 'lodash';
 // eslint-disable-next-line import/no-cycle
-import FileEntry from '../../models/FileEntry';
+import { FileEntryModel } from '../../models/FileEntry';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 
 type State = {
-  folder: string | null;
-  autoSelectLast: boolean;
-  file: FileEntry | null;
+  folder: FileEntryModel | null;
+  file: FileEntryModel | null;
 };
 
 const selectedFolderSlice = createSlice({
@@ -16,13 +14,7 @@ const selectedFolderSlice = createSlice({
   initialState: <State>{ folder: null, autoSelectLast: false, file: null },
   reducers: {
     setSelectedFolder: (state, action) => {
-      if (action.payload?.folder) {
-        state.folder = action.payload.folder.fullPath;
-        state.autoSelectLast = defaultTo(action.payload.autoSelectLast, false);
-      } else {
-        state.folder = action.payload?.fullPath;
-        state.autoSelectLast = false;
-      }
+      state.folder = action.payload;
     },
     setSelectedFile: (state, action) => {
       state.file = action.payload;
@@ -36,6 +28,5 @@ export default selectedFolderSlice.reducer;
 
 export const selectSelectedFile = (state: RootState) => state.selectedFolder.file;
 export const selectSelectedFolder = (state: RootState) => state.selectedFolder.folder;
-export const selectAutoSelectLastFolder = (state: RootState) => state.selectedFolder.autoSelectLast;
 
 export const SELECTED_FOLDER_UPDATE_DEBOUNCE = 250;

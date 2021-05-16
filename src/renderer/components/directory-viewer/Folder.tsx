@@ -6,11 +6,9 @@ import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import uuid from 'uuid';
 import useFileEventListener from '../../hooks/useFileEventListener';
-import FileEntry, { FileEntryModel, findLastFolder } from '../../models/FileEntry';
-import { selectFolderSize } from '../../redux/slices/folderSizeSlice';
+import FileEntry, { FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import { selectAutoSelectLastFolder, setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import FileSystemService from '../../utils/FileSystemService';
 import FolderName from './FolderName';
 
@@ -40,25 +38,20 @@ const useStyles = createUseStyles<string, { level: number }>({
 interface Props {
   isRoot?: boolean;
   isSelected: boolean;
-  index: number;
   fileEntry: FileEntryModel;
   selectPrevious?: () => void;
   selectNext?: () => void;
   closeParent?: () => void;
-  onClick: (index: number) => void;
+  onClick: (entry: FileEntryModel) => void;
 }
 
-export default memo(function Folder({ index, isSelected, fileEntry, onClick }: Props): JSX.Element {
+export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): JSX.Element {
   const rootFolder = useSelector(selectRootFolder);
-  const autoSelectLast = useSelector(selectAutoSelectLastFolder);
   const openFolders = useSelector(selectOpenFolders);
-  const height = useSelector(selectFolderSize);
   const [update, triggerUpdate] = useState<string>(uuid.v4());
   const classes = useStyles({ level: fileEntry.level });
   const getChildrenPromise = useRef<Promise<FileEntry[]>>();
   const dispatch = useDispatch();
-
-  const isRoot = fileEntry === rootFolder;
 
   const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
   useFileEventListener('all', triggerUpdateThrottled, fileEntry);
@@ -76,16 +69,8 @@ export default memo(function Folder({ index, isSelected, fileEntry, onClick }: P
     return fileEntry.children && filter(fileEntry.children, 'isFolder');
   }, [fileEntry.children, update]);
 
+  const isRoot = fileEntry === rootFolder;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
-
-  useEffect(() => {
-    if (isSelected && isOpen && autoSelectLast) {
-      const lastFolder = findLastFolder(fileEntry);
-      if (lastFolder) {
-        dispatch(setSelectedFolder(lastFolder));
-      }
-    }
-  }, [isSelected, dispatch]);
 
   function onChangeOpen(event: React.MouseEvent) {
     event.preventDefault();
@@ -95,7 +80,10 @@ export default memo(function Folder({ index, isSelected, fileEntry, onClick }: P
 
   return (
     <>
-      <div className={classNames(classes.entry, `folder-${index}`)} style={{ height }} onClick={() => onClick(index)}>
+      <div
+        className={classNames(classes.entry, `folder-${fileEntry.objectPath}`, 'folder-size')}
+        onClick={() => onClick(fileEntry)}
+      >
         <FolderName
           {...{
             fileEntry,

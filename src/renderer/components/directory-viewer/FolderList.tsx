@@ -8,7 +8,7 @@ import Folder from './Folder';
 
 interface FolderListProps {
   visibleFolders: FileEntryModel[];
-  onSelectIndex: (index: number) => void;
+  onSelectFolder: (entry: FileEntryModel) => void;
 }
 
 const useStyles = createUseStyles({
@@ -17,19 +17,18 @@ const useStyles = createUseStyles({
   },
 });
 
-export default memo(function FolderList({ visibleFolders, onSelectIndex }: FolderListProps): JSX.Element {
+export default memo(function FolderList({ visibleFolders, onSelectFolder }: FolderListProps): JSX.Element {
   const selectedFolderPath = useSelector(selectSelectedFolder);
   const classes = useStyles();
 
   return (
     <div className={classes.folderList}>
-      {map(visibleFolders, (folder, index: number) => (
+      {map(visibleFolders, (folder) => (
         <Folder
           key={folder.fullPath}
-          index={index}
           fileEntry={folder}
           isSelected={folder.fullPath === selectedFolderPath}
-          onClick={onSelectIndex}
+          onClick={onSelectFolder}
         />
       ))}
     </div>

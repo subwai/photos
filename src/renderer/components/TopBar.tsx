@@ -10,6 +10,7 @@ const useStyles = createUseStyles({
     minHeight: 30,
     display: 'flex',
     justifyContent: 'space-between',
+    background: 'rgba(255,255,255,.05)',
   },
   fileName: {
     margin: 0,

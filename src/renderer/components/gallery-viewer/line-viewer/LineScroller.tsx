@@ -5,32 +5,27 @@ import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { Grid } from 'react-virtualized';
 import uuid from 'uuid';
-import useAnimation from '../../hooks/useAnimation';
-import useEventListener from '../../hooks/useEventListener';
-import useFileEventListener from '../../hooks/useFileEventListener';
-import { FileEntryModel, findAllFilesRecursive } from '../../models/FileEntry';
-import { selectHiddenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { selectGallerySort } from '../../redux/slices/galleryScrollerSlice';
-import { selectPlaying } from '../../redux/slices/playerSlice';
-import { selectSelectedFile, setSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import useAnimation from '../../../hooks/useAnimation';
+import useEventListener from '../../../hooks/useEventListener';
+import useFileEventListener from '../../../hooks/useFileEventListener';
+import { FileEntryModel, findAllFilesRecursive } from '../../../models/FileEntry';
+import { selectHiddenFolders } from '../../../redux/slices/folderVisibilitySlice';
+import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
+import { selectPlaying } from '../../../redux/slices/playerSlice';
+import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
 import Thumbnail from './Thumbnail';
 
 const useStyles = createUseStyles({
   scrollContainer: {
     width: '100%',
     height: '100%',
-    padding: '0 6px',
+    padding: '0 6px 2px',
     boxSizing: 'border-box',
     position: 'relative',
   },
   grid: {
     overflowX: 'overlay!important',
     overflowY: 'hidden!important',
-  },
-  count: {
-    position: 'absolute',
-    right: 2,
-    bottom: 5,
   },
 });
 
@@ -47,7 +42,7 @@ interface Scroll {
   animated: number;
 }
 
-export default memo(function GalleryScroller({ folder, width, height }: Props): JSX.Element | null {
+export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const classes = useStyles();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
@@ -86,9 +81,11 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
   const calculateAllFilesRecursiveThrottled = useMemo(() => throttle(updateFlattenedFiles, 2000), [setFlattenedFiles]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);
 
-  const sortedFiles = useMemo(() => {
-    return orderBy(flattenedFiles, ...sort.split(':'));
-  }, [flattenedFiles, sort]);
+  const sortedFiles = useMemo(() => orderBy(flattenedFiles, ...sort.split(':')), [flattenedFiles, sort]);
+
+  useEffect(() => {
+    dispatch(setFilesCount(sortedFiles.length));
+  }, [sortedFiles]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -232,15 +229,14 @@ export default memo(function GalleryScroller({ folder, width, height }: Props): 
         cellRenderer={cellRenderer}
         columnWidth={height}
         columnCount={sortedFiles ? sortedFiles.length : 0}
-        rowHeight={height - 10}
+        rowHeight={height - 10 - 2}
         rowCount={1}
-        height={height}
+        height={height - 2}
         width={width - 12}
         overscanColumnCount={5}
         scrollLeft={isAnimating ? scroll.current.value : undefined}
         onScroll={handleScroll}
       />
-      <div className={classes.count}>{sortedFiles ? sortedFiles.length : 0}</div>
     </div>
   );
 });
