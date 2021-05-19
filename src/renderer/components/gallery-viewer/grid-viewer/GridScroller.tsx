@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { Grid, GridCellProps } from 'react-virtualized';
+import { useDebouncedCallback } from 'use-debounce';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useEventListener from '../../../hooks/useEventListener';
 import useSelectedFolder from '../../../hooks/useSelectedFolder';
@@ -44,6 +45,8 @@ export default function GridScroller({ width, height }: Props) {
     () => orderBy(values(selectedFolder?.children), ...sort.split(':')),
     [selectedFolder, sort, updated]
   );
+
+  useEffect(() => setLocallySelectedIndex(null), [selectedFolder]);
 
   useEffect(() => {
     dispatch(setFilesCount(sortedFiles.length));
@@ -149,7 +152,7 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const trySelectIndex = (nextIndex: number) => {
-    if (nextIndex >= 0 && nextIndex <= sortedFiles.length) {
+    if (nextIndex >= 0 && nextIndex < sortedFiles.length) {
       selectIndex(nextIndex);
     }
   };
@@ -175,15 +178,19 @@ export default function GridScroller({ width, height }: Props) {
     }
   });
 
+  const setSelectedFileDebounced = useDebouncedCallback((file) => {
+    if (file && file.isFolder) {
+      dispatch(setSelectedFile(findFirstImageOrVideo(file)));
+    } else {
+      dispatch(setSelectedFile(file));
+    }
+  }, 250);
+
   const selectIndex = (index: number | null) => {
     setLocallySelectedIndex(index);
     if (index !== null) {
       const file = sortedFiles[index];
-      if (file && file.isFolder) {
-        dispatch(setSelectedFile(findFirstImageOrVideo(file)));
-      } else {
-        dispatch(setSelectedFile(file));
-      }
+      setSelectedFileDebounced(file);
     }
   };
 
