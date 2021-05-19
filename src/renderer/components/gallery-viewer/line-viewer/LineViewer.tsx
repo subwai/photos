@@ -1,17 +1,16 @@
-import Promise from 'bluebird';
-import { max, throttle } from 'lodash';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { max } from 'lodash';
+import React, { useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { AutoSizer } from 'react-virtualized';
-import useDebounce from '../../../hooks/useDebounce';
+import { useDebounce } from 'use-debounce';
+import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useDragging from '../../../hooks/useDragging';
-import useFileEventListener from '../../../hooks/useFileEventListener';
+import useSelectedFolder from '../../../hooks/useSelectedFolder';
 import { FileEntryModel } from '../../../models/FileEntry';
 import { selectGalleryScrollerHeight, setHeight } from '../../../redux/slices/galleryViewerSlice';
-import { SELECTED_FOLDER_UPDATE_DEBOUNCE, selectSelectedFolder } from '../../../redux/slices/selectedFolderSlice';
-import GalleryScroller from './LineScroller';
 import ImageViewer from '../ImageViewer';
+import GalleryScroller from './LineScroller';
 import { THUMBNAIL_PADDING } from './Thumbnail';
 
 const useStyles = createUseStyles({
@@ -50,31 +49,11 @@ export default function LineViewer() {
   const classes = useStyles();
   const container = useRef<HTMLDivElement>(null);
   const dragHandle = useRef<HTMLDivElement>(null);
-  const selectedFolder = useDebounce(useSelector(selectSelectedFolder), SELECTED_FOLDER_UPDATE_DEBOUNCE);
+  const [selectedFolder] = useSelectedFolder();
   const height = useSelector(selectGalleryScrollerHeight);
-  const updateFolderPromise = useRef<Promise<void>>();
-  const [, triggerUpdate] = useState<void>();
   const dispatch = useDispatch();
 
-  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(), 2000), [triggerUpdate]);
-  useFileEventListener('all', triggerUpdateThrottled, selectedFolder);
-
-  useEffect(() => {
-    function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
-      return Promise.resolve()
-        .then(() => entry.children || entry.loadChildren({ priority: 1 }))
-        .then((children) =>
-          Promise.all(children.map((child) => (child.isFolder ? updateFoldersRecursively(child) : Promise.resolve())))
-        )
-        .then(() => {});
-    }
-
-    if (selectedFolder) {
-      updateFolderPromise.current = updateFoldersRecursively(selectedFolder);
-    }
-
-    return () => updateFolderPromise.current?.cancel();
-  }, [selectedFolder]);
+  useAutomaticChildrenLoader(selectedFolder, { deep: true });
 
   useDragging(
     dragHandle,
@@ -115,7 +94,7 @@ interface GalleryScrollerWrapperProps {
 }
 
 const GalleryScrollerWrapper = ({ folder, width, height }: GalleryScrollerWrapperProps) => {
-  const debouncedWidth = useDebounce(width, 1000);
+  const [debouncedWidth] = useDebounce(width, 1000);
 
   return <GalleryScroller key={folder?.fullPath} folder={folder} width={debouncedWidth} height={height} />;
 };

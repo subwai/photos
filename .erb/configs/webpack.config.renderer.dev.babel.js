@@ -260,7 +260,7 @@ export default merge(baseConfig, {
       disableDotRule: false,
     },
     before() {
-      if (process.env.NO_MAIN) {
+      if (!process.env.START_MAIN_AFTER) {
         return;
       }
 

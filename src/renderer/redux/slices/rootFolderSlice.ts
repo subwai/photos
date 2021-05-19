@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { get } from 'lodash';
 // eslint-disable-next-line import/no-cycle
-import { FileEntryModel, findFolderAndIndex } from '../../models/FileEntry';
+import FileEntryObject, { FileEntryModel } from '../../models/FileEntry';
 // eslint-disable-next-line import/no-cycle
 import { RootState } from '../store';
 
@@ -25,29 +25,28 @@ const rootFolderSlice = createSlice({
       state.cachePath = action.payload;
     },
     updateFile: (state, action) => {
-      const { folder, index } = findFolderAndIndex(state.folder, action.payload.fullPath) as {
-        folder: FileEntryModel;
-        index: number;
-      };
-      if (folder && folder.children !== null) {
-        if (index !== null) {
-          folder.children[index].children = folder.children[index].convertToFileEntryModels(action.payload.children);
-          folder.children[index].triggerEventSoon('update');
+      const file = action.payload as FileEntryObject;
+      const parent = state.folder?.find(file.fullPath.slice(0, -(file.name.length + 1)));
+      if (parent) {
+        parent.children = parent.children || {};
+        const fileModel = parent.convertToFileEntryModel(file);
+        const childExistOnParent = !!parent.children[fileModel.name];
+
+        parent.children[fileModel.name] = fileModel;
+        if (childExistOnParent) {
+          fileModel.triggerEventSoon('update');
         } else {
-          const newFile = new FileEntryModel(Object.assign(action.payload, { parent: folder }));
-          folder.children.push(newFile);
-          newFile.triggerEventSoon('add');
+          fileModel.triggerEventSoon('add');
         }
       }
     },
     removeFile: (state, action) => {
-      const { folder, index } = findFolderAndIndex(state.folder, action.payload) as {
-        folder: FileEntryModel;
-        index: number;
-      };
-      if (folder && folder.children !== null && index !== null) {
-        const [deletedFolder] = folder.children.splice(index, 1);
-        deletedFolder.triggerEventSoon('remove');
+      const fullPath = action.payload as string;
+      const fileToDelete = state.folder?.find(fullPath);
+
+      if (fileToDelete && fileToDelete.parent?.children) {
+        delete fileToDelete.parent.children[fileToDelete.name];
+        fileToDelete.triggerEventSoon('remove');
       }
     },
   },

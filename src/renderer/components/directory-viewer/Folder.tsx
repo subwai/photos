@@ -1,12 +1,13 @@
 import Promise from 'bluebird';
 import classNames from 'classnames';
-import { filter, throttle } from 'lodash';
+import { filter } from 'lodash';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useThrottledCallback } from 'use-debounce';
 import uuid from 'uuid';
 import useFileEventListener from '../../hooks/useFileEventListener';
-import FileEntry, { FileEntryModel } from '../../models/FileEntry';
+import FileEntryObject, { Children, FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import FileSystemService from '../../utils/FileSystemService';
@@ -50,10 +51,10 @@ export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): 
   const openFolders = useSelector(selectOpenFolders);
   const [update, triggerUpdate] = useState<string>(uuid.v4());
   const classes = useStyles({ level: fileEntry.level });
-  const getChildrenPromise = useRef<Promise<FileEntry[]>>();
+  const getChildrenPromise = useRef<Promise<Children<FileEntryObject>>>();
   const dispatch = useDispatch();
 
-  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid.v4()), 2000);
   useFileEventListener('all', triggerUpdateThrottled, fileEntry);
 
   useEffect(() => {

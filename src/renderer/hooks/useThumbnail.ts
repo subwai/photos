@@ -7,12 +7,12 @@ import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import url from 'url';
 import { v4 as uuidv4 } from 'uuid';
-import FileEntry, { FileEntryModel, isImage } from '../models/FileEntry';
+import { FileEntryModel, isImage } from '../models/FileEntry';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
 
 const ignore = ['.gif'];
 
-function isIgnored(fileEntry?: FileEntry | null) {
+function isIgnored(fileEntry?: FileEntryModel | null) {
   return fileEntry && includes(ignore, path.extname(fileEntry.name).toLowerCase());
 }
 

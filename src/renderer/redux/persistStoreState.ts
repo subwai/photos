@@ -9,7 +9,6 @@ const persistStateRaw = (state: RootState) => {
       rootFolder: {
         path: state.rootFolder.path,
       },
-      router: state.router,
     };
     localStorage.setItem('state', JSON.stringify(clone));
   } catch (err) {

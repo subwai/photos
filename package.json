@@ -11,10 +11,10 @@
     "lint": "cross-env NODE_ENV=development eslint . --cache --ext .js,.jsx,.ts,.tsx",
     "package": "rm -rf src/dist && yarn build && electron-builder build --publish never",
     "postinstall": "node -r @babel/register .erb/scripts/CheckNativeDep.js && electron-builder install-app-deps && yarn cross-env NODE_ENV=development webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.babel.js && yarn-deduplicate yarn.lock",
-    "start": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js && yarn start:renderer",
+    "start": "cross-env START_MAIN_AFTER=true yarn start:renderer",
+    "start:renderer": "yarn check-port && cross-env NODE_ENV=development webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
     "start:main": "cross-env NODE_ENV=development electron -r ./.erb/scripts/BabelRegister ./src/main.dev.ts",
-    "start:renderer": "cross-env NODE_ENV=development webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
-    "watch:renderer": "cross-env NODE_ENV=development NO_MAIN=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.babel.js",
+    "check-port": "node -r @babel/register ./.erb/scripts/CheckPortInUse.js",
     "test": "jest",
     "prepare": "husky install"
   },
@@ -244,7 +244,7 @@
     "electron-debug": "^3.2.0",
     "electron-log": "^4.3.5",
     "electron-updater": "^4.3.8",
-    "history": "^5.0.0",
+    "history": "4.10.1",
     "jss": "^10.6.0",
     "lodash": "^4.17.21",
     "p-queue": "^7.1.0",
@@ -262,6 +262,7 @@
     "regenerator-runtime": "^0.13.5",
     "sha1": "^1.1.1",
     "source-map-support": "^0.5.19",
+    "use-debounce": "^6.0.1",
     "uuid": "^8.3.2"
   },
   "resolutions": {

@@ -1,16 +1,18 @@
 import { Rule, StyleSheet } from 'jss';
-import { each, find, max, min, reduce, throttle } from 'lodash';
+import { each, find, max, min, reduce } from 'lodash';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 import uuid from 'uuid';
 import useDragging from '../../hooks/useDragging';
 import useEventListener from '../../hooks/useEventListener';
 import useFileEventListener from '../../hooks/useFileEventListener';
+import useSelectedFolder from '../../hooks/useSelectedFolder';
 import { FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
+import { selectGalleryViewer } from '../../redux/slices/galleryViewerSlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import { setSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import { FOLDER_ICON_SIDE_MARGIN } from './FolderIcon';
 import FolderList from './FolderList';
 
@@ -89,8 +91,11 @@ function getPositionFromFolderSize(folderSize: number, width: number): number {
 
 export default function DirectoryViewer(): JSX.Element {
   const classes = useStyles();
+  const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
+  const viewer = useSelector(selectGalleryViewer);
+  const [selectedFolder, setSelectedFolder] = useSelectedFolder();
   const [locallySelectedFolder, setLocallySelectedFolder] = useState<FileEntryModel | null>(rootFolder);
   const [width, setWidth] = useState<number>(250);
   const [folderSize, setFolderSize] = useState<number>(DEFAULT_FOLDER_SIZE);
@@ -106,7 +111,6 @@ export default function DirectoryViewer(): JSX.Element {
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string>(uuid.v4());
   const folderSizeRules = useRef<Rule[]>();
-  const dispatch = useDispatch();
 
   const visibleFolders = useMemo(() => {
     function appendChildren(carry: FileEntryModel[], entry: FileEntryModel) {
@@ -141,7 +145,8 @@ export default function DirectoryViewer(): JSX.Element {
     [visibleFolders]
   );
 
-  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid.v4()), 2000);
+  const setSelectedFolderDebounced = useDebouncedCallback((f) => setSelectedFolder(f), 500);
 
   useFileEventListener(
     'all',
@@ -175,13 +180,12 @@ export default function DirectoryViewer(): JSX.Element {
 
     return () => {
       jss.removeStyleSheet(x);
+      setSelectedFolderDebounced.flush();
     };
   }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      dispatch(setSelectedFolder(locallySelectedFolder));
-    }, 100);
+    setSelectedFolderDebounced(locallySelectedFolder);
     const rule = sheet?.addRule(`folder-${locallySelectedFolder?.objectPath}`, {
       background: 'rgba(255,255,255,.2)',
     });
@@ -190,9 +194,16 @@ export default function DirectoryViewer(): JSX.Element {
       if (rule) {
         sheet?.deleteRule(rule.key);
       }
-      clearTimeout(timeout);
     };
   }, [locallySelectedFolder, sheet, dispatch]);
+
+  useEffect(() => {
+    setLocallySelectedFolder(selectedFolder);
+    const nextIndex = selectedFolder ? visibleFoldersIndex[selectedFolder.fullPath] : null;
+    if (nextIndex) {
+      maybeScrollTo(nextIndex);
+    }
+  }, [selectedFolder]);
 
   useDragging(
     dragHandleContainerResize,
@@ -268,7 +279,7 @@ export default function DirectoryViewer(): JSX.Element {
       jssSheet.addRule('folder-icon', { fontSize: newSize - FOLDER_ICON_SIDE_MARGIN * 2 }),
     ];
   };
-  const updateFolderSizeJssRuleThrottled = throttle(updateFolderSizeJssRule, 100);
+  const updateFolderSizeJssRuleThrottled = useThrottledCallback(updateFolderSizeJssRule, 100);
 
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
@@ -296,51 +307,49 @@ export default function DirectoryViewer(): JSX.Element {
     }
   };
   const arrowUp = (event: React.KeyboardEvent) => {
-    event.preventDefault();
+    if (viewer === 'grid' && !event.shiftKey) {
+      return;
+    }
     if (!locallySelectedFolder) {
       return;
     }
 
+    event.preventDefault();
     const index = visibleFoldersIndex[locallySelectedFolder.fullPath];
     if (visibleFolders[index - 1]) {
       setLocallySelectedFolder(visibleFolders[index - 1]);
-      maybeScrollUp(index - 1);
+      maybeScrollTo(index - 1);
     }
   };
   const arrowDown = (event: React.KeyboardEvent) => {
-    event.preventDefault();
+    if (viewer === 'grid' && !event.shiftKey) {
+      return;
+    }
     if (!locallySelectedFolder) {
       return;
     }
 
+    event.preventDefault();
     const index = visibleFoldersIndex[locallySelectedFolder.fullPath];
     if (visibleFolders[index + 1]) {
       setLocallySelectedFolder(visibleFolders[index + 1]);
-      maybeScrollDown(index + 1);
+      maybeScrollTo(index + 1);
     }
   };
 
-  const maybeScrollUp = (index: number) => {
+  const maybeScrollTo = (index: number) => {
     if (!scrollContainer.current) {
       return;
     }
 
-    const maxTopPosition = Math.max(index - 2, 0) * folderSize;
+    const maxTopPosition = Math.max(index - 1, 0) * folderSize;
     const currentTopPosition = scrollContainer.current.scrollTop;
-
-    if (maxTopPosition < currentTopPosition) {
-      scrollContainer.current.scrollTop = maxTopPosition;
-    }
-  };
-  const maybeScrollDown = (index: number) => {
-    if (!scrollContainer.current) {
-      return;
-    }
-
     const minBottomPosition = Math.min(index + 2, visibleFolders.length) * folderSize;
     const currentBottomPosition = scrollContainer.current.scrollTop + scrollContainer.current.clientHeight;
 
-    if (minBottomPosition > currentBottomPosition) {
+    if (maxTopPosition < currentTopPosition) {
+      scrollContainer.current.scrollTop = maxTopPosition;
+    } else if (minBottomPosition > currentBottomPosition) {
       scrollContainer.current.scrollTop = minBottomPosition - scrollContainer.current.clientHeight;
     }
   };

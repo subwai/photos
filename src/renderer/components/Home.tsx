@@ -1,10 +1,12 @@
 import Promise from 'bluebird';
 import { ipcRenderer } from 'electron';
+import { values } from 'lodash';
 import path from 'path';
 import React, { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import FileEntry, { FileEntryModel } from '../models/FileEntry';
+import useSelectedFolder from '../hooks/useSelectedFolder';
+import FileEntryObject, { FileEntryModel } from '../models/FileEntry';
 import {
   removeFile,
   selectRootFolder,
@@ -14,7 +16,6 @@ import {
   setRootFolderPath,
   updateFile,
 } from '../redux/slices/rootFolderSlice';
-import { setSelectedFolder } from '../redux/slices/selectedFolderSlice';
 import DirectoryViewer from './directory-viewer/DirectoryViewer';
 import GalleryViewer from './gallery-viewer/GalleryViewer';
 
@@ -29,16 +30,17 @@ const useStyles = createUseStyles({
 
 export default function Home(): JSX.Element {
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const [, setSelectedFolder] = useSelectedFolder();
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     function handleFolderChanged(_: Electron.IpcRendererEvent, newPath: string) {
       dispatch(setRootFolderPath(newPath));
     }
-    function handleFileChanged(_: Electron.IpcRendererEvent, entry: FileEntry) {
+    function handleFileChanged(_: Electron.IpcRendererEvent, entry: FileEntryObject) {
       dispatch(updateFile(entry));
     }
     function handleFileRemoved(_: Electron.IpcRendererEvent, fullPath: string) {
@@ -74,11 +76,11 @@ export default function Home(): JSX.Element {
       : null;
 
     dispatch(setRootFolder(root));
-    dispatch(setSelectedFolder(root));
+    setSelectedFolder(root);
 
     const promise = Promise.resolve()
       .then(() => root?.loadChildren({ priority: 2 }))
-      .then((children) => Promise.map(children || [], (child) => child.loadChildren({ priority: 2 })))
+      .then((children) => Promise.map(values(children || {}), (child) => child.loadChildren({ priority: 2 })))
       .catch(console.error);
 
     return () => promise.cancel();

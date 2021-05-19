@@ -3,9 +3,9 @@ import { filter } from 'lodash';
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import FileEntry from '../../models/FileEntry';
+import useSelectedFolder from '../../hooks/useSelectedFolder';
+import FileEntryObject from '../../models/FileEntry';
 import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
-import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
   eyeIcon: {
@@ -26,15 +26,15 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
 
 interface Props {
   isRoot?: boolean;
-  fileEntry: FileEntry;
+  fileEntry: FileEntryObject;
 }
 
 export default function FolderVisibility({ isRoot = true, fileEntry }: Props): JSX.Element {
   const dispatch = useDispatch();
-  const selectedFolderPath = useSelector(selectSelectedFolder);
+  const [selectedFolder] = useSelectedFolder();
   const hiddenFolders = useSelector(selectHiddenFolders);
   const openFolders = useSelector(selectOpenFolders);
-  const isSelected = fileEntry.fullPath === selectedFolderPath;
+  const isSelected = fileEntry === selectedFolder;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const classes = useStyles({ hidden });

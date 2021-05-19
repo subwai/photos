@@ -1,9 +1,8 @@
 import { map } from 'lodash';
 import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
-import { useSelector } from 'react-redux';
+import useSelectedFolder from '../../hooks/useSelectedFolder';
 import { FileEntryModel } from '../../models/FileEntry';
-import { selectSelectedFolder } from '../../redux/slices/selectedFolderSlice';
 import Folder from './Folder';
 
 interface FolderListProps {
@@ -18,7 +17,7 @@ const useStyles = createUseStyles({
 });
 
 export default memo(function FolderList({ visibleFolders, onSelectFolder }: FolderListProps): JSX.Element {
-  const selectedFolderPath = useSelector(selectSelectedFolder);
+  const [selectedFolder] = useSelectedFolder();
   const classes = useStyles();
 
   return (
@@ -27,7 +26,7 @@ export default memo(function FolderList({ visibleFolders, onSelectFolder }: Fold
         <Folder
           key={folder.fullPath}
           fileEntry={folder}
-          isSelected={folder.fullPath === selectedFolderPath}
+          isSelected={folder === selectedFolder}
           onClick={onSelectFolder}
         />
       ))}

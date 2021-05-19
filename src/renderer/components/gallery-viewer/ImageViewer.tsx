@@ -1,16 +1,15 @@
 import classNames from 'classnames';
 import { ipcRenderer } from 'electron';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import url from 'url';
-import useDebounce from '../../hooks/useDebounce';
 import useEventListener from '../../hooks/useEventListener';
 import { isVideo } from '../../models/FileEntry';
-import { pause, play, selectPlaying } from '../../redux/slices/playerSlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import { selectSelectedFile } from '../../redux/slices/selectedFolderSlice';
+import { pause, play, selectPlaying, selectPreview, setPreview } from '../../redux/slices/viewerSlice';
 
 const useStyles = createUseStyles({
   image: {
@@ -47,18 +46,16 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function ImageViewer(): JSX.Element | null {
+export default function ImageViewer() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
   const selectedFile = useSelector(selectSelectedFile);
   const playing = useSelector(selectPlaying);
+  const preview = useSelector(selectPreview);
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
   const imageWrapper = useRef<HTMLDivElement>(null);
-  const [isPreviewing, setPreview] = useState<boolean>(false);
-
-  const file = useDebounce(selectedFile, isPreviewing ? 0 : 50);
 
   useEffect(() => {
     if (playing) {
@@ -70,7 +67,7 @@ export default function ImageViewer(): JSX.Element | null {
     if (videoElement.current) {
       event.preventDefault();
       if (event.shiftKey) {
-        setPreview(!isPreviewing);
+        dispatch(setPreview(!preview));
       } else if (videoElement.current.paused) {
         videoElement.current.play().catch(console.error);
       } else {
@@ -79,7 +76,7 @@ export default function ImageViewer(): JSX.Element | null {
     }
     if (imageWrapper.current && !document.fullscreenElement) {
       event.preventDefault();
-      setPreview(!isPreviewing);
+      dispatch(setPreview(!preview));
     }
   };
 
@@ -106,7 +103,7 @@ export default function ImageViewer(): JSX.Element | null {
     if (currentElement) {
       currentElement
         .requestFullscreen()
-        .then(() => setPreview(false))
+        .then(() => dispatch(setPreview(false)))
         .catch(console.error);
     }
   };
@@ -135,7 +132,7 @@ export default function ImageViewer(): JSX.Element | null {
     ipcRenderer.send('open-folder');
   }
 
-  if (!file && !rootFolder) {
+  if (!selectedFile && !rootFolder) {
     return (
       <div ref={imageWrapper} className={classes.imageWrapper}>
         <h2 className={classes.selectText} onClick={selectFolder}>
@@ -145,25 +142,25 @@ export default function ImageViewer(): JSX.Element | null {
     );
   }
 
-  if (file && isVideo(file)) {
+  if (selectedFile && isVideo(selectedFile)) {
     return (
       <video
-        key={file.fullPath}
+        key={selectedFile.fullPath}
         ref={videoElement}
-        className={classNames(classes.image, { [classes.preview]: isPreviewing })}
+        className={classNames(classes.image, { [classes.preview]: preview })}
         controls
         loop
         onFocus={preventFocus}
         onPlay={() => dispatch(play())}
         onPause={() => dispatch(pause())}
       >
-        <source src={`${url.pathToFileURL(file.fullPath).toString()}#t=0.5`} />
+        <source src={`${url.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
       </video>
     );
   }
 
   return (
-    <div ref={imageWrapper} className={classNames(classes.imageWrapper, { [classes.preview]: isPreviewing })}>
+    <div ref={imageWrapper} className={classNames(classes.imageWrapper, { [classes.preview]: preview })}>
       <TransformWrapper
         options={{
           // @ts-ignore
@@ -175,12 +172,12 @@ export default function ImageViewer(): JSX.Element | null {
         }}
       >
         <TransformComponent>
-          {file && (
+          {selectedFile && (
             <img
               ref={imageElement}
               className={classes.image}
-              alt={file.fullPath}
-              src={url.pathToFileURL(file.fullPath).toString()}
+              alt={selectedFile.fullPath}
+              src={url.pathToFileURL(selectedFile.fullPath).toString()}
             />
           )}
         </TransformComponent>

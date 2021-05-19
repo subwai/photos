@@ -1,8 +1,9 @@
-import { app, ipcMain, BrowserWindow, dialog } from 'electron';
 import Bluebird from 'bluebird';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs, { BaseEncodingOptions } from 'fs';
+import { each } from 'lodash';
 import path from 'path';
-import FileEntry, { isImageOrVideo } from '../renderer/models/FileEntry';
+import FileEntryObject, { Children } from '../renderer/models/FileEntry';
 
 const readdirAsync: (arg1: fs.PathLike, arg2: BaseEncodingOptions & { withFileTypes: true }) => Bluebird<fs.Dirent[]> =
   Bluebird.promisify(fs.readdir);
@@ -20,7 +21,7 @@ export default class FileSystem {
 
   watcher?: fs.FSWatcher;
 
-  readFileTreePromiseMap: { [key: string]: Bluebird<FileEntry> } = {};
+  readFileTreePromiseMap: { [key: string]: Bluebird<FileEntryObject> } = {};
 
   blackList: Map<string, number>;
 
@@ -32,8 +33,8 @@ export default class FileSystem {
 
   cleanBlacklist() {
     const now = new Date().valueOf();
-    this.blackList.forEach((expire, fullPath) => {
-      if (expire < now) {
+    this.blackList.forEach((expiration, fullPath) => {
+      if (expiration <= now) {
         this.blackList.delete(fullPath);
       }
     });
@@ -105,8 +106,8 @@ export default class FileSystem {
     const fullPath = path.resolve(this.rootFolder, fileName);
     const rootLevel = this.rootFolder.split(/[\\/]/).length;
 
-    const expires = this.blackList.get(fullPath);
-    if (expires && expires < new Date().valueOf()) {
+    const expiration = this.blackList.get(fullPath);
+    if (expiration && expiration > new Date().valueOf()) {
       return;
     }
 
@@ -114,17 +115,13 @@ export default class FileSystem {
       const stats = await statAsync(fullPath);
       const level = fullPath.split(/[\\/]/).length - rootLevel;
 
-      if (stats.isDirectory()) {
-        this.mainWindow.webContents.send('file-changed', await this.getChildren(fullPath));
-      } else if (isImageOrVideo(fullPath)) {
-        this.mainWindow.webContents.send('file-changed', <FileEntry>{
-          name: path.basename(fullPath),
-          fullPath,
-          isFolder: stats.isDirectory(),
-          children: null,
-          level,
-        });
-      }
+      this.mainWindow.webContents.send('file-changed', <FileEntryObject>{
+        name: path.basename(fullPath),
+        fullPath,
+        isFolder: stats.isDirectory(),
+        children: stats.isDirectory() ? await this.getChildren(fullPath) : null,
+        level,
+      });
     } catch (err) {
       if (err.code === 'ENOENT') {
         this.mainWindow.webContents.send('file-removed', fullPath);
@@ -132,7 +129,7 @@ export default class FileSystem {
     }
   };
 
-  getChildren = async (fullPath: string): Promise<FileEntry[]> => {
+  getChildren = async (fullPath: string): Promise<Children<FileEntryObject>> => {
     console.log('Scanning', fullPath);
 
     this.blackList.set(fullPath, new Date().valueOf() + 500);
@@ -141,12 +138,17 @@ export default class FileSystem {
 
     const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
-    return files.map((file) => ({
-      name: file.name,
-      fullPath: path.resolve(fullPath, file.name),
-      isFolder: file.isDirectory(),
-      children: null,
-      level,
-    }));
+    const children: Children<FileEntryObject> = {};
+    each(files, (file) => {
+      children[file.name] = {
+        name: file.name,
+        fullPath: path.resolve(fullPath, file.name),
+        isFolder: file.isDirectory(),
+        children: null,
+        level,
+      };
+    });
+
+    return children;
   };
 }

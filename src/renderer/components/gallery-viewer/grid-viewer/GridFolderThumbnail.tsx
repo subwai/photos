@@ -1,16 +1,12 @@
-import Promise from 'bluebird';
 import classNames from 'classnames';
-import { throttle } from 'lodash';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
-import uuid from 'uuid';
-import useFileEventListener from '../../../hooks/useFileEventListener';
+import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useThumbnail from '../../../hooks/useThumbnail';
-import FileEntry, { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../../models/FileEntry';
-import FileSystemService from '../../../utils/FileSystemService';
+import { FileEntryModel, findFirstImageOrVideo, isImage, isVideoThumbnail } from '../../../models/FileEntry';
 
 export const THUMBNAIL_PADDING = 6;
-export const THUMBNAIL_SIZE = 100;
+export const THUMBNAIL_SIZE = 200;
 export const THUMBNAIL_HEIGHT = THUMBNAIL_SIZE - THUMBNAIL_PADDING * 2;
 export const THUMBNAIL_WIDTH = Math.round(THUMBNAIL_HEIGHT * 0.85);
 
@@ -55,23 +51,11 @@ interface Props {
 export default function GridFolderThumbnail({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
   const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
-  const getChildrenPromise = useRef<Promise<FileEntry[]>>();
-  const [, triggerUpdate] = useState<string>(uuid.v4());
   const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
 
-  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
-  useFileEventListener('all', triggerUpdateThrottled, fileEntry);
+  useAutomaticChildrenLoader(fileEntry);
 
-  useEffect(() => {
-    if (fileEntry.isFolder && fileEntry.children === null) {
-      getChildrenPromise.current = FileSystemService.getChildren(fileEntry.fullPath);
-      getChildrenPromise.current.then((children) => fileEntry.addChildren(children)).catch(console.error);
-    }
-
-    return () => getChildrenPromise.current?.cancel();
-  }, []);
-
-  if (preview && isVideo(preview)) {
+  if (preview && isVideoThumbnail(preview)) {
     return (
       <img
         key={key}

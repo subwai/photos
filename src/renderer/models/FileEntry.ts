@@ -1,21 +1,24 @@
 import Promise from 'bluebird';
-import { find, findIndex, findLast, identity, includes, map } from 'lodash';
+import { find, findLast, includes, each, get } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
 // eslint-disable-next-line import/no-cycle
-import FileSystemService, { FileSystemOptions } from '../utils/FileSystemService';
+import FileSystemService from '../utils/FileSystemService';
+import { PromiseQueueJobOptions } from '../utils/PromiseQueue';
 
-export default interface FileEntry {
+export default interface FileEntryObject {
   name: string;
   fullPath: string;
   isFolder: boolean;
-  children: FileEntry[] | null;
+  children: Children<FileEntryObject>;
   level: number;
 }
 
-export class FileEntryModel implements FileEntry {
-  children: FileEntryModel[] | null;
+export type Children<T> = { [key: string]: T } | null;
+
+export class FileEntryModel implements FileEntryObject {
+  children: Children<FileEntryModel>;
 
   fullPath: string;
 
@@ -29,7 +32,7 @@ export class FileEntryModel implements FileEntry {
 
   listeners: { [key: string]: Set<Function> };
 
-  constructor(props: { parent?: FileEntryModel } & FileEntry) {
+  constructor(props: { parent?: FileEntryModel } & FileEntryObject) {
     this.children = props.children ? this.convertToFileEntryModels(props.children) : null;
     this.fullPath = props.fullPath;
     this.isFolder = props.isFolder;
@@ -67,27 +70,51 @@ export class FileEntryModel implements FileEntry {
     };
   }
 
-  addChildren(children: FileEntry[]) {
-    if (!this.children) {
-      this.children = this.convertToFileEntryModels(children);
+  find(fullPath: string): FileEntryModel | undefined {
+    const objectPath = fullPath
+      .replace(new RegExp(`${this.fullPath.replaceAll('\\', '\\\\')}[\\\\/]?`), '')
+      .replaceAll('.', '$')
+      .replaceAll('\\', '.children.')
+      .replaceAll('/', '.children.');
+
+    return objectPath === '' ? this : get(this, `children.${objectPath}`);
+  }
+
+  isVideo() {
+    return isVideo(this);
+  }
+
+  addChildren(children: Children<FileEntryObject>) {
+    if (!this.children && children) {
+      each(children, (child) => {
+        this.children = this.children || {};
+        this.children[child.name] = this.convertToFileEntryModel(child);
+      });
       this.triggerEvent('update');
     }
   }
 
-  convertToFileEntryModels(children: FileEntry[]) {
-    return map<FileEntry, FileEntryModel>(children, (child) =>
-      child instanceof FileEntryModel ? child : new FileEntryModel(Object.assign(child, { parent: this }))
-    );
+  convertToFileEntryModels(children: Children<FileEntryObject>): Children<FileEntryModel> {
+    const carry: Children<FileEntryModel> = {};
+    each(children, (child) => {
+      carry[child.name] = this.convertToFileEntryModel(child);
+    });
+
+    return carry;
   }
 
-  loadChildren(options: FileSystemOptions = {}): Promise<FileEntryModel[]> {
+  convertToFileEntryModel(child: FileEntryObject): FileEntryModel {
+    return child instanceof FileEntryModel ? child : new FileEntryModel(Object.assign(child, { parent: this }));
+  }
+
+  loadChildren(options: PromiseQueueJobOptions = {}): Promise<Children<FileEntryModel>> {
     if (!this.isFolder) {
-      return Promise.resolve([]);
+      return Promise.resolve(null);
     }
 
     return FileSystemService.getChildren(this.fullPath, options)
       .then((children) => children && this.addChildren(children))
-      .then(() => this.children || []);
+      .then(() => this.children);
   }
 
   addEventListener(eventName: string, callback: (event: FileEntryEvent) => void) {
@@ -115,16 +142,20 @@ export interface FileEntryEvent {
   target: FileEntryModel;
 }
 
-export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi'];
+export const VIDEO_THUMBNAIL_EXTENSIONS = VIDEO_EXTENSIONS.concat(['.webp']);
 
-export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.webp', '.avi'];
-
-export function isImage(fileEntry: FileEntry) {
+export function isImage(fileEntry: FileEntryObject) {
   return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
-export function isVideo(fileEntry: FileEntry) {
+export function isVideo(fileEntry: FileEntryObject) {
   return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
+}
+
+export function isVideoThumbnail(fileEntry: FileEntryObject) {
+  return !fileEntry.isFolder && includes(VIDEO_THUMBNAIL_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
 export function isImageOrVideo(filePath: string) {
@@ -133,11 +164,11 @@ export function isImageOrVideo(filePath: string) {
   return includes(VIDEO_EXTENSIONS, ext) || includes(IMAGE_EXTENSIONS, ext);
 }
 
-export function findFirstFolder(fileEntry: FileEntry) {
+export function findFirstFolder(fileEntry: FileEntryObject) {
   return fileEntry.children && find(fileEntry.children, 'isFolder');
 }
 
-export function findLastFolder(fileEntry: FileEntry) {
+export function findLastFolder(fileEntry: FileEntryObject) {
   return fileEntry.children && findLast(fileEntry.children, 'isFolder');
 }
 
@@ -145,9 +176,13 @@ export function findFirstImageOrVideo(fileEntry: FileEntryModel) {
   return fileEntry.children && find(fileEntry.children, (child) => isImage(child) || isVideo(child));
 }
 
-export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: FoldersHash, list: FileEntry[] = []) {
+export function findAllFilesRecursive(
+  fileEntry: FileEntryObject,
+  hiddenFolders: FoldersHash,
+  list: FileEntryObject[] = []
+) {
   if (fileEntry.children) {
-    fileEntry.children.forEach((child) => {
+    each(fileEntry.children, (child) => {
       if (child.isFolder && !hiddenFolders[child.fullPath]) {
         findAllFilesRecursive(child, hiddenFolders, list);
       } else if (isImage(child) || isVideo(child)) {
@@ -157,31 +192,4 @@ export function findAllFilesRecursive(fileEntry: FileEntry, hiddenFolders: Folde
   }
 
   return list;
-}
-
-export function findFolderAndIndex(
-  rootFolder: FileEntry | null,
-  filePath: string | null
-): { folder: FileEntry | null; index: number | null } {
-  if (!rootFolder || !filePath) {
-    return { folder: null, index: null };
-  }
-
-  const levels = filePath.substr(rootFolder.fullPath.length).split(/[\\/]/).filter(identity);
-  let folder: FileEntry | null = rootFolder;
-  let index = null;
-
-  while (levels.length && folder) {
-    const level = levels.shift();
-    if (levels.length) {
-      folder = find(folder?.children || [], (child) => child.name === level) || null;
-    } else {
-      index = findIndex(folder?.children || [], (child) => child.name === level);
-      if (index === -1) {
-        index = null;
-      }
-    }
-  }
-
-  return { folder, index };
 }

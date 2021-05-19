@@ -4,14 +4,14 @@ import { History } from 'history';
 import { combineReducers } from 'redux';
 import folderVisibilityReducer from './slices/folderVisibilitySlice';
 import galleryScrollerReducer from './slices/galleryViewerSlice';
-import playerReducer from './slices/playerSlice';
+import viewerReducer from './slices/viewerSlice';
 import rootFolderReducer from './slices/rootFolderSlice';
 import selectedFolderReducer from './slices/selectedFolderSlice';
 
 export default function createRootReducer(history: History) {
   return combineReducers({
     router: connectRouter(history),
-    player: playerReducer,
+    viewer: viewerReducer,
     folderVisibility: folderVisibilityReducer,
     galleryScroller: galleryScrollerReducer,
     rootFolder: rootFolderReducer,

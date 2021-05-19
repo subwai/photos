@@ -11,6 +11,7 @@ const useStyles = createUseStyles({
     boxSizing: 'border-box',
     display: 'flex',
     justifyContent: 'center',
+    cursor: 'pointer',
   },
   image: {
     width: '100%',
@@ -57,23 +58,34 @@ interface Props {
   fileEntry: FileEntryModel;
   index: number;
   onClick: (event: React.MouseEvent) => void;
+  onDoubleClick: (event: React.MouseEvent) => void;
   style: object;
 }
 
-export default memo(function GridThumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
+export default memo(function GridThumbnail({
+  fileEntry,
+  index,
+  onClick,
+  onDoubleClick,
+  style,
+}: Props): JSX.Element | null {
   const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
 
   if (isVideo(fileEntry)) {
     return (
-      <div className={classes.thumbnail} style={style}>
+      <div
+        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+        style={style}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+      >
         <img
           key={key}
-          className={classNames(classes.image, `file-${index}`)}
+          className={classNames(classes.image)}
           alt=""
           src={fullPath}
           onError={() => setRequestThumbnail('video')}
-          onClick={onClick}
           loading="lazy"
         />
       </div>
@@ -82,7 +94,12 @@ export default memo(function GridThumbnail({ fileEntry, index, onClick, style }:
 
   if (fileEntry.isFolder) {
     return (
-      <div className={classes.thumbnail} style={style}>
+      <div
+        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+        style={style}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+      >
         <GridFolderThumbnail fileEntry={fileEntry} />
         <span className={classes.folderName}>{fileEntry.name}</span>
       </div>
@@ -90,14 +107,18 @@ export default memo(function GridThumbnail({ fileEntry, index, onClick, style }:
   }
 
   return (
-    <div className={classes.thumbnail} style={style}>
+    <div
+      className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+      style={style}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+    >
       <img
         key={key}
-        className={classNames(classes.image, `file-${index}`)}
+        className={classNames(classes.image)}
         alt=""
         src={fullPath}
         onError={() => setRequestThumbnail('image')}
-        onClick={onClick}
         loading="lazy"
       />
     </div>

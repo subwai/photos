@@ -1,9 +1,10 @@
 import { StyleSheet } from 'jss';
-import { orderBy, throttle } from 'lodash';
+import { orderBy } from 'lodash';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { Grid } from 'react-virtualized';
+import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 import uuid from 'uuid';
 import useAnimation from '../../../hooks/useAnimation';
 import useEventListener from '../../../hooks/useEventListener';
@@ -11,8 +12,8 @@ import useFileEventListener from '../../../hooks/useFileEventListener';
 import { FileEntryModel, findAllFilesRecursive } from '../../../models/FileEntry';
 import { selectHiddenFolders } from '../../../redux/slices/folderVisibilitySlice';
 import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
-import { selectPlaying } from '../../../redux/slices/playerSlice';
 import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
+import { selectPlaying } from '../../../redux/slices/viewerSlice';
 import Thumbnail from './Thumbnail';
 
 const useStyles = createUseStyles({
@@ -43,7 +44,7 @@ interface Scroll {
 }
 
 export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [locallySelectedIndex, setLocallySelectedIndex] = useState(0);
   const classes = useStyles();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
@@ -56,7 +57,16 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
 
-  const triggerUpdateThrottled = useMemo(() => throttle(() => triggerUpdate(uuid.v4()), 2000), [triggerUpdate]);
+  const updateFlattenedFiles = () => {
+    setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
+  };
+  const updateFlattenedFilesDebounced = useDebouncedCallback(updateFlattenedFiles, 250);
+  const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 2000);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid.v4()), 2000);
+  const sortedFiles = useMemo(() => orderBy(flattenedFiles, ...sort.split(':')), [flattenedFiles, sort]);
+
+  useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
+  useEffect(calculateAllFilesRecursiveThrottled, [update]);
   useFileEventListener('all', triggerUpdateThrottled, folder);
 
   useEffect(() => {
@@ -65,39 +75,32 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
     return () => {
       jss.removeStyleSheet(x);
+      updateFlattenedFilesDebounced.flush();
     };
   }, []);
 
-  const updateFlattenedFiles = () => {
-    setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
-  };
-
-  useEffect(() => {
-    const timeout = setTimeout(updateFlattenedFiles, 250);
-
-    return () => clearTimeout(timeout);
-  }, [folder, hiddenFolders]);
-
-  const calculateAllFilesRecursiveThrottled = useMemo(() => throttle(updateFlattenedFiles, 2000), [setFlattenedFiles]);
-  useEffect(calculateAllFilesRecursiveThrottled, [update]);
-
-  const sortedFiles = useMemo(() => orderBy(flattenedFiles, ...sort.split(':')), [flattenedFiles, sort]);
-
   useEffect(() => {
     dispatch(setFilesCount(sortedFiles.length));
+    setSelectedIndexDebounced(0);
   }, [sortedFiles]);
 
   useEffect(() => {
-    setSelectedIndex(0);
+    setLocallySelectedIndex(0);
   }, [sort]);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (sortedFiles && sortedFiles[selectedIndex] && sortedFiles[selectedIndex] !== selectedFile) {
-        dispatch(setSelectedFile(sortedFiles[selectedIndex]));
+  const setSelectedIndexDebounced = useDebouncedCallback(
+    (nextIndex: number) => {
+      if (sortedFiles && sortedFiles[nextIndex] && sortedFiles[nextIndex] !== selectedFile) {
+        dispatch(setSelectedFile(sortedFiles[nextIndex]));
       }
-    }, 100);
-    const rule = sheet?.addRule(`file-${selectedIndex}`, {
+    },
+    100,
+    { leading: true }
+  );
+
+  useEffect(() => {
+    setSelectedIndexDebounced(locallySelectedIndex);
+    const rule = sheet?.addRule(`file-${locallySelectedIndex}`, {
       background: 'rgba(255,255,255,.2)',
     });
 
@@ -105,9 +108,8 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
       if (rule) {
         sheet?.deleteRule(rule.key);
       }
-      clearTimeout(timeout);
     };
-  }, [sortedFiles, selectedIndex, sheet, dispatch]);
+  }, [locallySelectedIndex, sheet]);
 
   const playing = useSelector(selectPlaying);
 
@@ -134,15 +136,15 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const nextSelectedIndex = Math.max(selectedIndex - 1, 0);
-    setSelectedIndex(nextSelectedIndex);
+    const nextSelectedIndex = Math.max(locallySelectedIndex - 1, 0);
+    setLocallySelectedIndex(nextSelectedIndex);
     maybeScrollAnimate(nextSelectedIndex);
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const nextSelectedIndex = Math.min(selectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0);
-    setSelectedIndex(nextSelectedIndex);
+    const nextSelectedIndex = Math.min(locallySelectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0);
+    setLocallySelectedIndex(nextSelectedIndex);
     maybeScrollAnimate(nextSelectedIndex);
   };
 
@@ -215,7 +217,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         index={columnIndex}
         fileEntry={file}
         onClick={() => {
-          setSelectedIndex(columnIndex);
+          setLocallySelectedIndex(columnIndex);
         }}
         style={style}
       />
