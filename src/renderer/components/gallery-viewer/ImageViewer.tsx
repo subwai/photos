@@ -97,14 +97,14 @@ export default function ImageViewer() {
   const fKey = (event: React.KeyboardEvent) => {
     event.preventDefault();
     if (document.fullscreenElement) {
-      document.exitFullscreen().catch(console.error);
+      document
+        .exitFullscreen()
+        .then(() => dispatch(setPreview(false)))
+        .catch(console.error);
     }
     const currentElement = videoElement.current || imageWrapper.current;
     if (currentElement) {
-      currentElement
-        .requestFullscreen()
-        .then(() => dispatch(setPreview(false)))
-        .catch(console.error);
+      currentElement.requestFullscreen().catch(console.error);
     }
   };
 
@@ -153,6 +153,7 @@ export default function ImageViewer() {
         onFocus={preventFocus}
         onPlay={() => dispatch(play())}
         onPause={() => dispatch(pause())}
+        onAuxClick={() => dispatch(setPreview(false))}
       >
         <source src={`${url.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
       </video>
@@ -160,7 +161,11 @@ export default function ImageViewer() {
   }
 
   return (
-    <div ref={imageWrapper} className={classNames(classes.imageWrapper, { [classes.preview]: preview })}>
+    <div
+      ref={imageWrapper}
+      className={classNames(classes.imageWrapper, { [classes.preview]: preview })}
+      onAuxClick={() => dispatch(setPreview(false))}
+    >
       <TransformWrapper
         options={{
           // @ts-ignore

@@ -1,5 +1,5 @@
 import Promise from 'bluebird';
-import { orderBy } from 'lodash';
+import { debounce, orderBy } from 'lodash';
 
 export interface PromiseQueueJobOptions {
   priority?: number;
@@ -11,9 +11,11 @@ export interface PromiseQueueOptions {
 
 interface Job {
   callback: Function;
-  resolve: (error: any) => unknown;
-  reject: (error: any) => unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolve: (value: any) => void;
+  reject: (error: Error) => void;
   cancelled: boolean;
+  priority: number;
 }
 
 export default class PromiseQueue {
@@ -29,9 +31,13 @@ export default class PromiseQueue {
     this.options = options;
   }
 
+  sortJobsDebounced = debounce(() => {
+    this.jobs = orderBy(this.jobs, 'priority', 'desc');
+  }, 200);
+
   add<T>(callback: Function, options: PromiseQueueJobOptions = {}): Promise<T> {
     return new Promise((resolve, reject, onCancel) => {
-      const job = {
+      const job: Job = {
         callback,
         resolve,
         reject,
@@ -39,7 +45,7 @@ export default class PromiseQueue {
         priority: options.priority || 0,
       };
       this.jobs.push(job);
-      this.jobs = orderBy(this.jobs, 'priority', 'desc');
+      this.sortJobsDebounced();
       if (onCancel) {
         onCancel(() => {
           job.cancelled = true;

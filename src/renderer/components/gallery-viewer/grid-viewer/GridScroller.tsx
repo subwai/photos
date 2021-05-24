@@ -8,12 +8,12 @@ import { useDebouncedCallback } from 'use-debounce';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useEventListener from '../../../hooks/useEventListener';
 import useSelectedFolder from '../../../hooks/useSelectedFolder';
+import useSelectedIndex from '../../../hooks/useSelectedIndex';
 import { findFirstImageOrVideo } from '../../../models/FileEntry';
 import { openFolder } from '../../../redux/slices/folderVisibilitySlice';
 import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
-import { selectPreview, setPreview } from '../../../redux/slices/viewerSlice';
-import ImageViewer from '../ImageViewer';
+import { selectPlaying, selectPreview, setPreview } from '../../../redux/slices/viewerSlice';
 import { THUMBNAIL_HEIGHT, THUMBNAIL_SIZE } from './GridFolderThumbnail';
 import Thumbnail from './GridThumbnail';
 
@@ -30,10 +30,11 @@ export default function GridScroller({ width, height }: Props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [selectedFolder, setSelectedFolder] = useSelectedFolder();
+  const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const selectedFile = useSelector(selectSelectedFile);
   const sort = useSelector(selectGallerySort);
   const preview = useSelector(selectPreview);
-  const [locallySelectedIndex, setLocallySelectedIndex] = useState<number | null>(null);
+  const playing = useSelector(selectPlaying);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
 
   const columnCount = Math.floor(width / THUMBNAIL_HEIGHT);
@@ -46,7 +47,9 @@ export default function GridScroller({ width, height }: Props) {
     [selectedFolder, sort, updated]
   );
 
-  useEffect(() => setLocallySelectedIndex(null), [selectedFolder]);
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [selectedFolder]);
 
   useEffect(() => {
     dispatch(setFilesCount(sortedFiles.length));
@@ -62,7 +65,7 @@ export default function GridScroller({ width, height }: Props) {
   }, []);
 
   useEffect(() => {
-    const rule = sheet?.addRule(`grid-thumbnail-${locallySelectedIndex}`, {
+    const rule = sheet?.addRule(`grid-thumbnail-${selectedIndex}`, {
       background: 'rgba(255,255,255,.2)',
     });
 
@@ -71,7 +74,7 @@ export default function GridScroller({ width, height }: Props) {
         sheet?.deleteRule(rule.key);
       }
     };
-  }, [locallySelectedIndex, sheet]);
+  }, [selectedIndex, sheet]);
 
   const isTargetWithinGridButNotThumbnail = (target: EventTarget | null) => {
     const grid = document.getElementsByClassName(classes.grid)[0];
@@ -83,13 +86,13 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   useEventListener('click', (event: MouseEvent) => {
-    if (locallySelectedIndex !== null && isTargetWithinGridButNotThumbnail(event.target)) {
+    if (selectedIndex !== null && isTargetWithinGridButNotThumbnail(event.target)) {
       selectIndex(null);
     }
   });
 
   const space = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isVideo() && !event.shiftKey) {
+    if (selectedIndex === null || (preview && selectedFile?.isVideo() && !event.shiftKey)) {
       return;
     }
 
@@ -99,7 +102,7 @@ export default function GridScroller({ width, height }: Props) {
 
   const enter = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    openIndex(locallySelectedIndex);
+    openIndex(selectedIndex);
   };
 
   const escape = (event: React.KeyboardEvent) => {
@@ -108,46 +111,46 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const arrowLeft = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isVideo() && !event.shiftKey) {
+    if (event.shiftKey || playing) {
       return;
     }
 
     event.preventDefault();
-    if (locallySelectedIndex === null) {
+    if (selectedIndex === null) {
       trySelectIndex(sortedFiles.length - 1);
     } else {
-      trySelectIndex(locallySelectedIndex - 1);
+      trySelectIndex(selectedIndex - 1);
     }
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isVideo() && !event.shiftKey) {
+    if (event.shiftKey || playing) {
       return;
     }
 
     event.preventDefault();
-    if (locallySelectedIndex === null) {
+    if (selectedIndex === null) {
       trySelectIndex(0);
     } else {
-      trySelectIndex(locallySelectedIndex + 1);
+      trySelectIndex(selectedIndex + 1);
     }
   };
 
   const arrowUp = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    if (locallySelectedIndex === null) {
+    if (selectedIndex === null) {
       trySelectIndex(sortedFiles.length - 1);
     } else {
-      trySelectIndex(locallySelectedIndex - columnCount);
+      trySelectIndex(selectedIndex - columnCount);
     }
   };
 
   const arrowDown = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    if (locallySelectedIndex === null) {
+    if (selectedIndex === null) {
       trySelectIndex(0);
     } else {
-      trySelectIndex(locallySelectedIndex + columnCount);
+      trySelectIndex(selectedIndex + columnCount);
     }
   };
 
@@ -178,16 +181,20 @@ export default function GridScroller({ width, height }: Props) {
     }
   });
 
-  const setSelectedFileDebounced = useDebouncedCallback((file) => {
-    if (file && file.isFolder) {
-      dispatch(setSelectedFile(findFirstImageOrVideo(file)));
-    } else {
-      dispatch(setSelectedFile(file));
-    }
-  }, 250);
+  const setSelectedFileDebounced = useDebouncedCallback(
+    (file) => {
+      if (file && file.isFolder) {
+        dispatch(setSelectedFile(findFirstImageOrVideo(file)));
+      } else {
+        dispatch(setSelectedFile(file));
+      }
+    },
+    250,
+    { leading: true }
+  );
 
   const selectIndex = (index: number | null) => {
-    setLocallySelectedIndex(index);
+    setSelectedIndex(index);
     if (index !== null) {
       const file = sortedFiles[index];
       setSelectedFileDebounced(file);
@@ -195,7 +202,7 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const openIndex = (index: number | null) => {
-    setLocallySelectedIndex(index);
+    setSelectedIndex(index);
     if (index !== null) {
       const file = sortedFiles[index];
       if (file && file.isFolder) {
@@ -228,19 +235,16 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   return (
-    <>
-      <Grid
-        className={classes.grid}
-        cellRenderer={cellRenderer}
-        columnWidth={THUMBNAIL_HEIGHT}
-        columnCount={columnCount}
-        rowHeight={THUMBNAIL_SIZE}
-        rowCount={rowCount}
-        height={height}
-        width={width}
-        overscanRowCount={10}
-      />
-      {locallySelectedIndex !== null && preview && <ImageViewer />}
-    </>
+    <Grid
+      className={classes.grid}
+      cellRenderer={cellRenderer}
+      columnWidth={THUMBNAIL_HEIGHT}
+      columnCount={columnCount}
+      rowHeight={THUMBNAIL_SIZE}
+      rowCount={rowCount}
+      height={height}
+      width={width}
+      overscanRowCount={10}
+    />
   );
 }

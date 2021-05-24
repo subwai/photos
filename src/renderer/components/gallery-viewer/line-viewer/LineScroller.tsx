@@ -9,6 +9,7 @@ import uuid from 'uuid';
 import useAnimation from '../../../hooks/useAnimation';
 import useEventListener from '../../../hooks/useEventListener';
 import useFileEventListener from '../../../hooks/useFileEventListener';
+import useSelectedIndex from '../../../hooks/useSelectedIndex';
 import { FileEntryModel, findAllFilesRecursive } from '../../../models/FileEntry';
 import { selectHiddenFolders } from '../../../redux/slices/folderVisibilitySlice';
 import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
@@ -36,7 +37,7 @@ interface Props {
   height: number;
 }
 
-interface Scroll {
+interface ScrollValues {
   value: number;
   from: number;
   to: number;
@@ -44,16 +45,16 @@ interface Scroll {
 }
 
 export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
-  const [locallySelectedIndex, setLocallySelectedIndex] = useState(0);
   const classes = useStyles();
+  const dispatch = useDispatch();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const selectedFile = useSelector(selectSelectedFile);
+  const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const sort = useSelector(selectGallerySort);
-  const scroll = useRef<Scroll>({ value: 0, from: 0, to: 0, animated: 0 });
+  const scroll = useRef<ScrollValues>({ value: 0, from: 0, to: 0, animated: 0 });
+  const container = useRef<HTMLDivElement>(null);
   const [animateTo, setAnimateTo] = useState(0);
-  const dispatch = useDispatch();
-  const ref = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
 
@@ -81,17 +82,14 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
   useEffect(() => {
     dispatch(setFilesCount(sortedFiles.length));
-    setSelectedIndexDebounced(0);
+    setSelectedFileByIndexDebounced(selectedIndex);
   }, [sortedFiles]);
 
-  useEffect(() => {
-    setLocallySelectedIndex(0);
-  }, [sort]);
-
-  const setSelectedIndexDebounced = useDebouncedCallback(
-    (nextIndex: number) => {
-      if (sortedFiles && sortedFiles[nextIndex] && sortedFiles[nextIndex] !== selectedFile) {
-        dispatch(setSelectedFile(sortedFiles[nextIndex]));
+  const setSelectedFileByIndexDebounced = useDebouncedCallback(
+    (nextIndex: number | null) => {
+      const nextFile = sortedFiles && nextIndex !== null ? sortedFiles[nextIndex] : null;
+      if (nextFile !== selectedFile) {
+        dispatch(setSelectedFile(nextFile));
       }
     },
     100,
@@ -99,8 +97,8 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   );
 
   useEffect(() => {
-    setSelectedIndexDebounced(locallySelectedIndex);
-    const rule = sheet?.addRule(`file-${locallySelectedIndex}`, {
+    setSelectedFileByIndexDebounced(selectedIndex);
+    const rule = sheet?.addRule(`file-${selectedIndex}`, {
       background: 'rgba(255,255,255,.2)',
     });
 
@@ -109,7 +107,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         sheet?.deleteRule(rule.key);
       }
     };
-  }, [locallySelectedIndex, sheet]);
+  }, [selectedIndex, sheet]);
 
   const playing = useSelector(selectPlaying);
 
@@ -136,15 +134,18 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const nextSelectedIndex = Math.max(locallySelectedIndex - 1, 0);
-    setLocallySelectedIndex(nextSelectedIndex);
+    const nextSelectedIndex = Math.max((selectedIndex === null ? sortedFiles.length : selectedIndex) - 1, 0);
+    setSelectedIndex(nextSelectedIndex);
     maybeScrollAnimate(nextSelectedIndex);
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
     event.preventDefault();
-    const nextSelectedIndex = Math.min(locallySelectedIndex + 1, sortedFiles ? sortedFiles.length - 1 : 0);
-    setLocallySelectedIndex(nextSelectedIndex);
+    const nextSelectedIndex = Math.min(
+      selectedIndex === null ? 0 : selectedIndex + 1,
+      sortedFiles ? sortedFiles.length - 1 : 0
+    );
+    setSelectedIndex(nextSelectedIndex);
     maybeScrollAnimate(nextSelectedIndex);
   };
 
@@ -178,7 +179,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const isAnimating = scroll.current.animated !== animateTo;
   scroll.current.value = isAnimating ? scroll.current.animated : scroll.current.value;
 
-  const firstChild = ref.current?.firstChild as HTMLElement;
+  const firstChild = container.current?.firstChild as HTMLElement;
 
   const scrollTo = (x: number) => {
     const newEvent = new Event('scroll', { bubbles: true });
@@ -195,7 +196,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         scrollTo(firstChild?.scrollLeft + event.deltaY);
       }
     },
-    ref.current
+    container.current
   );
 
   const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
@@ -216,16 +217,14 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         key={file.fullPath}
         index={columnIndex}
         fileEntry={file}
-        onClick={() => {
-          setLocallySelectedIndex(columnIndex);
-        }}
+        onClick={() => setSelectedIndex(columnIndex)}
         style={style}
       />
     );
   };
 
   return (
-    <div ref={ref} className={classes.scrollContainer}>
+    <div ref={container} className={classes.scrollContainer}>
       <Grid
         className={classes.grid}
         cellRenderer={cellRenderer}

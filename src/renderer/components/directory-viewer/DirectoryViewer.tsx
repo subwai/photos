@@ -1,6 +1,6 @@
 import { Rule, StyleSheet } from 'jss';
 import { each, find, max, min, reduce } from 'lodash';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
@@ -89,7 +89,7 @@ function getPositionFromFolderSize(folderSize: number, width: number): number {
   return ((folderSize - MIN_FOLDER_SIZE) / (MAX_FOLDER_SIZE - MIN_FOLDER_SIZE)) * (width - FOLDER_RESIZE_PADDING * 2);
 }
 
-export default function DirectoryViewer(): JSX.Element {
+export default memo(function DirectoryViewer(): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
@@ -392,4 +392,4 @@ export default function DirectoryViewer(): JSX.Element {
       </div>
     </div>
   );
-}
+});

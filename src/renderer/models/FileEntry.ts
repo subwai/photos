@@ -1,5 +1,5 @@
 import Promise from 'bluebird';
-import { find, findLast, includes, each, get } from 'lodash';
+import { each, find, findLast, includes } from 'lodash';
 import path from 'path';
 // eslint-disable-next-line import/no-cycle
 import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
@@ -71,13 +71,22 @@ export class FileEntryModel implements FileEntryObject {
   }
 
   find(fullPath: string): FileEntryModel | undefined {
-    const objectPath = fullPath
+    const arrayPath = fullPath
       .replace(new RegExp(`${this.fullPath.replaceAll('\\', '\\\\')}[\\\\/]?`), '')
-      .replaceAll('.', '$')
-      .replaceAll('\\', '.children.')
-      .replaceAll('/', '.children.');
+      .split(/[\\/]/)
+      .filter(Boolean);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let entry: FileEntryModel | undefined = this;
 
-    return objectPath === '' ? this : get(this, `children.${objectPath}`);
+    while (arrayPath.length > 0) {
+      const childName = arrayPath.shift();
+      entry = childName && entry.children ? entry.children[childName] : undefined;
+      if (!entry) {
+        return undefined;
+      }
+    }
+
+    return entry;
   }
 
   isVideo() {

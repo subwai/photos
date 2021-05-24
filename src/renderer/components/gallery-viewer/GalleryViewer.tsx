@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
 import { selectGalleryViewer } from '../../redux/slices/galleryViewerSlice';
@@ -15,7 +15,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function GalleryViewer(): JSX.Element {
+export default memo(function GalleryViewer(): JSX.Element {
   const viewer = useSelector(selectGalleryViewer);
   const classes = useStyles();
 
@@ -26,4 +26,4 @@ export default function GalleryViewer(): JSX.Element {
       <MetaBar />
     </div>
   );
-}
+});

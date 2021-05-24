@@ -1,11 +1,14 @@
 import Promise from 'bluebird';
 import { ipcRenderer } from 'electron';
+import { Action, Location, LocationListener, LocationState } from 'history';
 import { values } from 'lodash';
 import path from 'path';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router';
 import useSelectedFolder from '../hooks/useSelectedFolder';
+import useSelectedIndex from '../hooks/useSelectedIndex';
 import FileEntryObject, { FileEntryModel } from '../models/FileEntry';
 import {
   removeFile,
@@ -31,7 +34,9 @@ const useStyles = createUseStyles({
 export default function Home(): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const history = useHistory();
   const [, setSelectedFolder] = useSelectedFolder();
+  const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
@@ -94,6 +99,21 @@ export default function Home(): JSX.Element {
 
     return () => promise.cancel();
   }, []);
+
+  const callback = (location: Location<LocationState>) => {
+    const index = location.hash !== '' ? Number(location.hash.replace('#', '')) : null;
+    if (index !== selectedIndex && !Number.isNaN(index)) {
+      setSelectedIndex(index);
+    }
+  };
+
+  const callbackRef = useRef<LocationListener<LocationState>>(callback);
+  callbackRef.current = callback;
+
+  useEffect(
+    () => history.listen((location: Location<LocationState>, action: Action) => callbackRef.current(location, action)),
+    []
+  );
 
   return (
     <div className={classes.container}>
