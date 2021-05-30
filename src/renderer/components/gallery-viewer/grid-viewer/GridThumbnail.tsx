@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useThumbnail from '../../../hooks/useThumbnail';
 import { FileEntryModel, isVideo } from '../../../models/FileEntry';
-import GridFolderThumbnail, { THUMBNAIL_PADDING, THUMBNAIL_WIDTH } from './GridFolderThumbnail';
+import GridFolderThumbnail, { THUMBNAIL_HEIGHT, THUMBNAIL_PADDING, THUMBNAIL_WIDTH } from './GridFolderThumbnail';
 
 const useStyles = createUseStyles({
   thumbnail: {
@@ -43,12 +43,12 @@ const useStyles = createUseStyles({
     height: 12,
     lineHeight: '12px',
     fontSize: 12,
-    left: THUMBNAIL_PADDING,
+    left: (THUMBNAIL_HEIGHT - THUMBNAIL_WIDTH) / 2,
     bottom: THUMBNAIL_PADDING,
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
-    textShadow: '0 1px 2px #333',
+    textShadow: '0 0 2px #000, 0 0 2px #000',
     padding: '0 2px',
     boxSizing: 'border-box',
   },
