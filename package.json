@@ -124,7 +124,9 @@
     ],
     "setupFiles": [
       "./.erb/scripts/CheckBuildsExist.js"
-    ]
+    ],
+    "runner": "@jest-runner/electron",
+    "testEnvironment": "@jest-runner/electron/environment"
   },
   "devDependencies": {
     "@babel/core": "^7.14.3",
@@ -150,6 +152,7 @@
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
     "@babel/register": "^7.13.16",
+    "@jest-runner/electron": "^3.0.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.1",
     "@testing-library/jest-dom": "^5.12.0",
