@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - test
+      - main
 
 jobs:
   publish:
@@ -46,7 +46,7 @@ jobs:
         run: |
           yarn install
 
-      - name: Publish releases
+      - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
         env:
           # These values are used for auto updates signing
@@ -59,7 +59,7 @@ jobs:
         run: |
           yarn postinstall && yarn build && yarn electron-builder --publish always --mac
 
-      - name: Publish releases
+      - name: Publish release (Windows)
         if: startsWith(matrix.os, 'windows')
         env:
           # This is used for uploading release assets to github
