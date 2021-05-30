@@ -265,7 +265,7 @@
     "uuid": "^8.3.2"
   },
   "resolutions": {
-    "node-abi": "^2.26.0",
+    "node-abi": "^2.30.0",
     "react-zoom-pan-pinch": "subwai/react-zoom-pan-pinch#dist"
   },
   "devEngines": {
