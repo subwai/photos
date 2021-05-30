@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import url from 'url';
 import { v4 as uuid4 } from 'uuid';
-import { FileEntryModel, isImage } from '../models/FileEntry';
+import { FileEntryModel, isImage, isVideo } from '../models/FileEntry';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
 
 const ignore = ['.gif'];
@@ -51,7 +51,7 @@ export default function useThumbnail(
   } else if (!cachePath) {
     fullPath = isImage(fileEntry) ? url.pathToFileURL(fileEntry.fullPath).toString() : undefined;
   } else {
-    const extension = isImage(fileEntry) ? path.extname(fileEntry.name) : '.jpg';
+    const extension = isVideo(fileEntry) ? '.jpg' : '.webp';
     fullPath = `${url
       .pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}${extension}`))
       .toString()}#${fileEntry.fullPath}`;

@@ -22,7 +22,7 @@ ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject
         .inputOptions('-ss', `${Math.round(duration / 2)}`)
         .outputOptions('-qscale', '10')
         .outputOptions('-frames:v', '1')
-        .outputOptions('-vf', 'scale=-1:264')
+        .outputOptions('-vf', 'scale=-1:384')
         .save(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.jpg`));
     });
   });
@@ -31,8 +31,9 @@ ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject
 ipcMain.handle('generate-image-thumbnail', (_e, fileEntry: FileEntryObject) => {
   return queue.add(() => {
     return sharp(fileEntry.fullPath)
-      .resize({ height: 256 })
-      .toFile(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}${path.extname(fileEntry.name)}`));
+      .resize({ height: 384 })
+      .webp({ quality: 90 })
+      .toFile(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.webp`));
   });
 });
 
