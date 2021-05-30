@@ -2,7 +2,7 @@
   "name": "photos",
   "productName": "Photos",
   "description": "Photos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "build": "concurrently \"yarn build:main\" \"yarn build:renderer\"",
     "build:main": "cross-env NODE_ENV=production webpack --config ./.erb/configs/webpack.config.main.prod.babel.js",
