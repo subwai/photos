@@ -5,7 +5,7 @@ import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useThrottledCallback } from 'use-debounce';
-import uuid from 'uuid';
+import { v4 as uuid4 } from 'uuid';
 import useFileEventListener from '../../hooks/useFileEventListener';
 import FileEntryObject, { Children, FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
@@ -49,12 +49,12 @@ interface Props {
 export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): JSX.Element {
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
-  const [update, triggerUpdate] = useState<string>(uuid.v4());
+  const [update, triggerUpdate] = useState<string>(uuid4());
   const classes = useStyles({ level: fileEntry.level });
   const getChildrenPromise = useRef<Promise<Children<FileEntryObject>>>();
   const dispatch = useDispatch();
 
-  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid.v4()), 2000);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
   useFileEventListener('all', triggerUpdateThrottled, fileEntry);
 
   useEffect(() => {

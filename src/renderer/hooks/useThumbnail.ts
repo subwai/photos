@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import url from 'url';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid4 } from 'uuid';
 import { FileEntryModel, isImage } from '../models/FileEntry';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
 
@@ -36,7 +36,7 @@ export default function useThumbnail(
     if (requestThumbnail && !useOriginal && fileEntry) {
       promise = Bluebird.resolve()
         .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
-        .then(() => setKey(uuidv4()))
+        .then(() => setKey(uuid4()))
         .catch(() => setUseOriginal(true));
     }
 

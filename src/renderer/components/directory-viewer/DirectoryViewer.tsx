@@ -4,7 +4,7 @@ import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
-import uuid from 'uuid';
+import { v4 as uuid4 } from 'uuid';
 import useDragging from '../../hooks/useDragging';
 import useEventListener from '../../hooks/useEventListener';
 import useFileEventListener from '../../hooks/useFileEventListener';
@@ -109,7 +109,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
   const dragHandleFolderResize = useRef<HTMLDivElement>(null);
   const scrollContainer = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
-  const [update, triggerUpdate] = useState<string>(uuid.v4());
+  const [update, triggerUpdate] = useState<string>(uuid4());
   const folderSizeRules = useRef<Rule[]>();
 
   const visibleFolders = useMemo(() => {
@@ -145,7 +145,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
     [visibleFolders]
   );
 
-  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid.v4()), 2000);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
   const setSelectedFolderDebounced = useDebouncedCallback((f) => setSelectedFolder(f), 500);
 
   useFileEventListener(
