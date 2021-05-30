@@ -11,7 +11,7 @@ export type State = {
 
 const galleryViewerSlice = createSlice({
   name: 'galleryViewer',
-  initialState: <State>{ height: 120, sort: 'fullPath:asc', count: 0, viewer: 'line' },
+  initialState: <State>{ height: 120, sort: 'fullPath:asc', count: 0, viewer: 'grid' },
   reducers: {
     setHeight: (state, action) => {
       state.height = action.payload;

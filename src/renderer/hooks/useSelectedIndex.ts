@@ -13,7 +13,7 @@ export default function useSelectedIndex(defaultIndex: IndexValue = null): [Inde
 
   const debouncedHashReplace = useDebouncedCallback((index) => {
     history.replace(`${history.location.pathname}#${index}`);
-  }, 250);
+  }, 100);
 
   const setSelectedIndexCallback = useCallback(
     (index: IndexValue) => {

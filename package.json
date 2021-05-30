@@ -71,7 +71,8 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "publisherName": "Adam Lyrén"
     },
     "linux": {
       "target": [

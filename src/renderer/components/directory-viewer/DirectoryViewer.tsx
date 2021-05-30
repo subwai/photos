@@ -146,7 +146,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
   );
 
   const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
-  const setSelectedFolderDebounced = useDebouncedCallback((f) => setSelectedFolder(f), 500);
+  const setSelectedFolderDebounced = useDebouncedCallback((f) => setSelectedFolder(f), 250);
 
   useFileEventListener(
     'all',

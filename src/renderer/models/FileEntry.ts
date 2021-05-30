@@ -152,7 +152,7 @@ export interface FileEntryEvent {
 }
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi'];
+export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv'];
 export const VIDEO_THUMBNAIL_EXTENSIONS = VIDEO_EXTENSIONS.concat(['.webp']);
 
 export function isImage(fileEntry: FileEntryObject) {

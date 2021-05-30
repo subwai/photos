@@ -189,7 +189,7 @@ export default function GridScroller({ width, height }: Props) {
         dispatch(setSelectedFile(file));
       }
     },
-    250,
+    100,
     { leading: true }
   );
 
