@@ -5,36 +5,29 @@ import path from 'path';
 import sha1 from 'sha1';
 import sharp from 'sharp';
 import FileEntryObject from '../renderer/models/FileEntry';
-import PromiseQueue from '../renderer/utils/PromiseQueue';
 import { getCachePath } from './file-system';
 
-const queue = new PromiseQueue({ concurrency: 5 });
-
 ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject) => {
-  return queue.add(async () => {
-    const command = ffmpeg(fileEntry.fullPath);
-    const duration = await getVideoDuration(command);
+  const command = ffmpeg(fileEntry.fullPath);
+  const duration = await getVideoDuration(command);
 
-    return new Promise((resolve, reject) => {
-      command
-        .on('end', resolve)
-        .on('error', reject)
-        .inputOptions('-ss', `${Math.round(duration / 2)}`)
-        .outputOptions('-qscale', '10')
-        .outputOptions('-frames:v', '1')
-        .outputOptions('-vf', 'scale=-1:384')
-        .save(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.jpg`));
-    });
+  return new Promise((resolve, reject) => {
+    command
+      .on('end', resolve)
+      .on('error', reject)
+      .inputOptions('-ss', `${Math.round(duration / 2)}`)
+      .outputOptions('-qscale', '10')
+      .outputOptions('-frames:v', '1')
+      .outputOptions('-vf', 'scale=-1:384')
+      .save(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.jpg`));
   });
 });
 
 ipcMain.handle('generate-image-thumbnail', (_e, fileEntry: FileEntryObject) => {
-  return queue.add(() => {
-    return sharp(fileEntry.fullPath)
-      .resize({ height: 384 })
-      .webp({ quality: 90 })
-      .toFile(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.webp`));
-  });
+  return sharp(fileEntry.fullPath)
+    .resize({ height: 384 })
+    .webp({ quality: 90 })
+    .toFile(path.join(getCachePath(), 'thumbs', `${sha1(fileEntry.fullPath)}.webp`));
 });
 
 async function getVideoDuration(command: ffmpeg.FfmpegCommand) {

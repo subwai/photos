@@ -115,12 +115,15 @@ export default class FileSystem {
       const stats = await statAsync(fullPath);
       const level = fullPath.split(/[\\/]/).length - rootLevel;
 
-      this.mainWindow.webContents.send('file-changed', <FileEntryObject>{
-        name: path.basename(fullPath),
-        fullPath,
-        isFolder: stats.isDirectory(),
-        children: stats.isDirectory() ? await this.getChildren(fullPath) : null,
-        level,
+      this.mainWindow.webContents.send('file-changed', {
+        entry: <FileEntryObject>{
+          name: path.basename(fullPath),
+          fullPath,
+          isFolder: stats.isDirectory(),
+          children: stats.isDirectory() ? await this.getChildren(fullPath) : null,
+          level,
+        },
+        eventType,
       });
     } catch (err) {
       if (err.code === 'ENOENT') {
@@ -129,26 +132,30 @@ export default class FileSystem {
     }
   };
 
-  getChildren = async (fullPath: string): Promise<Children<FileEntryObject>> => {
+  getChildren = async (fullPath: string): Promise<Children<FileEntryObject> | null> => {
     console.log('Scanning', fullPath);
 
     this.blackList.set(fullPath, new Date().valueOf() + 500);
-    const files = await readdirAsync(fullPath, { withFileTypes: true });
-    const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
+    try {
+      const files = await readdirAsync(fullPath, { withFileTypes: true });
+      const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
 
-    const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
+      const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
-    const children: Children<FileEntryObject> = {};
-    each(files, (file) => {
-      children[file.name] = {
-        name: file.name,
-        fullPath: path.resolve(fullPath, file.name),
-        isFolder: file.isDirectory(),
-        children: null,
-        level,
-      };
-    });
+      const children: Children<FileEntryObject> = {};
+      each(files, (file) => {
+        children[file.name] = {
+          name: file.name,
+          fullPath: path.resolve(fullPath, file.name),
+          isFolder: file.isDirectory(),
+          children: null,
+          level,
+        };
+      });
 
-    return children;
+      return children;
+    } catch (err) {
+      return null;
+    }
   };
 }

@@ -24,19 +24,19 @@ const rootFolderSlice = createSlice({
     setCachePath: (state, action) => {
       state.cachePath = action.payload;
     },
-    updateFile: (state, action) => {
-      const file = action.payload as FileEntryObject;
-      const parent = state.folder?.find(file.fullPath.slice(0, -(file.name.length + 1)));
+    updateFile: (state, action: { payload: { entry: FileEntryObject; eventType: string } }) => {
+      const { entry } = action.payload;
+      const parent = state.folder?.find(entry.fullPath.slice(0, -(entry.name.length + 1)));
       if (parent) {
         parent.children = parent.children || {};
-        const fileModel = parent.convertToFileEntryModel(file);
+        const fileModel = parent.convertToFileEntryModel(entry);
         const childExistOnParent = !!parent.children[fileModel.name];
 
-        parent.children[fileModel.name] = fileModel;
+        parent.children[fileModel.name] = parent.children[fileModel.name] || fileModel;
         if (childExistOnParent) {
-          fileModel.triggerEventSoon('update');
+          parent.children[fileModel.name].triggerEventSoon('update');
         } else {
-          fileModel.triggerEventSoon('add');
+          parent.children[fileModel.name].triggerEventSoon('add');
         }
       }
     },

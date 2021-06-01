@@ -20,6 +20,7 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
 
   useEffect(() => {
     function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
+      console.log('update recursive', entry);
       return Promise.resolve()
         .then(() => entry.children || entry.loadChildren({ priority: mergedOptions.priority }))
         .then((children) => {

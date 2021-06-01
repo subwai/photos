@@ -45,8 +45,8 @@ export default function Home(): JSX.Element {
     function handleFolderChanged(_: Electron.IpcRendererEvent, newPath: string) {
       dispatch(setRootFolderPath(newPath));
     }
-    function handleFileChanged(_: Electron.IpcRendererEvent, entry: FileEntryObject) {
-      dispatch(updateFile(entry));
+    function handleFileChanged(_: Electron.IpcRendererEvent, args: { eventType: string; entry: FileEntryObject }) {
+      dispatch(updateFile(args));
     }
     function handleFileRemoved(_: Electron.IpcRendererEvent, fullPath: string) {
       dispatch(removeFile(fullPath));

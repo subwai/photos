@@ -9,8 +9,11 @@ import url from 'url';
 import { v4 as uuid4 } from 'uuid';
 import { FileEntryModel, isImage, isVideo } from '../models/FileEntry';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
+import PromiseQueue from '../utils/PromiseQueue';
 
 const ignore = ['.gif'];
+
+const queue = new PromiseQueue({ concurrency: 15 });
 
 function isIgnored(fileEntry?: FileEntryModel | null) {
   return fileEntry && includes(ignore, path.extname(fileEntry.name).toLowerCase());
@@ -34,10 +37,12 @@ export default function useThumbnail(
     let promise = Bluebird.resolve();
 
     if (requestThumbnail && !useOriginal && fileEntry) {
-      promise = Bluebird.resolve()
-        .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
-        .then(() => setKey(uuid4()))
-        .catch(() => setUseOriginal(true));
+      promise = queue.add(() => {
+        return Bluebird.resolve()
+          .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
+          .then(() => setKey(uuid4()))
+          .catch(() => setUseOriginal(true));
+      });
     }
 
     return () => promise.cancel();
