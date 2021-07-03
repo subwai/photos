@@ -72,6 +72,20 @@ export default memo(function GridThumbnail({
   const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
 
+  if (fileEntry.isFolder) {
+    return (
+      <div
+        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+        style={style}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+      >
+        <GridFolderThumbnail fileEntry={fileEntry} />
+        <span className={classes.folderName}>{fileEntry.name}</span>
+      </div>
+    );
+  }
+
   if (isVideo(fileEntry)) {
     return (
       <div
@@ -88,20 +102,6 @@ export default memo(function GridThumbnail({
           onError={() => setRequestThumbnail('video')}
           loading="lazy"
         />
-      </div>
-    );
-  }
-
-  if (fileEntry.isFolder) {
-    return (
-      <div
-        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
-        style={style}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-      >
-        <GridFolderThumbnail fileEntry={fileEntry} />
-        <span className={classes.folderName}>{fileEntry.name}</span>
       </div>
     );
   }

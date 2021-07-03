@@ -1,8 +1,9 @@
 import { StyleSheet } from 'jss';
 import { orderBy, size, some, values } from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { Grid, GridCellProps } from 'react-virtualized';
 import { useDebouncedCallback } from 'use-debounce';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
@@ -14,8 +15,11 @@ import { openFolder } from '../../../redux/slices/folderVisibilitySlice';
 import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
 import { selectPlaying, selectPreview, setPreview } from '../../../redux/slices/viewerSlice';
+import animate from '../../../utils/animate';
 import { THUMBNAIL_HEIGHT, THUMBNAIL_SIZE } from './GridFolderThumbnail';
 import Thumbnail from './GridThumbnail';
+
+type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
 
 const useStyles = createUseStyles({
   grid: {},
@@ -29,13 +33,18 @@ type Props = {
 export default function GridScroller({ width, height }: Props) {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [selectedFolder, setSelectedFolder] = useSelectedFolder();
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const selectedFile = useSelector(selectSelectedFile);
   const sort = useSelector(selectGallerySort);
   const preview = useSelector(selectPreview);
   const playing = useSelector(selectPlaying);
-  const [sheet, setSheet] = useState<StyleSheet<string> | null>();
+  const history = useHistory();
+
+  const gridRef = useRef<ExtendedGrid | null>(null);
+  const scroll = useRef<number>(0);
+  const cancelAnimation = useRef<Function | null>(null);
 
   const columnCount = Math.floor(width / THUMBNAIL_HEIGHT);
   const rowCount = Math.ceil(size(selectedFolder?.children) / columnCount);
@@ -48,7 +57,14 @@ export default function GridScroller({ width, height }: Props) {
   );
 
   useEffect(() => {
-    setSelectedIndex(null);
+    const [index, scrollValue] = history.location.hash.replace('#', '').split('_').map(Number);
+
+    console.log(index, scrollValue);
+    if (cancelAnimation.current) {
+      cancelAnimation.current();
+    }
+    setSelectedIndex(index || null, scrollValue || 0);
+    gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: scrollValue || 0 });
   }, [selectedFolder]);
 
   useEffect(() => {
@@ -194,15 +210,16 @@ export default function GridScroller({ width, height }: Props) {
   );
 
   const selectIndex = (index: number | null) => {
-    setSelectedIndex(index);
+    setSelectedIndex(index, scroll.current);
     if (index !== null) {
       const file = sortedFiles[index];
       setSelectedFileDebounced(file);
+      maybeScrollAnimate(index);
     }
   };
 
   const openIndex = (index: number | null) => {
-    setSelectedIndex(index);
+    setSelectedIndex(index, scroll.current);
     if (index !== null) {
       const file = sortedFiles[index];
       if (file && file.isFolder) {
@@ -213,6 +230,54 @@ export default function GridScroller({ width, height }: Props) {
         dispatch(setPreview(true));
       }
     }
+  };
+
+  const maybeScrollAnimate = (nextSelectedIndex: number) => {
+    if (!sortedFiles) {
+      return;
+    }
+
+    const selectedRowIndex = Math.floor(nextSelectedIndex / columnCount);
+    const position = selectedRowIndex * THUMBNAIL_SIZE;
+    const topEdge = Math.max(0, position - THUMBNAIL_SIZE);
+    const bottomEdge = Math.min(rowCount * THUMBNAIL_SIZE, position + 2 * THUMBNAIL_SIZE);
+
+    const topDiff = Math.abs(topEdge - scroll.current);
+    const bottomDiff = Math.abs(bottomEdge - (scroll.current + height));
+
+    if (scroll.current < topEdge && bottomEdge < scroll.current + height) {
+      return;
+    }
+
+    startAnimation(topDiff < bottomDiff ? topEdge : bottomEdge - height);
+  };
+
+  const startAnimation = (toValue: number) => {
+    if (cancelAnimation.current) {
+      cancelAnimation.current();
+    }
+
+    cancelAnimation.current = animate({
+      easing: 'linear',
+      fromValue: scroll.current,
+      toValue,
+      onUpdate: (value, callback) => {
+        if (gridRef.current) {
+          // eslint-disable-next-line no-underscore-dangle
+          gridRef.current._scrollingContainer.scrollTop = value;
+          scroll.current = value;
+        }
+        callback();
+      },
+      onComplete: () => {
+        gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: toValue });
+      },
+      duration: 150,
+    });
+  };
+
+  const handleScroll = ({ scrollTop }: { scrollTop: number }) => {
+    scroll.current = scrollTop;
   };
 
   const cellRenderer = ({ columnIndex, rowIndex, style }: GridCellProps) => {
@@ -236,6 +301,7 @@ export default function GridScroller({ width, height }: Props) {
 
   return (
     <Grid
+      ref={gridRef}
       className={classes.grid}
       cellRenderer={cellRenderer}
       columnWidth={THUMBNAIL_HEIGHT}
@@ -244,7 +310,8 @@ export default function GridScroller({ width, height }: Props) {
       rowCount={rowCount}
       height={height}
       width={width}
-      overscanRowCount={10}
+      overscanRowCount={5}
+      onScroll={handleScroll}
     />
   );
 }

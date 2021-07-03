@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Grid } from 'react-virtualized';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
-import useAnimation from '../../../hooks/useAnimation';
 import useEventListener from '../../../hooks/useEventListener';
 import useFileEventListener from '../../../hooks/useFileEventListener';
 import useSelectedIndex from '../../../hooks/useSelectedIndex';
@@ -15,13 +14,18 @@ import { selectHiddenFolders } from '../../../redux/slices/folderVisibilitySlice
 import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
 import { selectPlaying } from '../../../redux/slices/viewerSlice';
+import animate from '../../../utils/animate';
 import Thumbnail from './Thumbnail';
+
+type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
+
+const PADDING_VERTICAL = 6;
 
 const useStyles = createUseStyles({
   scrollContainer: {
     width: '100%',
     height: '100%',
-    padding: '0 6px 2px',
+    padding: `0 ${PADDING_VERTICAL}px 2px`,
     boxSizing: 'border-box',
     position: 'relative',
   },
@@ -37,13 +41,6 @@ interface Props {
   height: number;
 }
 
-interface ScrollValues {
-  value: number;
-  from: number;
-  to: number;
-  animated: number;
-}
-
 export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -52,11 +49,15 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const selectedFile = useSelector(selectSelectedFile);
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const sort = useSelector(selectGallerySort);
-  const scroll = useRef<ScrollValues>({ value: 0, from: 0, to: 0, animated: 0 });
   const container = useRef<HTMLDivElement>(null);
-  const [animateTo, setAnimateTo] = useState(0);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
+  const cellWidth = height;
+  const cellHeight = height;
+
+  const gridRef = useRef<ExtendedGrid | null>(null);
+  const scroll = useRef<number>(0);
+  const cancelAnimation = useRef<Function | null>(null);
 
   const updateFlattenedFiles = () => {
     setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
@@ -111,27 +112,6 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
   const playing = useSelector(selectPlaying);
 
-  const maybeScrollAnimate = (nextSelectedIndex: number) => {
-    if (!sortedFiles) {
-      return;
-    }
-
-    const position = nextSelectedIndex * height;
-    const leftEdge = Math.max(0, position - height);
-    const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
-
-    const leftDiff = Math.abs(leftEdge - scroll.current.value);
-    const rightDiff = Math.abs(rightEdge - (scroll.current.value + width));
-
-    if (scroll.current.value < position && position + height < scroll.current.value + width) {
-      return;
-    }
-
-    scroll.current.from = scroll.current.value;
-    scroll.current.to = leftDiff < rightDiff ? leftEdge : rightEdge - width;
-    setAnimateTo(scroll.current.to);
-  };
-
   const arrowLeft = (event: React.KeyboardEvent) => {
     event.preventDefault();
     const nextSelectedIndex = Math.max((selectedIndex === null ? sortedFiles.length : selectedIndex) - 1, 0);
@@ -165,29 +145,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     !playing
   );
 
-  useEffect(() => {
-    scroll.current = {
-      value: 0,
-      from: 0,
-      to: 0,
-      animated: 0,
-    };
-    setAnimateTo(0);
-  }, [folder]);
-
-  scroll.current.animated = useAnimation('linear', scroll.current.from, animateTo, 200);
-  const isAnimating = scroll.current.animated !== animateTo;
-  scroll.current.value = isAnimating ? scroll.current.animated : scroll.current.value;
-
   const firstChild = container.current?.firstChild as HTMLElement;
-
-  const scrollTo = (x: number) => {
-    const newEvent = new Event('scroll', { bubbles: true });
-    firstChild?.dispatchEvent(newEvent);
-    if (firstChild) {
-      firstChild.scrollLeft = Math.max(0, x);
-    }
-  };
 
   useEventListener(
     'wheel',
@@ -199,11 +157,59 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     container.current
   );
 
-  const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
-    if (!isAnimating) {
-      scroll.current.value = scrollLeft;
-      scroll.current.to = scrollLeft;
+  const scrollTo = (x: number) => {
+    const newEvent = new Event('scroll', { bubbles: true });
+    firstChild?.dispatchEvent(newEvent);
+    if (firstChild) {
+      firstChild.scrollLeft = Math.max(0, x);
     }
+  };
+
+  const maybeScrollAnimate = (nextSelectedIndex: number) => {
+    if (!sortedFiles) {
+      return;
+    }
+
+    const position = nextSelectedIndex * height;
+    const leftEdge = Math.max(0, position - height);
+    const rightEdge = Math.min((sortedFiles.length + 1) * height, position + 2 * height);
+
+    const leftDiff = Math.abs(leftEdge - scroll.current);
+    const rightDiff = Math.abs(rightEdge - (scroll.current + width));
+
+    if (scroll.current < leftEdge && rightEdge < scroll.current + width) {
+      return;
+    }
+
+    startAnimation(leftDiff < rightDiff ? leftEdge : rightEdge - width);
+  };
+
+  const startAnimation = (toValue: number) => {
+    if (cancelAnimation.current) {
+      cancelAnimation.current();
+    }
+
+    cancelAnimation.current = animate({
+      easing: 'linear',
+      fromValue: scroll.current,
+      toValue,
+      onUpdate: (value, callback) => {
+        if (gridRef.current) {
+          // eslint-disable-next-line no-underscore-dangle
+          gridRef.current._scrollingContainer.scrollLeft = value;
+          scroll.current = value;
+        }
+        callback();
+      },
+      onComplete: () => {
+        gridRef.current?.scrollToPosition({ scrollLeft: toValue, scrollTop: 0 });
+      },
+      duration: 150,
+    });
+  };
+
+  const handleScroll = ({ scrollLeft }: { scrollLeft: number }) => {
+    scroll.current = scrollLeft;
   };
 
   const cellRenderer = ({ columnIndex, style }: { columnIndex: number; style: object }) => {
@@ -226,16 +232,16 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   return (
     <div ref={container} className={classes.scrollContainer}>
       <Grid
+        ref={gridRef}
         className={classes.grid}
         cellRenderer={cellRenderer}
-        columnWidth={height}
+        columnWidth={cellWidth}
         columnCount={sortedFiles ? sortedFiles.length : 0}
-        rowHeight={height - 10 - 2}
+        rowHeight={cellHeight - 2 * PADDING_VERTICAL}
         rowCount={1}
         height={height - 2}
         width={width - 12}
         overscanColumnCount={5}
-        scrollLeft={isAnimating ? scroll.current.value : undefined}
         onScroll={handleScroll}
       />
     </div>

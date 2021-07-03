@@ -16,11 +16,21 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
   const updateFolderPromise = useRef<Promise<void>>();
   const [update, triggerUpdate] = useState<string>(uuid4());
   const triggerUpdateThrottled = useDebouncedCallback(() => triggerUpdate(uuid4()), 2000);
-  useFileEventListener('all', triggerUpdateThrottled, selectedFolder);
+
+  useFileEventListener(
+    'all',
+    ({ target }: { target: FileEntryModel }) => {
+      if (target.fullPath === selectedFolder?.fullPath) {
+        triggerUpdate(uuid4());
+      } else {
+        triggerUpdateThrottled();
+      }
+    },
+    selectedFolder
+  );
 
   useEffect(() => {
     function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
-      console.log('update recursive', entry);
       return Promise.resolve()
         .then(() => entry.children || entry.loadChildren({ priority: mergedOptions.priority }))
         .then((children) => {

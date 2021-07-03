@@ -101,7 +101,11 @@ export default function Home(): JSX.Element {
   }, []);
 
   const callback = (location: Location<LocationState>) => {
-    const index = location.hash !== '' ? Number(location.hash.replace('#', '')) : null;
+    if (location.hash === '') {
+      return;
+    }
+
+    const [index] = location.hash.replace('#', '').split('_').map(Number);
     if (index !== selectedIndex && !Number.isNaN(index)) {
       setSelectedIndex(index);
     }

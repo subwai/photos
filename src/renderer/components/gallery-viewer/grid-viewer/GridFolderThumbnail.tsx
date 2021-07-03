@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useThumbnail from '../../../hooks/useThumbnail';
@@ -48,12 +48,11 @@ interface Props {
   fileEntry: FileEntryModel;
 }
 
-export default function GridFolderThumbnail({ fileEntry }: Props): JSX.Element | null {
+export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
-  const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
+  const updated = useAutomaticChildrenLoader(fileEntry);
+  const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [updated]);
   const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
-
-  useAutomaticChildrenLoader(fileEntry);
 
   if (preview && isVideoThumbnail(preview)) {
     return (
@@ -80,4 +79,4 @@ export default function GridFolderThumbnail({ fileEntry }: Props): JSX.Element |
   }
 
   return <i className={classNames(classes.folderIcon, 'fas fa-folder')} />;
-}
+});
