@@ -1,5 +1,6 @@
 import { StyleSheet } from 'jss';
 import { orderBy } from 'lodash';
+import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
@@ -65,7 +66,20 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const updateFlattenedFilesDebounced = useDebouncedCallback(updateFlattenedFiles, 250);
   const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 2000);
   const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
-  const sortedFiles = useMemo(() => orderBy(flattenedFiles, ...sort.split(':')), [flattenedFiles, sort]);
+
+  const sortedFiles = useMemo(() => {
+    const [sortProperty, direction] = sort.split(':');
+
+    if (sortProperty === 'fullPath') {
+      const sorter = natsort({
+        insensitive: true,
+        desc: direction === 'desc',
+      });
+      return flattenedFiles?.sort((a, b) => sorter(a[sortProperty], b[sortProperty])) || [];
+    }
+
+    return orderBy(flattenedFiles, ...sort.split(':'));
+  }, [flattenedFiles, sort]);
 
   useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);

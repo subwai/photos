@@ -83,6 +83,12 @@ export default memo(function MetaBar() {
         <select value={sort} onChange={onSortChange} className={classes.sort}>
           <option value="fullPath:asc">Filename &#11014;</option>
           <option value="fullPath:desc">Filename &#11015;</option>
+          <option value="accessedTime:asc">Accessed &#11014;</option>
+          <option value="accessedTime:desc">Accessed &#11015;</option>
+          <option value="modifiedTime:asc">Modified &#11014;</option>
+          <option value="modifiedTime:desc">Modified &#11015;</option>
+          <option value="createdTime:asc">Created &#11014;</option>
+          <option value="createdTime:desc">Created &#11015;</option>
         </select>
         <div className={classes.viewer}>
           <i

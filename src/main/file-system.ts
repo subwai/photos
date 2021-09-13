@@ -1,12 +1,13 @@
 import Bluebird from 'bluebird';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs, { BaseEncodingOptions } from 'fs';
-import { each } from 'lodash';
 import path from 'path';
 import FileEntryObject, { Children } from '../renderer/models/FileEntry';
 
-const readdirAsync: (arg1: fs.PathLike, arg2: BaseEncodingOptions & { withFileTypes: true }) => Bluebird<fs.Dirent[]> =
-  Bluebird.promisify(fs.readdir);
+const readdirAsync: (
+  arg1: fs.PathLike,
+  arg2: BaseEncodingOptions & { withFileTypes: Boolean }
+) => Bluebird<fs.Dirent[] | string[]> = Bluebird.promisify(fs.readdir);
 
 const statAsync: (arg1: fs.PathLike) => Bluebird<fs.Stats> = Bluebird.promisify(fs.stat);
 
@@ -121,11 +122,15 @@ export default class FileSystem {
           fullPath,
           isFolder: stats.isDirectory(),
           children: stats.isDirectory() ? await this.getChildren(fullPath) : null,
+          accessedTime: stats.atime,
+          modifiedTime: stats.mtime,
+          createdTime: stats.ctime,
           level,
         },
         eventType,
       });
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       if (err.code === 'ENOENT') {
         this.mainWindow.webContents.send('file-removed', fullPath);
       }
@@ -137,21 +142,26 @@ export default class FileSystem {
 
     this.blackList.set(fullPath, new Date().valueOf() + 500);
     try {
-      const files = await readdirAsync(fullPath, { withFileTypes: true });
+      const files = (await readdirAsync(fullPath, { withFileTypes: false })) as string[];
       const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
 
       const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
       const children: Children<FileEntryObject> = {};
-      each(files, (file) => {
-        children[file.name] = {
-          name: file.name,
-          fullPath: path.resolve(fullPath, file.name),
-          isFolder: file.isDirectory(),
-          children: null,
-          level,
-        };
-      });
+      await Bluebird.each(files, (file: string) =>
+        statAsync(path.resolve(fullPath, file)).then((stats: fs.Stats) => {
+          children[file] = {
+            name: file,
+            fullPath: path.resolve(fullPath, file),
+            isFolder: stats.isDirectory(),
+            children: null,
+            accessedTime: stats.atime,
+            modifiedTime: stats.mtime,
+            createdTime: stats.ctime,
+            level,
+          };
+        })
+      );
 
       return children;
     } catch (err) {

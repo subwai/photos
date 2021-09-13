@@ -12,6 +12,9 @@ export default interface FileEntryObject {
   fullPath: string;
   isFolder: boolean;
   children: Children<FileEntryObject>;
+  accessedTime: Date;
+  modifiedTime: Date;
+  createdTime: Date;
   level: number;
 }
 
@@ -26,6 +29,12 @@ export class FileEntryModel implements FileEntryObject {
 
   level: number;
 
+  accessedTime: Date;
+
+  modifiedTime: Date;
+
+  createdTime: Date;
+
   name: string;
 
   parent: FileEntryModel | undefined;
@@ -37,6 +46,9 @@ export class FileEntryModel implements FileEntryObject {
     this.fullPath = props.fullPath;
     this.isFolder = props.isFolder;
     this.level = props.level;
+    this.accessedTime = props.accessedTime;
+    this.modifiedTime = props.modifiedTime;
+    this.createdTime = props.createdTime;
     this.name = props.name;
     this.parent = props.parent;
     this.listeners = {

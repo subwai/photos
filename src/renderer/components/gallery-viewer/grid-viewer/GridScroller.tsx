@@ -1,5 +1,6 @@
 import { StyleSheet } from 'jss';
 import { orderBy, size, some, values } from 'lodash';
+import natsort from 'natsort';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
@@ -51,10 +52,20 @@ export default function GridScroller({ width, height }: Props) {
 
   const updated = useAutomaticChildrenLoader(selectedFolder);
 
-  const sortedFiles = useMemo(
-    () => orderBy(values(selectedFolder?.children), ...sort.split(':')),
-    [selectedFolder, sort, updated]
-  );
+  const sortedFiles = useMemo(() => {
+    const [sortProperty, direction] = sort.split(':');
+    const entries = values(selectedFolder?.children);
+
+    if (sortProperty === 'fullPath') {
+      const sorter = natsort({
+        insensitive: true,
+        desc: direction === 'desc',
+      });
+      return entries.sort((a, b) => sorter(a[sortProperty], b[sortProperty]));
+    }
+
+    return orderBy(entries, ...sort.split(':'));
+  }, [selectedFolder, sort, updated]);
 
   useEffect(() => {
     const [index, scrollValue] = history.location.hash.replace('#', '').split('_').map(Number);
