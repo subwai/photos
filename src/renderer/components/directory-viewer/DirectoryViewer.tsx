@@ -1,5 +1,6 @@
 import { Rule, StyleSheet } from 'jss';
-import { each, find, max, min, reduce } from 'lodash';
+import { each, find, max, min, reduce, values } from 'lodash';
+import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
@@ -119,7 +120,13 @@ export default memo(function DirectoryViewer(): JSX.Element {
         carry.push(entry);
       }
       if (isOpen) {
-        each(entry.children, (child) => appendChildren(carry, child));
+        const sorter = natsort({
+          insensitive: true,
+          desc: false,
+        });
+        const sortedChildren = values(entry.children || []).sort((a, b) => sorter(a.fullPath, b.fullPath)) || [];
+
+        each(sortedChildren, (child) => appendChildren(carry, child));
       }
     }
 
