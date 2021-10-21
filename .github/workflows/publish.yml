@@ -7,11 +7,15 @@ on:
 
 jobs:
   publish:
+    # To enable auto publishing to github, update your electron publisher
+    # config in package.json > "build" and remove the conditional below
+    if: ${{ github.repository_owner == 'electron-react-boilerplate' }}
+
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [macos-latest]
 
     steps:
       - name: Checkout git repo
@@ -22,29 +26,9 @@ jobs:
         with:
           node-version: 15
 
-      - name: Install vips (macOS)
-        run: brew install vips
-        if: startsWith(matrix.os, 'macos')
-
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Install dependencies
         run: |
-          yarn install --prefer-offline --frozen-lockfile
-
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile
+          npm install
 
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
@@ -55,12 +39,6 @@ jobs:
           # This is used for uploading release assets to github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          yarn postinstall && yarn build && yarn electron-builder --publish always --mac -c.mac.identity=null
-
-      - name: Publish release (Windows)
-        if: startsWith(matrix.os, 'windows')
-        env:
-          # This is used for uploading release assets to github
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          yarn postinstall && yarn build && yarn electron-builder --publish always --win
+          npm run postinstall
+          npm run build
+          npm exec electron-builder -- --publish always --win --mac

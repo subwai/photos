@@ -1,6 +1,5 @@
 import { ConnectedRouter } from 'connected-react-router';
 import { ipcRenderer } from 'electron';
-import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
@@ -34,15 +33,13 @@ export default function App() {
   useStyles();
 
   return (
-    <>
-      <Provider store={store}>
-        <ConnectedRouter history={history}>
-          <TopBar />
-          <Switch>
-            <Route path="/" component={Home} />
-          </Switch>
-        </ConnectedRouter>
-      </Provider>
-    </>
+    <Provider store={store}>
+      <ConnectedRouter history={history}>
+        <TopBar />
+        <Switch>
+          <Route path="/" component={Home} />
+        </Switch>
+      </ConnectedRouter>
+    </Provider>
   );
 }
