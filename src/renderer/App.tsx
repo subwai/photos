@@ -1,5 +1,4 @@
 import { ConnectedRouter } from 'connected-react-router';
-import { ipcRenderer } from 'electron';
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
@@ -9,7 +8,7 @@ import TopBar from './components/TopBar';
 import { loadPersistedState, persistState } from './redux/persistStoreState';
 import { configuredStore, history } from './redux/store';
 
-const aero = process.platform === 'win32';
+const aero = window.electron.platform === 'win32';
 
 const useStyles = createUseStyles({
   '@global': {
@@ -22,7 +21,7 @@ const useStyles = createUseStyles({
 const store = configuredStore(loadPersistedState());
 
 if (store.getState().rootFolder.path) {
-  ipcRenderer.send('set-root-folder', store.getState().rootFolder.path);
+  window.electron.setRootFolder(store.getState().rootFolder.path);
 }
 
 store.subscribe(() => {
@@ -33,13 +32,15 @@ export default function App() {
   useStyles();
 
   return (
-    <Provider store={store}>
-      <ConnectedRouter history={history}>
-        <TopBar />
-        <Switch>
-          <Route path="/" component={Home} />
-        </Switch>
-      </ConnectedRouter>
-    </Provider>
+    <>
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+          <TopBar />
+          <Switch>
+            <Route path="/" component={Home} />
+          </Switch>
+        </ConnectedRouter>
+      </Provider>
+    </>
   );
 }

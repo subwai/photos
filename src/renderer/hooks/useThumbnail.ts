@@ -1,11 +1,9 @@
 import Bluebird from 'bluebird';
-import { ipcRenderer } from 'electron';
 import { includes } from 'lodash';
 import path from 'path';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
-import url from 'url';
 import { v4 as uuid4 } from 'uuid';
 import { FileEntryModel, isImage, isVideo } from '../models/FileEntry';
 import { selectCachePath } from '../redux/slices/rootFolderSlice';
@@ -39,7 +37,7 @@ export default function useThumbnail(
     if (requestThumbnail && !useOriginal && fileEntry) {
       promise = queue.add(() => {
         return Bluebird.resolve()
-          .then(() => ipcRenderer.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
+          .then(() => window.electron.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
           .then(() => setKey(uuid4()))
           .catch(() => setUseOriginal(true));
       });
@@ -52,14 +50,14 @@ export default function useThumbnail(
   if (!fileEntry) {
     fullPath = undefined;
   } else if (useOriginal) {
-    fullPath = url.pathToFileURL(fileEntry.fullPath).toString();
+    fullPath = window.electron.pathToFileURL(fileEntry.fullPath);
   } else if (!cachePath) {
-    fullPath = isImage(fileEntry) ? url.pathToFileURL(fileEntry.fullPath).toString() : undefined;
+    fullPath = isImage(fileEntry) ? window.electron.pathToFileURL(fileEntry.fullPath) : undefined;
   } else {
     const extension = isVideo(fileEntry) ? '.jpg' : '.webp';
-    fullPath = `${url
-      .pathToFileURL(path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}${extension}`))
-      .toString()}#${fileEntry.fullPath}`;
+    fullPath = `${window.electron.pathToFileURL(
+      path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}${extension}`)
+    )}#${fileEntry.fullPath}`;
   }
 
   return [fullPath, key, setRequestThumbnail];

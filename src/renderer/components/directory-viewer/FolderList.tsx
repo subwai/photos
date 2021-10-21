@@ -1,5 +1,5 @@
 import { map } from 'lodash';
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useSelectedFolder from '../../hooks/useSelectedFolder';
 import { FileEntryModel } from '../../models/FileEntry';

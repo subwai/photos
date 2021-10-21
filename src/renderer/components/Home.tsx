@@ -1,9 +1,8 @@
 import Promise from 'bluebird';
-import { ipcRenderer } from 'electron';
 import { Action, Location, LocationListener, LocationState } from 'history';
 import { values } from 'lodash';
 import path from 'path';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory } from 'react-router';
@@ -52,14 +51,14 @@ export default function Home(): JSX.Element {
       dispatch(removeFile(fullPath));
     }
 
-    ipcRenderer.on('current-folder-changed', handleFolderChanged);
-    ipcRenderer.on('file-changed', handleFileChanged);
-    ipcRenderer.on('file-removed', handleFileRemoved);
+    window.electron.on('current-folder-changed', handleFolderChanged);
+    window.electron.on('file-changed', handleFileChanged);
+    window.electron.on('file-removed', handleFileRemoved);
 
     return () => {
-      ipcRenderer.removeListener('current-folder-changed', handleFolderChanged);
-      ipcRenderer.removeListener('file-changed', handleFileChanged);
-      ipcRenderer.removeListener('file-removed', handleFileRemoved);
+      window.electron.removeListener('current-folder-changed', handleFolderChanged);
+      window.electron.removeListener('file-changed', handleFileChanged);
+      window.electron.removeListener('file-removed', handleFileRemoved);
     };
   }, [dispatch]);
 
@@ -96,7 +95,7 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     const promise = Promise.resolve()
-      .then(() => ipcRenderer.invoke('get-cache-path'))
+      .then(() => window.electron.invoke('get-cache-path'))
       .then((cachePath) => dispatch(setCachePath(cachePath)))
       .catch(console.error);
 

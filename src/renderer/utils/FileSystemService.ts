@@ -1,5 +1,4 @@
 import Promise from 'bluebird';
-import { ipcRenderer } from 'electron';
 // eslint-disable-next-line import/no-cycle
 import FileEntryObject, { Children } from '../models/FileEntry';
 import PromiseQueue, { PromiseQueueJobOptions } from './PromiseQueue';
@@ -13,7 +12,7 @@ const getChildren = (fullPath: string, options: PromiseQueueJobOptions = {}): Pr
   }
 
   const promise = queue
-    .add<Children<FileEntryObject>>(() => ipcRenderer.invoke('get-children', fullPath), options)
+    .add<Children<FileEntryObject>>(() => window.electron.invoke('get-children', fullPath), options)
     .finally(() => promises.delete(fullPath));
 
   promises.set(fullPath, promise);

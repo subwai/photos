@@ -1,6 +1,4 @@
 import classNames from 'classnames';
-import { ipcRenderer } from 'electron';
-import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
 import { selectSelectedFile } from '../redux/slices/selectedFolderSlice';
@@ -76,18 +74,18 @@ export default function TopBar(): JSX.Element | null {
   const selectedFile = useSelector(selectSelectedFile);
 
   function maximizeWindow() {
-    ipcRenderer.invoke('maximize').catch(console.error);
+    window.electron.invoke('maximize').catch(console.error);
   }
 
   function minimizeWindow() {
-    ipcRenderer.invoke('minimize').catch(console.error);
+    window.electron.invoke('minimize').catch(console.error);
   }
 
   function closeWindow() {
-    ipcRenderer.invoke('close').catch(console.error);
+    window.electron.invoke('close').catch(console.error);
   }
 
-  const isMac = process.platform === 'darwin';
+  const isMac = window.electron.platform === 'darwin';
 
   return (
     <div className={classes.topBar}>

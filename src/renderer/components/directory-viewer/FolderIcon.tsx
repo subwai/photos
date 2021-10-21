@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useThumbnail from '../../hooks/useThumbnail';
 import { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';

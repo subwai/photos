@@ -5,7 +5,7 @@ export default function useEventListener(
   handler: Function,
   element: HTMLElement | typeof window | null = window,
   enabled = true,
-  options: any = undefined
+  options: undefined | boolean | AddEventListenerOptions = undefined
 ) {
   // Create a ref that stores handler
   const savedHandler = useRef<Function>();
@@ -27,7 +27,7 @@ export default function useEventListener(
       if (!enabled) return;
 
       // Create event listener that calls handler function stored in ref
-      const eventListener = (event: any) => savedHandler.current && savedHandler.current(event);
+      const eventListener = (event: unknown) => savedHandler.current && savedHandler.current(event);
 
       // Add event listener
       element.addEventListener(eventName, eventListener, options);

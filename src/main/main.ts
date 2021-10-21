@@ -15,12 +15,11 @@ import { app, BrowserWindow, BrowserWindowConstructorOptions, shell, ipcMain } f
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
-import path from 'path';
-import FileSystem, { getCachePath } from './main/file-system';
-import './main/general';
-import './main/thumbnails';
+import FileSystem, { getCachePath } from './file-system';
+import './general';
+import './thumbnails';
 import MenuBuilder from './menu';
-import './utils/configure-bluebird';
+import '../utils/configure-bluebird';
 import { resolveHtmlPath } from './util';
 
 export default class AppUpdater {
@@ -45,8 +44,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-const isDevelopment =
-  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDevelopment) {
   require('electron-debug')();
@@ -104,8 +102,7 @@ const createWindow = async () => {
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         nativeWindowOpen: true,
-        nodeIntegration: true,
-        contextIsolation: false,
+        webSecurity: !isDevelopment,
       },
     };
   };

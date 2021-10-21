@@ -111,7 +111,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
   const scrollContainer = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string>(uuid4());
-  const folderSizeRules = useRef<Rule[]>();
+  const folderSizeRules = useRef<(Rule | null)[]>();
 
   const visibleFolders = useMemo(() => {
     function appendChildren(carry: FileEntryModel[], entry: FileEntryModel) {
@@ -279,7 +279,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
     }
 
     if (folderSizeRules.current) {
-      each(folderSizeRules.current, (rule) => jssSheet.deleteRule(rule.key));
+      each(folderSizeRules.current, (rule) => rule && jssSheet.deleteRule(rule.key));
     }
     folderSizeRules.current = [
       jssSheet.addRule('folder-size', { height: `${newSize}px` }),

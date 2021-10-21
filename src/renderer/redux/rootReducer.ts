@@ -8,7 +8,7 @@ import viewerReducer from './slices/viewerSlice';
 import rootFolderReducer from './slices/rootFolderSlice';
 import selectedFolderReducer from './slices/selectedFolderSlice';
 
-export default function createRootReducer(history: History) {
+export default function createRootReducer(history: History<never>) {
   return combineReducers({
     router: connectRouter(history),
     viewer: viewerReducer,

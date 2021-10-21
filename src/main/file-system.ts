@@ -1,14 +1,12 @@
 import Bluebird from 'bluebird';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import fs, { BaseEncodingOptions } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { some } from 'lodash';
 import FileEntryObject, { Children } from '../renderer/models/FileEntry';
 
-const readdirAsync: (
-  arg1: fs.PathLike,
-  arg2: BaseEncodingOptions & { withFileTypes: Boolean }
-) => Bluebird<fs.Dirent[] | string[]> = Bluebird.promisify(fs.readdir);
+const readdirAsync: (arg1: fs.PathLike, arg2: { withFileTypes: Boolean }) => Bluebird<fs.Dirent[] | string[]> =
+  Bluebird.promisify(fs.readdir);
 
 const statAsync: (arg1: fs.PathLike) => Bluebird<fs.Stats> = Bluebird.promisify(fs.stat);
 

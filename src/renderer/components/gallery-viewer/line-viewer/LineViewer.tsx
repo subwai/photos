@@ -1,5 +1,5 @@
 import { max } from 'lodash';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { AutoSizer } from 'react-virtualized';

@@ -72,4 +72,4 @@ export default merge(baseConfig, {
       },
     }),
   ],
-});
+}) as webpack.Configuration;

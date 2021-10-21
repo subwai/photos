@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { memo, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useThumbnail from '../../../hooks/useThumbnail';

@@ -1,10 +1,8 @@
 import classNames from 'classnames';
-import { ipcRenderer } from 'electron';
 import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
-import url from 'url';
 import useEventListener from '../../hooks/useEventListener';
 import { isVideo } from '../../models/FileEntry';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
@@ -129,7 +127,7 @@ export default function ImageViewer() {
   }
 
   function selectFolder() {
-    ipcRenderer.send('open-folder');
+    window.electron.send('open-folder');
   }
 
   if (!selectedFile && !rootFolder) {
@@ -155,7 +153,7 @@ export default function ImageViewer() {
         onPause={() => dispatch(pause())}
         onAuxClick={() => dispatch(setPreview(false))}
       >
-        <source src={`${url.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
+        <source src={`${window.electron.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
       </video>
     );
   }
@@ -167,22 +165,17 @@ export default function ImageViewer() {
       onAuxClick={() => dispatch(setPreview(false))}
     >
       <TransformWrapper
-        options={{
-          // @ts-ignore
-          wrapperClass: classes.transformWrapper,
-          contentClass: classes.transformComponent,
-        }}
         doubleClick={{
           mode: 'reset',
         }}
       >
-        <TransformComponent>
+        <TransformComponent wrapperClass={classes.transformWrapper} contentClass={classes.transformComponent}>
           {selectedFile && (
             <img
               ref={imageElement}
               className={classes.image}
               alt={selectedFile.fullPath}
-              src={url.pathToFileURL(selectedFile.fullPath).toString()}
+              src={window.electron.pathToFileURL(selectedFile.fullPath).toString()}
             />
           )}
         </TransformComponent>

@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
 
 const port = process.env.PORT || 1212;
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-const requiredByDLLConfig = module.parent.filename.includes(
+const requiredByDLLConfig = module.parent?.filename.includes(
   'webpack.config.renderer.dev.dll'
 );
 
@@ -138,70 +138,9 @@ export default merge(baseConfig, {
           },
         ],
       },
-      // WOFF Font
       {
-        test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff',
-          },
-        },
-      },
-      // WOFF2 Font
-      {
-        test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/font-woff',
-          },
-        },
-      },
-      // OTF Font
-      {
-        test: /\.otf(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'font/otf',
-          },
-        },
-      },
-      // TTF Font
-      {
-        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'application/octet-stream',
-          },
-        },
-      },
-      // EOT Font
-      {
-        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-        use: 'file-loader',
-      },
-      // SVG Font
-      {
-        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-        use: {
-          loader: 'url-loader',
-          options: {
-            limit: 10000,
-            mimetype: 'image/svg+xml',
-          },
-        },
-      },
-      // Common Image Formats
-      {
-        test: /\.(?:ico|gif|png|jpg|jpeg|webp)$/,
-        use: 'url-loader',
+        test: /\.(?:ico|gif|png|webp|jpe?g|svg|png|gif|ico|eot|otf|ttf|woff2?)(\?v=\d+\.\d+\.\d+)?$/i,
+        type: 'asset/resource',
       },
     ],
   },
@@ -251,7 +190,7 @@ export default merge(baseConfig, {
       isDevelopment: process.env.NODE_ENV !== 'production',
       nodeModules: webpackPaths.appNodeModulesPath,
     }),
-  ],
+  ].filter((x) => x !== null),
 
   node: {
     __dirname: false,
@@ -268,17 +207,21 @@ export default merge(baseConfig, {
     },
     historyApiFallback: {
       verbose: true,
-      disableDotRule: false,
+      disableDotRule: true,
     },
     onBeforeSetupMiddleware() {
+      if (!process.env.START_MAIN_AFTER) {
+        return;
+      }
+
       console.log('Starting Main Process...');
       spawn('npm', ['run', 'start:main'], {
         shell: true,
         env: process.env,
         stdio: 'inherit',
       })
-        .on('close', (code) => process.exit(code))
+        .on('close', (code: number) => process.exit(code))
         .on('error', (spawnError) => console.error(spawnError));
     },
   },
-});
+}) as webpack.Configuration;

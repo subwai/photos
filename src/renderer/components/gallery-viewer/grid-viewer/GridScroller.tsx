@@ -70,7 +70,6 @@ export default function GridScroller({ width, height }: Props) {
   useEffect(() => {
     const [index, scrollValue] = history.location.hash.replace('#', '').split('_').map(Number);
 
-    console.log(index, scrollValue);
     if (cancelAnimation.current) {
       cancelAnimation.current();
     }

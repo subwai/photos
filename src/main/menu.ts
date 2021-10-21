@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, shell } from 'electron';
-import FileSystem from './main/file-system';
+import FileSystem from './file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -191,9 +191,7 @@ export default class MenuBuilder {
         {
           label: 'Documentation',
           click() {
-            shell.openExternal(
-              'https://github.com/electron/electron/tree/main/docs#readme'
-            );
+            shell.openExternal('https://github.com/electron/electron/tree/main/docs#readme');
           },
         },
         {
@@ -285,9 +283,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal(
-                'https://github.com/electron/electron/tree/main/docs#readme'
-              );
+              shell.openExternal('https://github.com/electron/electron/tree/main/docs#readme');
             },
           },
           {
