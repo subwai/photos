@@ -20,7 +20,7 @@ jobs:
       - name: Install Node, NPM and Yarn
         uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
 
       - name: Install vips (macOS)
         run: brew install vips
@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
+          npm install --legacy-peer-deps
 
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
