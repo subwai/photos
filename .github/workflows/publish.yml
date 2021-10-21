@@ -42,6 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install --legacy-peer-deps
+          npm dedupe --legacy-peer-deps
 
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
