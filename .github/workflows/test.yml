@@ -19,10 +19,6 @@ jobs:
         with:
           node-version: 16
 
-      - name: Install vips (macOS)
-        run: brew install vips
-        if: startsWith(matrix.os, 'macos')
-
       - name: Cache node modules
         uses: actions/cache@v2
         env:
