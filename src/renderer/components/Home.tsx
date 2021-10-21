@@ -77,6 +77,9 @@ export default function Home(): JSX.Element {
           isFolder: true,
           children: null,
           level: 0,
+          createdTime: new Date(),
+          accessedTime: new Date(),
+          modifiedTime: new Date(),
         })
       : null;
 
