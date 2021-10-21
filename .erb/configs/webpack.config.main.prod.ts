@@ -57,7 +57,8 @@ export default merge(baseConfig, {
   },
 
   externals: {
-    sharp: 'commonjs sharp'
+    sharp: 'commonjs sharp',
+    'fluent-ffmpeg': 'commonjs fluent-ffmpeg'
   },
 
   plugins: [

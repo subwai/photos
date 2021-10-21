@@ -173,7 +173,7 @@ export default class FileSystem {
   };
 
   inExcludes = (name: String) => {
-    const exludes = [/\.DS_Store/i, /\.Thumbs.db/i];
+    const exludes = [/\.DS_Store/i, /\.Thumbs.db/i, /desktop.ini/i];
 
     return some(exludes, (regex: RegExp) => name.match(regex));
   };
