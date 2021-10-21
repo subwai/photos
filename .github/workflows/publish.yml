@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - gitworkflow-mac
+      - main
 
 jobs:
   publish:
@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [windows-latest, macos-latest]
 
     steps:
       - name: Checkout git repo
