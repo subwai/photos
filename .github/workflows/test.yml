@@ -8,7 +8,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [windows-latest]
 
     steps:
       - name: Check out Git repository
@@ -32,6 +32,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ls node_modules/
+          ls release/app/node_modules
+          npm run postinstall
           npm run package
           npm run lint
           npm exec tsc
