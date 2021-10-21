@@ -2,6 +2,7 @@ import Bluebird from 'bluebird';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs, { BaseEncodingOptions } from 'fs';
 import path from 'path';
+import { some } from 'lodash';
 import FileEntryObject, { Children } from '../renderer/models/FileEntry';
 
 const readdirAsync: (
@@ -98,7 +99,7 @@ export default class FileSystem {
   }
 
   handleFileWatchEvent = async (eventType: string, fileName: string) => {
-    if (!this.rootFolder) {
+    if (!this.rootFolder || this.inExcludes(fileName)) {
       return;
     }
 
@@ -150,6 +151,10 @@ export default class FileSystem {
       const children: Children<FileEntryObject> = {};
       await Bluebird.each(files, (file: string) =>
         statAsync(path.resolve(fullPath, file)).then((stats: fs.Stats) => {
+          if (this.inExcludes(file)) {
+            return;
+          }
+
           children[file] = {
             name: file,
             fullPath: path.resolve(fullPath, file),
@@ -167,5 +172,11 @@ export default class FileSystem {
     } catch (err) {
       return null;
     }
+  };
+
+  inExcludes = (name: String) => {
+    const exludes = [/\.DS_Store/i, /\.Thumbs.db/i];
+
+    return some(exludes, (regex: RegExp) => name.match(regex));
   };
 }
