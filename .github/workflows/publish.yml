@@ -22,6 +22,10 @@ jobs:
         with:
           node-version: 15
 
+      - name: Install vips (macOS)
+        run: brew install vips
+        if: startsWith(matrix.os, 'macos')
+
       - name: Install dependencies
         run: |
           npm install
