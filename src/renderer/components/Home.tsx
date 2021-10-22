@@ -41,13 +41,13 @@ export default function Home(): JSX.Element {
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
 
   useEffect(() => {
-    function handleFolderChanged(_: Electron.IpcRendererEvent, newPath: string) {
+    function handleFolderChanged(newPath: string) {
       dispatch(setRootFolderPath(newPath));
     }
-    function handleFileChanged(_: Electron.IpcRendererEvent, args: { eventType: string; entry: FileEntryObject }) {
+    function handleFileChanged(args: { eventType: string; entry: FileEntryObject }) {
       dispatch(updateFile(args));
     }
-    function handleFileRemoved(_: Electron.IpcRendererEvent, fullPath: string) {
+    function handleFileRemoved(fullPath: string) {
       dispatch(removeFile(fullPath));
     }
 

@@ -10,6 +10,9 @@
     "pretty": true,
     "sourceMap": true,
     "baseUrl": "./src",
+    "paths": {
+      "*": ["../release/app/node_modules/*"]
+    },
     /* Additional Checks */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

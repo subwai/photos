@@ -56,11 +56,6 @@ export default merge(baseConfig, {
     ],
   },
 
-  externals: {
-    sharp: 'commonjs sharp',
-    'fluent-ffmpeg': 'commonjs fluent-ffmpeg'
-  },
-
   plugins: [
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
