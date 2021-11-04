@@ -142,6 +142,16 @@ const createWindow = async () => {
     shell.openExternal(url);
   });
 
+  mainWindow.on('swipe', (e, cmd) => {
+    // Navigate the window back when the user hits their mouse back button
+    if (cmd === 'right' && mainWindow?.webContents.canGoBack()) {
+      mainWindow.webContents.goBack();
+    }
+    if (cmd === 'left' && mainWindow?.webContents.canGoForward()) {
+      mainWindow.webContents.goForward();
+    }
+  });
+
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();

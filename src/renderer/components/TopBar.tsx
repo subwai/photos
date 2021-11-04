@@ -89,7 +89,7 @@ export default function TopBar(): JSX.Element | null {
 
   return (
     <div className={classes.topBar}>
-      <div className={classes.dragArea}>
+      <div className={classes.dragArea} onDoubleClick={maximizeWindow}>
         <span className={classes.fileName}>{selectedFile?.name}</span>
       </div>
       {!isMac && (
