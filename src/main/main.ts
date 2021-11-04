@@ -142,7 +142,7 @@ const createWindow = async () => {
     shell.openExternal(url);
   });
 
-  mainWindow.on('swipe', (e, cmd) => {
+  mainWindow.on('swipe', (_event, cmd) => {
     // Navigate the window back when the user hits their mouse back button
     if (cmd === 'right' && mainWindow?.webContents.canGoBack()) {
       mainWindow.webContents.goBack();
