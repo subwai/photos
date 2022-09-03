@@ -8,8 +8,6 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import 'core-js/stable';
-import 'regenerator-runtime/runtime';
 import path from 'path';
 import { app, BrowserWindow, BrowserWindowConstructorOptions, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
@@ -22,7 +20,7 @@ import MenuBuilder from './menu';
 import '../utils/configure-bluebird';
 import { resolveHtmlPath } from './util';
 
-export default class AppUpdater {
+class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
@@ -44,9 +42,10 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+const isDebug =
+  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
-if (isDevelopment) {
+if (isDebug) {
   require('electron-debug')();
 }
 
@@ -73,7 +72,7 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  if (isDevelopment) {
+  if (isDebug) {
     await installExtensions();
   }
 
@@ -100,9 +99,11 @@ const createWindow = async () => {
       frame: false,
       vibrancy: 'under-window',
       webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
+        sandbox: false,
+        preload: app.isPackaged
+          ? path.join(__dirname, 'preload.js')
+          : path.join(__dirname, '../../.erb/dll/preload.js'),
         nativeWindowOpen: true,
-        webSecurity: !isDevelopment,
       },
     };
   };
@@ -137,9 +138,9 @@ const createWindow = async () => {
   menuBuilder.buildMenu();
 
   // Open urls in the user's browser
-  mainWindow.webContents.on('new-window', (event, url) => {
-    event.preventDefault();
-    shell.openExternal(url);
+  mainWindow.webContents.setWindowOpenHandler((edata) => {
+    shell.openExternal(edata.url);
+    return { action: 'deny' };
   });
 
   mainWindow.on('swipe', (_event, cmd) => {

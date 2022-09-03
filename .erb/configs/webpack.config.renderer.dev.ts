@@ -1,10 +1,11 @@
+import 'webpack-dev-server';
 import path from 'path';
 import fs from 'fs';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import chalk from 'chalk';
 import { merge } from 'webpack-merge';
-import { spawn, execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
@@ -18,15 +19,15 @@ if (process.env.NODE_ENV === 'production') {
 
 const port = process.env.PORT || 1212;
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-const requiredByDLLConfig = module.parent?.filename.includes(
-  'webpack.config.renderer.dev.dll'
-);
+const skipDLLs =
+  module.parent?.filename.includes('webpack.config.renderer.dev.dll') ||
+  module.parent?.filename.includes('webpack.config.eslint');
 
 /**
  * Warn if the DLL is not built
  */
 if (
-  !requiredByDLLConfig &&
+  !skipDLLs &&
   !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))
 ) {
   console.log(
@@ -37,7 +38,7 @@ if (
   execSync('npm run postinstall');
 }
 
-export default merge(baseConfig, {
+const configuration: webpack.Configuration = {
   devtool: 'inline-source-map',
 
   mode: 'development',
@@ -47,8 +48,6 @@ export default merge(baseConfig, {
   entry: [
     `webpack-dev-server/client?http://localhost:${port}/dist`,
     'webpack/hot/only-dev-server',
-    'core-js',
-    'regenerator-runtime/runtime',
     path.join(webpackPaths.srcRendererPath, 'index.tsx'),
   ],
 
@@ -64,94 +63,48 @@ export default merge(baseConfig, {
   module: {
     rules: [
       {
-        test: /\.global\.css$/,
+        test: /\.s?css$/,
         use: [
-          {
-            loader: 'style-loader',
-          },
+          'style-loader',
           {
             loader: 'css-loader',
             options: {
-              sourceMap: true,
-            },
-          },
-        ],
-      },
-      {
-        test: /^((?!\.global).)*\.css$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]__[hash:base64:5]',
-              },
+              modules: true,
               sourceMap: true,
               importLoaders: 1,
             },
           },
+          'sass-loader',
         ],
-      },
-      // SASS support - compile all .global.scss files and pipe it to style.css
-      {
-        test: /\.global\.(scss|sass)$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
-            },
-          },
-          {
-            loader: 'sass-loader',
-          },
-        ],
-      },
-      // SASS support - compile all other .scss files and pipe it to style.css
-      {
-        test: /^((?!\.global).)*\.(scss|sass)$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
-          {
-            loader: '@teamsupercell/typings-for-css-modules-loader',
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]__[hash:base64:5]',
-              },
-              sourceMap: true,
-              importLoaders: 1,
-            },
-          },
-          {
-            loader: 'sass-loader',
-          },
-        ],
+        include: /\.module\.s?(c|a)ss$/,
       },
       {
-        test: /\.(?:ico|gif|png|webp|jpe?g|svg|png|gif|ico|eot|otf|ttf|woff2?)(\?v=\d+\.\d+\.\d+)?$/i,
+        test: /\.s?css$/,
+        use: ['style-loader', 'css-loader', 'sass-loader'],
+        exclude: /\.module\.s?(c|a)ss$/,
+      },
+      // Fonts
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      },
+      // Images
+      {
+        test: /\.(ico|webp|png|svg|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
         type: 'asset/resource',
       },
     ],
   },
   plugins: [
-    requiredByDLLConfig
-      ? null
-      : new webpack.DllReferencePlugin({
-          context: webpackPaths.dllPath,
-          manifest: require(manifest),
-          sourceType: 'var',
-        }),
+    ...(skipDLLs
+      ? []
+      : [
+          new webpack.DllReferencePlugin({
+            context: webpackPaths.dllPath,
+            manifest: require(manifest),
+            sourceType: 'var',
+          }),
+        ]),
 
     new webpack.NoEmitOnErrorsPlugin(),
 
@@ -207,21 +160,35 @@ export default merge(baseConfig, {
     },
     historyApiFallback: {
       verbose: true,
-      disableDotRule: true,
     },
-    onBeforeSetupMiddleware() {
-      if (!process.env.START_MAIN_AFTER) {
-        return;
-      }
-
-      console.log('Starting Main Process...');
-      spawn('npm', ['run', 'start:main'], {
+    setupMiddlewares(middlewares) {
+      console.log('Starting preload.js builder...');
+      const preloadProcess = spawn('npm', ['run', 'start:preload'], {
         shell: true,
-        env: process.env,
         stdio: 'inherit',
       })
-        .on('close', (code: number) => process.exit(code))
+        .on('close', (code: number) => process.exit(code!))
         .on('error', (spawnError) => console.error(spawnError));
+
+      console.log('Starting Main Process...');
+      let args = ['run', 'start:main'];
+      if (process.env.MAIN_ARGS) {
+        args = args.concat(
+          ['--', ...process.env.MAIN_ARGS.matchAll(/"[^"]+"|[^\s"]+/g)].flat()
+        );
+      }
+      spawn('npm', args, {
+        shell: true,
+        stdio: 'inherit',
+      })
+        .on('close', (code: number) => {
+          preloadProcess.kill();
+          process.exit(code!);
+        })
+        .on('error', (spawnError) => console.error(spawnError));
+      return middlewares;
     },
   },
-}) as webpack.Configuration;
+};
+
+export default merge(baseConfig, configuration);

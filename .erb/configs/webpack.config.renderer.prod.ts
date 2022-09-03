@@ -18,25 +18,14 @@ import deleteSourceMaps from '../scripts/delete-source-maps';
 checkNodeEnv('production');
 deleteSourceMaps();
 
-const devtoolsConfig =
-  process.env.DEBUG_PROD === 'true'
-    ? {
-        devtool: 'source-map',
-      }
-    : {};
-
-export default merge(baseConfig, {
-  ...devtoolsConfig,
+const configuration: webpack.Configuration = {
+  devtool: 'source-map',
 
   mode: 'production',
 
   target: ['web', 'electron-renderer'],
 
-  entry: [
-    'core-js',
-    'regenerator-runtime/runtime',
-    path.join(webpackPaths.srcRendererPath, 'index.tsx'),
-  ],
+  entry: [path.join(webpackPaths.srcRendererPath, 'index.tsx')],
 
   output: {
     path: webpackPaths.distRendererPath,
@@ -50,22 +39,34 @@ export default merge(baseConfig, {
   module: {
     rules: [
       {
-        // CSS/SCSS
-        test: /\.s?css$/,
+        test: /\.s?(a|c)ss$/,
         use: [
+          MiniCssExtractPlugin.loader,
           {
-            loader: MiniCssExtractPlugin.loader,
+            loader: 'css-loader',
             options: {
-              // `./dist` can't be inerhited for publicPath for styles. Otherwise generated paths will be ./dist/dist
-              publicPath: './',
+              modules: true,
+              sourceMap: true,
+              importLoaders: 1,
             },
           },
-          'css-loader',
           'sass-loader',
         ],
+        include: /\.module\.s?(c|a)ss$/,
       },
       {
-        test: /\.(?:ico|gif|png|webp|jpe?g|svg|png|gif|ico|eot|otf|ttf|woff2?)(\?v=\d+\.\d+\.\d+)?$/i,
+        test: /\.s?(a|c)ss$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        exclude: /\.module\.s?(c|a)ss$/,
+      },
+      // Fonts
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      },
+      // Images
+      {
+        test: /\.(ico|webp|png|svg|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
         type: 'asset/resource',
       },
     ],
@@ -101,9 +102,7 @@ export default merge(baseConfig, {
     }),
 
     new BundleAnalyzerPlugin({
-      analyzerMode:
-        process.env.OPEN_ANALYZER === 'true' ? 'server' : 'disabled',
-      openAnalyzer: process.env.OPEN_ANALYZER === 'true',
+      analyzerMode: process.env.ANALYZE === 'true' ? 'server' : 'disabled',
     }),
 
     new HtmlWebpackPlugin({
@@ -117,5 +116,11 @@ export default merge(baseConfig, {
       isBrowser: false,
       isDevelopment: process.env.NODE_ENV !== 'production',
     }),
+
+    new webpack.DefinePlugin({
+      'process.type': '"renderer"',
+    }),
   ],
-}) as webpack.Configuration;
+};
+
+export default merge(baseConfig, configuration);

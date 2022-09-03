@@ -4,6 +4,13 @@
     ".prettierrc": "jsonc",
     ".eslintignore": "ignore"
   },
+  
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "html",
+    "typescriptreact"
+  ],
 
   "javascript.validate.enable": false,
   "javascript.format.enable": false,
@@ -17,7 +24,7 @@
     "node_modules": true,
     "npm-debug.log.*": true,
     "test/**/__snapshots__": true,
-    "yarn.lock": true,
+    "package-lock.json": true,
     "*.{css,sass,scss}.d.ts": true
   }
 }

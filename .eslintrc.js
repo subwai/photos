@@ -4,6 +4,7 @@ module.exports = {
     // A temporary hack related to IDE not resolving correct package.json
     'no-console': 'off',
     'import/no-extraneous-dependencies': 'off',
+    'import/no-unresolved': 'error',
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/media-has-caption': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
@@ -41,6 +42,7 @@ module.exports = {
       webpack: {
         config: require.resolve('./.erb/configs/webpack.config.eslint.ts'),
       },
+      typescript: {},
     },
     'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
     'import/parsers': {

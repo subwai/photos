@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2019",
-    "module": "CommonJS",
-    "lib": ["dom", "esnext"],
+    "incremental": true,
+    "target": "es2021",
+    "module": "commonjs",
+    "lib": [
+      "dom",
+      "es2021"
+    ],
     "declaration": true,
     "declarationMap": true,
     "jsx": "react-jsx",
@@ -10,15 +14,10 @@
     "pretty": true,
     "sourceMap": true,
     "baseUrl": "./src",
-    "paths": {
-      "*": ["../release/app/node_modules/*"]
-    },
-    /* Additional Checks */
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    /* Module Resolution Options */
     "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -26,5 +25,10 @@
     "allowJs": true,
     "outDir": "release/app/dist"
   },
-  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
+  "exclude": [
+    "test",
+    "release/build",
+    "release/app/dist",
+    ".erb/dll"
+  ]
 }

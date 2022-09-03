@@ -1,19 +1,17 @@
 {
   "name": "photos",
-  "productName": "Photos",
-  "description": "Photos",
   "version": "1.4.3",
-  "main": "./dist/main/main.js",
+  "license": "GPL-3.0-only",
   "author": {
     "name": "Adam Lyrén",
     "email": "adam.h.lyren@gmail.com"
   },
+  "main": "./dist/main/main.js",
   "scripts": {
     "electron-rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
-    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.js",
-    "postinstall": "npm run electron-rebuild && npm run link-modules"
+    "postinstall": "npm run electron-rebuild && npm run link-modules",
+    "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
-  "license": "GPL-3.0-only",
   "dependencies": {
     "fluent-ffmpeg": "^2.1.2",
     "sharp": "^0.29.2"
