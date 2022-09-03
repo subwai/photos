@@ -42,6 +42,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
+const isDevelopment = process.env.NODE_ENV === 'development';
 const isDebug = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDebug) {
@@ -102,6 +103,7 @@ const createWindow = async () => {
         preload: app.isPackaged
           ? path.join(__dirname, 'preload.js')
           : path.join(__dirname, '../../.erb/dll/preload.js'),
+        webSecurity: !isDevelopment,
       },
     };
   };
@@ -170,8 +172,12 @@ app.on('window-all-closed', () => {
 
 app.on('ready', () => {
   const thumbsCachePath = path.join(getCachePath(), 'thumbs');
+  console.log('creating', thumbsCachePath);
   if (!fs.existsSync(thumbsCachePath)) {
-    fs.mkdirSync(thumbsCachePath);
+    console.log('creating');
+    fs.mkdirSync(thumbsCachePath, { recursive: true });
+  } else {
+    console.log('exists');
   }
 });
 

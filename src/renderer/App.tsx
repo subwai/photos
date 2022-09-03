@@ -1,8 +1,8 @@
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
 import { Route, Routes } from 'react-router-dom';
-import { HistoryRouter as Router } from 'redux-first-history/rr6';
 import './App.css';
+import HistoryRouter from './components/HistoryRouter';
 import Home from './components/Home';
 import TopBar from './components/TopBar';
 import { store, history } from './redux/store';
@@ -23,12 +23,13 @@ export default function App() {
   return (
     <>
       <Provider store={store}>
-        <Router history={history}>
+        <HistoryRouter history={history}>
           <TopBar />
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path=":query" element={<Home />} />
           </Routes>
-        </Router>
+        </HistoryRouter>
       </Provider>
     </>
   );

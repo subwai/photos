@@ -1,11 +1,10 @@
 import Promise from 'bluebird';
-import type { Action, Location, LocationListener, LocationState } from 'history';
 import { values } from 'lodash';
 import path from 'path';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router';
+import type { Action, LocationListener, LocationState, Location } from 'history';
 import useSelectedFolder from '../hooks/useSelectedFolder';
 import useSelectedIndex from '../hooks/useSelectedIndex';
 import FileEntryObject, { FileEntryModel } from '../models/FileEntry';
@@ -20,6 +19,7 @@ import {
 } from '../redux/slices/rootFolderSlice';
 import DirectoryViewer from './directory-viewer/DirectoryViewer';
 import GalleryViewer from './gallery-viewer/GalleryViewer';
+import { history } from '../redux/store';
 
 const useStyles = createUseStyles({
   container: {
@@ -30,10 +30,9 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function Home(): JSX.Element {
+export default function Home() {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const history = useHistory();
   const [, setSelectedFolder] = useSelectedFolder();
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const rootFolderPath = useSelector(selectRootFolderPath);
@@ -118,9 +117,9 @@ export default function Home(): JSX.Element {
   const callbackRef = useRef<LocationListener<LocationState>>(callback);
   callbackRef.current = callback;
 
-  useEffect(
+  useLayoutEffect(
     () => history.listen((location: Location<LocationState>, action: Action) => callbackRef.current(location, action)),
-    []
+    [history]
   );
 
   return (

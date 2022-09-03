@@ -158,7 +158,12 @@ export default memo(function DirectoryViewer(): JSX.Element {
   useFileEventListener(
     'all',
     ({ target }: { target: FileEntryModel }) => {
-      if (find(openFolders, (_, path: string) => path.indexOf(target.fullPath) !== -1)) {
+      if (
+        find(
+          { [rootFolder?.fullPath || '']: true, ...openFolders },
+          (_, path: string) => path.indexOf(target.fullPath) !== -1
+        )
+      ) {
         triggerUpdateThrottled();
       }
     },
@@ -167,7 +172,12 @@ export default memo(function DirectoryViewer(): JSX.Element {
   useFileEventListener(
     'remove',
     ({ target }: { target: FileEntryModel }) => {
-      if (find(openFolders, (_, path: string) => path.indexOf(target.fullPath) !== -1)) {
+      if (
+        find(
+          { [rootFolder?.fullPath || '']: true, ...openFolders },
+          (_, path: string) => path.indexOf(target.fullPath) !== -1
+        )
+      ) {
         triggerUpdateThrottled();
       }
     },
