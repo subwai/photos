@@ -1,9 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { get } from 'lodash';
-// eslint-disable-next-line import/no-cycle
 import FileEntryObject, { FileEntryModel } from '../../models/FileEntry';
-// eslint-disable-next-line import/no-cycle
-import { RootState } from '../store';
+import type { RootState } from '../store';
 
 type State = {
   folder: FileEntryModel | null;

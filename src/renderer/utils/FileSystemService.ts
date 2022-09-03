@@ -1,6 +1,6 @@
-import Promise from 'bluebird';
-// eslint-disable-next-line import/no-cycle
-import FileEntryObject, { Children } from '../models/FileEntry';
+import type Promise from 'bluebird';
+import type FileEntryObject from '../models/FileEntry';
+import type { Children } from '../models/FileEntry';
 import PromiseQueue, { PromiseQueueJobOptions } from './PromiseQueue';
 
 const promises = new Map();

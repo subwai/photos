@@ -1,4 +1,4 @@
-import { StyleSheet } from 'jss';
+import type { StyleSheet } from 'jss';
 import { orderBy } from 'lodash';
 import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';

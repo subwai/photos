@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { FileEntryEvent, FileEntryModel } from '../models/FileEntry';
+import type { FileEntryEvent, FileEntryModel } from '../models/FileEntry';
 
 export default function useFileEventListener(
   eventName: string,

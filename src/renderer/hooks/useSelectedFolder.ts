@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useHistory, useLocation } from 'react-router-dom';
-import { FileEntryModel } from '../models/FileEntry';
+import { useNavigate, useLocation } from 'react-router-dom';
+import type { FileEntryModel } from '../models/FileEntry';
 import { selectRootFolder } from '../redux/slices/rootFolderSlice';
 
 export default function useSelectedFolder(): [FileEntryModel | null, (folder: FileEntryModel | null) => void] {
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
   const root = useSelector(selectRootFolder);
 
@@ -13,11 +13,11 @@ export default function useSelectedFolder(): [FileEntryModel | null, (folder: Fi
     (folder: FileEntryModel | null) => {
       const nextPath = encodeURIComponent(folder ? folder.fullPath : '');
       if (`/${decodeURI(nextPath)}` !== location.pathname) {
-        history.push(nextPath);
+        navigate(nextPath);
       }
     },
-    [history, location]
+    [location]
   );
 
-  return [root?.find(decodeURIComponent(location.pathname).substr(1)) || null, setSelectedFolder];
+  return [root?.find(decodeURIComponent(location.pathname).substring(1)) || null, setSelectedFolder];
 }

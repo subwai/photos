@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, shell } from 'electron';
-import FileSystem from './file-system';
+import type FileSystem from './file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;

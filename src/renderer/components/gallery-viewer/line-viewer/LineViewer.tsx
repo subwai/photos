@@ -7,7 +7,7 @@ import { useDebounce } from 'use-debounce';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
 import useDragging from '../../../hooks/useDragging';
 import useSelectedFolder from '../../../hooks/useSelectedFolder';
-import { FileEntryModel } from '../../../models/FileEntry';
+import type { FileEntryModel } from '../../../models/FileEntry';
 import { selectGalleryScrollerHeight, setHeight } from '../../../redux/slices/galleryViewerSlice';
 import ImageViewer from '../ImageViewer';
 import GalleryScroller from './LineScroller';

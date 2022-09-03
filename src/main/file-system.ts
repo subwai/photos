@@ -3,7 +3,8 @@ import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import { some } from 'lodash';
-import FileEntryObject, { Children } from '../renderer/models/FileEntry';
+import type FileEntryObject from '../renderer/models/FileEntry';
+import type { Children } from '../renderer/models/FileEntry';
 
 const readdirAsync: (arg1: fs.PathLike, arg2: { withFileTypes: Boolean }) => Bluebird<fs.Dirent[] | string[]> =
   Bluebird.promisify(fs.readdir);

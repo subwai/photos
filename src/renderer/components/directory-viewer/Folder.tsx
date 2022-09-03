@@ -1,4 +1,4 @@
-import Promise from 'bluebird';
+import type Promise from 'bluebird';
 import classNames from 'classnames';
 import { filter } from 'lodash';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useThrottledCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
 import useFileEventListener from '../../hooks/useFileEventListener';
-import FileEntryObject, { Children, FileEntryModel } from '../../models/FileEntry';
+import type FileEntryObject from '../../models/FileEntry';
+import type { Children, FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
 import FileSystemService from '../../utils/FileSystemService';

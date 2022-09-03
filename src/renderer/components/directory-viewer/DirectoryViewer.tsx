@@ -1,4 +1,4 @@
-import { Rule, StyleSheet } from 'jss';
+import type { Rule, StyleSheet } from 'jss';
 import { each, find, max, min, reduce, values } from 'lodash';
 import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,7 +10,7 @@ import useDragging from '../../hooks/useDragging';
 import useEventListener from '../../hooks/useEventListener';
 import useFileEventListener from '../../hooks/useFileEventListener';
 import useSelectedFolder from '../../hooks/useSelectedFolder';
-import { FileEntryModel } from '../../models/FileEntry';
+import type { FileEntryModel } from '../../models/FileEntry';
 import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
 import { selectGalleryViewer } from '../../redux/slices/galleryViewerSlice';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';

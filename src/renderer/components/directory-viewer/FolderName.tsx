@@ -1,8 +1,8 @@
 import classNames from 'classnames';
-import React from 'react';
+import type { MouseEvent } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { FileEntryModel } from '../../models/FileEntry';
+import type { FileEntryModel } from '../../models/FileEntry';
 import { selectHiddenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
 import FolderIcon from './FolderIcon';
 
@@ -38,7 +38,7 @@ interface Props {
   subFolders: FileEntryModel[] | null;
   isSelected: boolean;
   isOpen: boolean;
-  onChangeOpen: (event: React.MouseEvent) => void;
+  onChangeOpen: (event: MouseEvent) => void;
 }
 
 export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
@@ -47,7 +47,7 @@ export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, 
   const classes = useStyles({ hidden });
   const dispatch = useDispatch();
 
-  function onChangeVisibility(event: React.MouseEvent) {
+  function onChangeVisibility(event: MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
     if (!isSelected) {

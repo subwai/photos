@@ -146,11 +146,15 @@ export default function ImageViewer() {
         key={selectedFile.fullPath}
         ref={videoElement}
         className={classNames(classes.image, { [classes.preview]: preview })}
+        // eslint-disable-next-line react/no-unknown-property
         controls
         loop
         onFocus={preventFocus}
+        // eslint-disable-next-line react/no-unknown-property
         onPlay={() => dispatch(play())}
+        // eslint-disable-next-line react/no-unknown-property
         onPause={() => dispatch(pause())}
+        // eslint-disable-next-line react/no-unknown-property
         onAuxClick={() => dispatch(setPreview(false))}
       >
         <source src={`${window.electron.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
@@ -162,6 +166,7 @@ export default function ImageViewer() {
     <div
       ref={imageWrapper}
       className={classNames(classes.imageWrapper, { [classes.preview]: preview })}
+      // eslint-disable-next-line react/no-unknown-property
       onAuxClick={() => dispatch(setPreview(false))}
     >
       <TransformWrapper

@@ -1,11 +1,9 @@
 import Promise from 'bluebird';
 import { each, find, findLast, includes } from 'lodash';
 import path from 'path';
-// eslint-disable-next-line import/no-cycle
-import { FoldersHash } from '../redux/slices/folderVisibilitySlice';
-// eslint-disable-next-line import/no-cycle
+import type { FoldersHash } from '../redux/slices/folderVisibilitySlice';
 import FileSystemService from '../utils/FileSystemService';
-import { PromiseQueueJobOptions } from '../utils/PromiseQueue';
+import type { PromiseQueueJobOptions } from '../utils/PromiseQueue';
 
 export default interface FileEntryObject {
   name: string;

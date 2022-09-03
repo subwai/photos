@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron';
-import { IpcMainInvokeEvent } from 'electron/main';
+import type { IpcMainInvokeEvent } from 'electron/main';
 
 ipcMain.handle('close', (e: IpcMainInvokeEvent) => {
   const window = getWindowFromEvent(e);

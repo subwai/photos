@@ -1,51 +1,56 @@
-import { Action, configureStore } from '@reduxjs/toolkit';
-import { routerMiddleware } from 'connected-react-router';
+import { configureStore } from '@reduxjs/toolkit';
+import { createReduxHistoryContext } from 'redux-first-history';
 import { createHashHistory } from 'history';
 import { createLogger } from 'redux-logger';
-import { ThunkAction } from 'redux-thunk';
-// eslint-disable-next-line import/no-cycle
 import createRootReducer from './rootReducer';
+import { loadPersistedState, persistState } from './persistStoreState';
 
-export const history = createHashHistory<never>();
-const rootReducer = createRootReducer(history);
-export type RootState = ReturnType<typeof rootReducer>;
+const { createReduxHistory, routerMiddleware, routerReducer } = createReduxHistoryContext({
+  history: createHashHistory(),
+});
 
-const router = routerMiddleware(history);
-const middleware = [router];
+const rootReducer = createRootReducer(routerReducer);
 
+const middleware = [routerMiddleware];
 const excludeLoggerEnvs = ['test', 'production'];
 const shouldIncludeLogger = !excludeLoggerEnvs.includes(process.env.NODE_ENV || '');
 
 if (shouldIncludeLogger) {
-  const logger = createLogger({
-    level: 'info',
-    collapsed: true,
-  });
-  middleware.push(logger);
+  middleware.push(
+    createLogger({
+      level: 'info',
+      collapsed: true,
+    })
+  );
 }
 
-export const configuredStore = (initialState?: RootState) => {
-  // Create Store
-  const store = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) => [
-      ...getDefaultMiddleware({
-        serializableCheck: false,
-        immutableCheck: false,
-      }),
-      ...middleware,
-    ],
-    preloadedState: initialState,
-  });
+// Create Store
+export const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) => [
+    ...getDefaultMiddleware({
+      serializableCheck: false,
+      immutableCheck: false,
+    }),
+    ...middleware,
+  ],
+  preloadedState: loadPersistedState(),
+});
 
-  if (process.env.NODE_ENV === 'development' && module.hot) {
-    module.hot.accept(
-      './rootReducer',
-      // eslint-disable-next-line global-require
-      () => store.replaceReducer(require('./rootReducer').default)
-    );
-  }
-  return store;
-};
-export type Store = ReturnType<typeof configuredStore>;
-export type AppThunk = ThunkAction<void, RootState, unknown, Action<string>>;
+export const history = createReduxHistory(store);
+
+export type RootState = ReturnType<typeof rootReducer>;
+
+store.subscribe(() => persistState(store.getState()));
+
+if (store.getState().rootFolder.path) {
+  window.electron.setRootFolder(store.getState().rootFolder.path);
+}
+
+if (process.env.NODE_ENV === 'development' && module.hot) {
+  module.hot.accept(
+    './rootReducer',
+    // eslint-disable-next-line global-require
+    () => store.replaceReducer(require('./rootReducer').default)
+  );
+}

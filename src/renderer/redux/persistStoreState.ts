@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import { RootState } from './store';
+import type { RootState } from './store';
 
 const persistStateRaw = (state: RootState) => {
   try {

@@ -1,5 +1,5 @@
 import Promise from 'bluebird';
-import { Action, Location, LocationListener, LocationState } from 'history';
+import type { Action, Location, LocationListener, LocationState } from 'history';
 import { values } from 'lodash';
 import path from 'path';
 import { useEffect, useRef, useState } from 'react';

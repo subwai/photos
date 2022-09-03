@@ -4,7 +4,7 @@ import ffmpeg, { FfprobeStream } from 'fluent-ffmpeg';
 import path from 'path';
 import sha1 from 'sha1';
 import sharp from 'sharp';
-import FileEntryObject from '../renderer/models/FileEntry';
+import type FileEntryObject from '../renderer/models/FileEntry';
 import { getCachePath } from './file-system';
 
 ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject) => {

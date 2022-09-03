@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import useSelectedFolder from '../../hooks/useSelectedFolder';
-import FileEntryObject from '../../models/FileEntry';
+import type FileEntryObject from '../../models/FileEntry';
 import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({

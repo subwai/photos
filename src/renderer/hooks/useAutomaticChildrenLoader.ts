@@ -3,7 +3,7 @@ import { defaults, values } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
-import { FileEntryModel } from '../models/FileEntry';
+import type { FileEntryModel } from '../models/FileEntry';
 import useFileEventListener from './useFileEventListener';
 
 type Options = {

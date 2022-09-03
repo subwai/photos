@@ -2,7 +2,7 @@ import { map } from 'lodash';
 import { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import useSelectedFolder from '../../hooks/useSelectedFolder';
-import { FileEntryModel } from '../../models/FileEntry';
+import type { FileEntryModel } from '../../models/FileEntry';
 import Folder from './Folder';
 
 interface FolderListProps {

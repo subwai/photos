@@ -1,10 +1,10 @@
-import { StyleSheet } from 'jss';
+import type { StyleSheet } from 'jss';
 import { orderBy, size, some, values } from 'lodash';
 import natsort from 'natsort';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { useHistory } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Grid, GridCellProps } from 'react-virtualized';
 import { useDebouncedCallback } from 'use-debounce';
 import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
@@ -41,7 +41,7 @@ export default function GridScroller({ width, height }: Props) {
   const sort = useSelector(selectGallerySort);
   const preview = useSelector(selectPreview);
   const playing = useSelector(selectPlaying);
-  const history = useHistory();
+  const location = useLocation();
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
@@ -68,7 +68,7 @@ export default function GridScroller({ width, height }: Props) {
   }, [selectedFolder, sort, updated]);
 
   useEffect(() => {
-    const [index, scrollValue] = history.location.hash.replace('#', '').split('_').map(Number);
+    const [index, scrollValue] = location.hash.replace('#', '').split('_').map(Number);
 
     if (cancelAnimation.current) {
       cancelAnimation.current();
