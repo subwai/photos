@@ -2,20 +2,22 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import process from 'process';
 import url from 'url';
 
+export type Channels = string;
+
 contextBridge.exposeInMainWorld('electron', {
   setRootFolder(path: string) {
     ipcRenderer.send('set-root-folder', path);
   },
-  on(channel: string, listener: (...args: unknown[]) => void) {
+  on(channel: Channels, listener: (...args: unknown[]) => void) {
     ipcRenderer.on(channel, (_: IpcRendererEvent, ...args: unknown[]) => listener(...(args || [])));
   },
-  removeListener(channel: string, listener: (...args: unknown[]) => void) {
+  removeListener(channel: Channels, listener: (...args: unknown[]) => void) {
     ipcRenderer.removeListener(channel, listener);
   },
-  send(channel: string, ...args: unknown[]) {
+  send(channel: Channels, ...args: unknown[]) {
     ipcRenderer.send(channel, args);
   },
-  invoke(channel: string, ...args: unknown[]) {
+  invoke(channel: Channels, ...args: unknown[]) {
     return ipcRenderer.invoke(channel, ...(args || []));
   },
   platform: process.platform,

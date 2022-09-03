@@ -2,9 +2,11 @@ module.exports = {
   extends: 'erb',
   rules: {
     // A temporary hack related to IDE not resolving correct package.json
-    'no-console': 'off',
     'import/no-extraneous-dependencies': 'off',
     'import/no-unresolved': 'error',
+    // Since React 17 and typescript 4.1 you can safely disable the rule
+    'react/react-in-jsx-scope': 'off',
+    'no-console': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/media-has-caption': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
@@ -15,18 +17,6 @@ module.exports = {
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
-    // Since React 17 and typescript 4.1 you can safely disable the rule
-    'react/react-in-jsx-scope': 'off',
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'never',
-        jsx: 'never',
-        ts: 'never',
-        tsx: 'never',
-      },
-    ],
   },
   parserOptions: {
     ecmaVersion: 2020,
@@ -44,7 +34,6 @@ module.exports = {
       },
       typescript: {},
     },
-    'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
     'import/parsers': {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },

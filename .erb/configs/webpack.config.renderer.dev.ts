@@ -26,10 +26,7 @@ const skipDLLs =
 /**
  * Warn if the DLL is not built
  */
-if (
-  !skipDLLs &&
-  !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))
-) {
+if (!skipDLLs && !(fs.existsSync(webpackPaths.dllPath) && fs.existsSync(manifest))) {
   console.log(
     chalk.black.bgYellow.bold(
       'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"'
@@ -143,7 +140,7 @@ const configuration: webpack.Configuration = {
       isDevelopment: process.env.NODE_ENV !== 'production',
       nodeModules: webpackPaths.appNodeModulesPath,
     }),
-  ].filter((x) => x !== null),
+  ],
 
   node: {
     __dirname: false,
@@ -167,15 +164,14 @@ const configuration: webpack.Configuration = {
         shell: true,
         stdio: 'inherit',
       })
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         .on('close', (code: number) => process.exit(code!))
         .on('error', (spawnError) => console.error(spawnError));
 
       console.log('Starting Main Process...');
       let args = ['run', 'start:main'];
       if (process.env.MAIN_ARGS) {
-        args = args.concat(
-          ['--', ...process.env.MAIN_ARGS.matchAll(/"[^"]+"|[^\s"]+/g)].flat()
-        );
+        args = args.concat(['--', ...process.env.MAIN_ARGS.matchAll(/"[^"]+"|[^\s"]+/g)].flat());
       }
       spawn('npm', args, {
         shell: true,
@@ -183,6 +179,7 @@ const configuration: webpack.Configuration = {
       })
         .on('close', (code: number) => {
           preloadProcess.kill();
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           process.exit(code!);
         })
         .on('error', (spawnError) => console.error(spawnError));

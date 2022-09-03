@@ -11,7 +11,7 @@ const readdirAsync: (arg1: fs.PathLike, arg2: { withFileTypes: Boolean }) => Blu
 const statAsync: (arg1: fs.PathLike) => Bluebird<fs.Stats> = Bluebird.promisify(fs.stat);
 
 export function getCachePath() {
-  return path.join(app.getPath('cache'), 'org.adamlyren.Photos');
+  return path.join(app.getPath('userData'), 'Cache');
 }
 
 export default class FileSystem {

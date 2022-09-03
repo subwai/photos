@@ -3,14 +3,13 @@ import { Channels } from 'main/preload';
 declare global {
   interface Window {
     electron: {
-      ipcRenderer: {
-        sendMessage(channel: Channels, args: unknown[]): void;
-        on(
-          channel: string,
-          func: (...args: unknown[]) => void
-        ): (() => void) | undefined;
-        once(channel: string, func: (...args: unknown[]) => void): void;
-      };
+      setRootFolder(path: string | null): void;
+      on(channel: Channels, listener: (...args: never[]) => void): void;
+      removeListener(channel: Channels, listener: (...args: never[]) => void): void;
+      send(channel: Channels, ...args: never[]): void;
+      invoke(channel: Channels, ...args: never[]): Promise<never>;
+      platform: NodeJS.Platform;
+      pathToFileURL(path: string): string;
     };
   }
 }

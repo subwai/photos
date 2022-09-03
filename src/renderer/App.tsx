@@ -1,8 +1,8 @@
 import { ConnectedRouter } from 'connected-react-router';
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
-import { Route, Switch } from 'react-router-dom';
-import './App.global.css';
+import { Route, Routes } from 'react-router-dom';
+import './App.css';
 import Home from './components/Home';
 import TopBar from './components/TopBar';
 import { loadPersistedState, persistState } from './redux/persistStoreState';
@@ -36,9 +36,9 @@ export default function App() {
       <Provider store={store}>
         <ConnectedRouter history={history}>
           <TopBar />
-          <Switch>
-            <Route path="/" component={Home} />
-          </Switch>
+          <Routes>
+            <Route path="/" element={<Home />} />
+          </Routes>
         </ConnectedRouter>
       </Provider>
     </>

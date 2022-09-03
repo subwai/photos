@@ -87,7 +87,9 @@ export default function Home(): JSX.Element {
 
     const promise = Promise.resolve()
       .then(() => root?.loadChildren({ priority: 2 }))
-      .then((children) => Promise.map(values(children || {}), (child) => child.loadChildren({ priority: 2 })))
+      .then((children) =>
+        Promise.map(values(children || {}), (child: FileEntryModel) => child.loadChildren({ priority: 2 }))
+      )
       .catch(console.error);
 
     return () => promise.cancel();

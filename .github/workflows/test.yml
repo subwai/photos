@@ -21,7 +21,8 @@ jobs:
           cache: npm
 
       - name: Cache node modules
-        uses: actions/cache@v2
+        id: cache-npm
+        uses: actions/cache@v3
         env:
           cache-name: cache-node-modules
         with:
@@ -35,7 +36,8 @@ jobs:
 
       - name: npm install
         run: |
-          npm install --legacy-peer-deps
+          npm install
+          npm audit signatures
 
       - name: npm test
         env:

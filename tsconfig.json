@@ -23,7 +23,8 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "outDir": "release/app/dist"
+    "outDir": "release/app/dist",
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": [
     "test",
