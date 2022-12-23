@@ -60,7 +60,7 @@ const configuration: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.s?css$/,
+        test: /\.s?(c|a)ss$/,
         use: [
           'style-loader',
           {
@@ -87,8 +87,27 @@ const configuration: webpack.Configuration = {
       },
       // Images
       {
-        test: /\.(ico|webp|png|svg|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
+        test: /\.(ico|webp|png|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
         type: 'asset/resource',
+      },
+      // SVG
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              prettier: false,
+              svgo: false,
+              svgoConfig: {
+                plugins: [{ removeViewBox: false }],
+              },
+              titleProp: true,
+              ref: true,
+            },
+          },
+          'file-loader',
+        ],
       },
     ],
   },

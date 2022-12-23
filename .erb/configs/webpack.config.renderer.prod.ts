@@ -66,8 +66,27 @@ const configuration: webpack.Configuration = {
       },
       // Images
       {
-        test: /\.(ico|webp|png|svg|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
+        test: /\.(ico|webp|png|jpg|jpeg|gif)(\?v=\d+\.\d+\.\d+)?$/i,
         type: 'asset/resource',
+      },
+      // SVG
+      {
+        test: /\.svg$/,
+        use: [
+          {
+            loader: '@svgr/webpack',
+            options: {
+              prettier: false,
+              svgo: false,
+              svgoConfig: {
+                plugins: [{ removeViewBox: false }],
+              },
+              titleProp: true,
+              ref: true,
+            },
+          },
+          'file-loader',
+        ],
       },
     ],
   },
@@ -86,7 +105,7 @@ const configuration: webpack.Configuration = {
     /**
      * Create global constants which can be configured at compile time.
      *
-     * Useful for allowing different behaviour between development builds and
+     * Useful for allowing different behavior between development builds and
      * release builds
      *
      * NODE_ENV should be production so that modules do not perform certain
@@ -103,6 +122,7 @@ const configuration: webpack.Configuration = {
 
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.ANALYZE === 'true' ? 'server' : 'disabled',
+      analyzerPort: 8889,
     }),
 
     new HtmlWebpackPlugin({
