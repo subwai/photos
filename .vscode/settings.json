@@ -22,5 +22,5 @@
     "package-lock.json": true,
     "*.{css,sass,scss}.d.ts": true
   },
-  "cSpell.words": ["Scroller"]
+  "cSpell.words": ["Lyrén", "Scroller"]
 }

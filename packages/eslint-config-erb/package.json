@@ -1,11 +1,23 @@
 {
+  "name": "eslint-config-erb",
+  "version": "4.0.3",
+  "description": "The eslint config for electron-react-boilerplate",
+  "main": "index.js",
+  "repository": "https://github.com/electron-react-boilerplate/eslint-config-erb",
   "contributors": [
     {
-      "email": "amilajack@gmail.com",
       "name": "Amila Welihinda",
+      "email": "amilajack@gmail.com",
       "url": "https://github.com/amilajack"
     }
   ],
+  "files": [
+    "index.js"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
@@ -19,7 +31,11 @@
     "eslint-plugin-react": "^7.31.11",
     "eslint-plugin-react-hooks": "^4.6.0"
   },
-  "description": "The eslint config for electron-react-boilerplate",
+  "peerDependencies": {
+    "eslint": ">=7 || >=8",
+    "jest": ">=27.3.1",
+    "react": "^17.0.2"
+  },
   "devDependencies": {
     "eslint": ">=8",
     "jest": ">=29.3.1",
@@ -31,26 +47,10 @@
   "eslintConfig": {
     "extends": "./index.js"
   },
-  "files": [
-    "index.js"
-  ],
-  "gitHead": "ad44a7af90841cbbd7cd0585b24d7a6c5d1008fd",
-  "license": "MIT",
-  "main": "index.js",
-  "name": "eslint-config-erb",
-  "peerDependencies": {
-    "eslint": ">=7 || >=8",
-    "jest": ">=27.3.1",
-    "react": "^17.0.2"
-  },
   "renovate": {
     "extends": [
       "bliss"
     ]
   },
-  "repository": "https://github.com/electron-react-boilerplate/eslint-config-erb",
-  "scripts": {
-    "test": "jest"
-  },
-  "version": "4.0.3"
+  "gitHead": "ad44a7af90841cbbd7cd0585b24d7a6c5d1008fd"
 }
