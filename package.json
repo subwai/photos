@@ -254,9 +254,7 @@
       "target": [
         "nsis"
       ],
-      "publisherName": "Adam Lyrén",
-      "verifyUpdateCodeSignature": false,
-      "signAndEditExecutable": false
+      "publisherName": "Adam Lyrén"
     },
     "linux": {
       "target": [

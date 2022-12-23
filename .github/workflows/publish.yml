@@ -32,9 +32,7 @@ jobs:
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
         env:
-          # These values are used for auto updates signing
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
           # This is used for uploading release assets to github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -43,9 +41,6 @@ jobs:
       - name: Publish release (Windows)
         if: startsWith(matrix.os, 'windows')
         env:
-          # These values are used for auto updates signing
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
