@@ -81,21 +81,19 @@ export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): 
   }
 
   return (
-    <>
-      <div
-        className={classNames(classes.entry, `folder-${fileEntry.objectPath}`, 'folder-size')}
-        onClick={() => onClick(fileEntry)}
-      >
-        <FolderName
-          {...{
-            fileEntry,
-            subFolders,
-            isSelected,
-            isOpen,
-            onChangeOpen,
-          }}
-        />
-      </div>
-    </>
+    <div
+      className={classNames(classes.entry, `folder-${fileEntry.objectPath}`, 'folder-size')}
+      onClick={() => onClick(fileEntry)}
+    >
+      <FolderName
+        {...{
+          fileEntry,
+          subFolders,
+          isSelected,
+          isOpen,
+          onChangeOpen,
+        }}
+      />
+    </div>
   );
 });

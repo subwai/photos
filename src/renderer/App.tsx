@@ -21,16 +21,14 @@ export default function App() {
   useStyles();
 
   return (
-    <>
-      <Provider store={store}>
-        <HistoryRouter history={history}>
-          <TopBar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path=":query" element={<Home />} />
-          </Routes>
-        </HistoryRouter>
-      </Provider>
-    </>
+    <Provider store={store}>
+      <HistoryRouter history={history}>
+        <TopBar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path=":query" element={<Home />} />
+        </Routes>
+      </HistoryRouter>
+    </Provider>
   );
 }

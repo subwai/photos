@@ -1,5 +1,5 @@
 import type { History } from 'history';
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Router, RouterProps } from 'react-router';
 import type { NavigationType } from 'react-router-dom';
 
@@ -13,8 +13,8 @@ export default function HistoryRouter({ history, children }: HistoryRouterProps)
     location: history.location,
   });
 
-  useLayoutEffect(() => {
-    return history.listen((location, action) => setState({ location, action }));
+  useEffect(() => {
+    return history.listen(setState);
   }, [history]);
 
   return (

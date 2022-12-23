@@ -4,7 +4,7 @@ import path from 'path';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import type { Action, LocationListener, LocationState, Location } from 'history';
+import type { Listener, Update } from 'history';
 import useSelectedFolder from '../hooks/useSelectedFolder';
 import useSelectedIndex from '../hooks/useSelectedIndex';
 import FileEntryObject, { FileEntryModel } from '../models/FileEntry';
@@ -103,7 +103,7 @@ export default function Home() {
     return () => promise.cancel();
   }, []);
 
-  const callback = (location: Location<LocationState>) => {
+  const callback = ({ location }: Update) => {
     if (location.hash === '') {
       return;
     }
@@ -114,13 +114,12 @@ export default function Home() {
     }
   };
 
-  const callbackRef = useRef<LocationListener<LocationState>>(callback);
+  const callbackRef = useRef<Listener>(callback);
   callbackRef.current = callback;
 
-  useLayoutEffect(
-    () => history.listen((location: Location<LocationState>, action: Action) => callbackRef.current(location, action)),
-    [history]
-  );
+  useLayoutEffect(() => {
+    history.listen((update) => callbackRef.current(update));
+  }, [history]);
 
   return (
     <div className={classes.container}>

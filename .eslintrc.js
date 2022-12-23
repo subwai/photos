@@ -7,6 +7,7 @@ module.exports = {
     // Since React 17 and typescript 4.1 you can safely disable the rule
     'react/react-in-jsx-scope': 'off',
     'no-console': 'off',
+    'import/no-import-module-exports': 'off',
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/media-has-caption': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
@@ -16,6 +17,7 @@ module.exports = {
     'react/require-default-props': 'off',
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
   },
   parserOptions: {
