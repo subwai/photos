@@ -25,7 +25,9 @@ jobs:
 
       - name: Install and build
         run: |
-          npm install --legacy-peer-deps
+          npm install
+          npm run postinstall
+          npm run build
 
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
@@ -36,8 +38,6 @@ jobs:
           # This is used for uploading release assets to github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run postinstall
-          npm run build
           npm exec electron-builder -- --publish always --mac
 
       - name: Publish release (Windows)
@@ -49,6 +49,4 @@ jobs:
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run postinstall
-          npm run build
           npm exec electron-builder -- --publish always --win
