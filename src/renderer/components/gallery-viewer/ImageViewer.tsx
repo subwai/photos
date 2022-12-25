@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
+import { ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
 import useEventListener from '../../hooks/useEventListener';
 import { isVideo } from '../../models/FileEntry';
 import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
@@ -54,12 +54,17 @@ export default function ImageViewer() {
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
   const imageWrapper = useRef<HTMLDivElement>(null);
+  const transformer = useRef<ReactZoomPanPinchRef>(null);
 
   useEffect(() => {
     if (playing) {
       dispatch(pause());
     }
   }, [selectedFile, dispatch]);
+
+  useEffect(() => {
+    transformer.current?.setTransform(transformer.current?.state.positionX, 0, transformer.current?.state.scale, 0);
+  }, [selectedFile]);
 
   const space = (event: React.KeyboardEvent) => {
     if (videoElement.current) {
@@ -92,6 +97,38 @@ export default function ImageViewer() {
     }
   };
 
+  const pageDown = (event: React.KeyboardEvent) => {
+    if (transformer.current) {
+      const offsetMultiplier = event.shiftKey ? 0.5 : 1;
+      transformer.current.setTransform(
+        transformer.current.state.positionX,
+        Math.max(
+          transformer.current.state.positionY -
+            transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
+          transformer.current.instance.bounds!.minPositionY
+        ),
+        transformer.current.state.scale
+      );
+      event.preventDefault();
+    }
+  };
+
+  const pageUp = (event: React.KeyboardEvent) => {
+    if (transformer.current) {
+      const offsetMultiplier = event.shiftKey ? 0.5 : 1;
+      transformer.current.setTransform(
+        transformer.current.state.positionX,
+        Math.min(
+          transformer.current.state.positionY +
+            transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
+          transformer.current.instance.bounds!.maxPositionY
+        ),
+        transformer.current.state.scale
+      );
+      event.preventDefault();
+    }
+  };
+
   const fKey = (event: React.KeyboardEvent) => {
     event.preventDefault();
     if (document.fullscreenElement) {
@@ -114,6 +151,10 @@ export default function ImageViewer() {
         return arrowLeft(event);
       case 'ArrowRight':
         return arrowRight(event);
+      case 'PageDown':
+        return pageDown(event);
+      case 'PageUp':
+        return pageUp(event);
       case 'f':
         return fKey(event);
       default:
@@ -170,6 +211,7 @@ export default function ImageViewer() {
       onAuxClick={() => dispatch(setPreview(false))}
     >
       <TransformWrapper
+        ref={transformer}
         doubleClick={{
           mode: 'reset',
         }}

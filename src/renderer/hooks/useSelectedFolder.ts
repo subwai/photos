@@ -12,7 +12,7 @@ export default function useSelectedFolder(): [FileEntryModel | null, (folder: Fi
   const setSelectedFolder = useCallback(
     (folder: FileEntryModel | null) => {
       const nextPath = encodeURIComponent(folder ? folder.fullPath : '');
-      if (`/${decodeURI(nextPath)}` !== location.pathname) {
+      if (`/${decodeURI(nextPath)}` !== decodeURI(location.pathname)) {
         navigate(`/${decodeURI(nextPath)}`);
       }
     },

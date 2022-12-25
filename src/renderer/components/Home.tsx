@@ -103,8 +103,8 @@ export default function Home() {
     return () => promise.cancel();
   }, []);
 
-  const callback = ({ location }: Update) => {
-    if (location.hash === '') {
+  const callback = ({ location, action }: Update) => {
+    if (location.hash === '' || action === 'REPLACE') {
       return;
     }
 
@@ -117,8 +117,10 @@ export default function Home() {
   const callbackRef = useRef<Listener>(callback);
   callbackRef.current = callback;
 
-  useLayoutEffect(() => {
-    history.listen((update) => callbackRef.current(update));
+  useEffect(() => {
+    const stopListen = history.listen((update) => callbackRef.current(update));
+
+    return () => stopListen();
   }, [history]);
 
   return (

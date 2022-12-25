@@ -8,7 +8,7 @@ type IndexValue = number | null;
 
 export default function useSelectedIndex(
   defaultIndex: IndexValue = null
-): [IndexValue, (folder: IndexValue, scroll?: number) => void] {
+): [IndexValue, (folder: IndexValue, scroll?: number | null) => void] {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,7 +23,7 @@ export default function useSelectedIndex(
   );
 
   const setSelectedIndexCallback = useCallback(
-    (index: IndexValue, scroll = null) => {
+    (index: IndexValue, scroll: number | null = null) => {
       const [hashIndex, hashScroll] = location.hash.replace('#', '').split('_').map(Number);
 
       if (index !== selectedIndex && !Number.isNaN(index)) {
