@@ -81,8 +81,9 @@ export class FileEntryModel implements FileEntryObject {
   }
 
   find(fullPath: string): FileEntryModel | undefined {
+    const escapedFullPath = this.fullPath.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     const arrayPath = fullPath
-      .replace(new RegExp(`${this.fullPath.replaceAll('\\', '\\\\')}[\\\\/]?`), '')
+      .replace(new RegExp(`${escapedFullPath}[\\\\/]?`), '')
       .split(/[\\/]/)
       .filter(Boolean);
     // eslint-disable-next-line @typescript-eslint/no-this-alias
