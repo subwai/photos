@@ -66,7 +66,7 @@ const installExtensions = async () => {
   return installer
     .default(
       extensions.map((name) => installer[name]),
-      { loadExtensionOptions: { allowFileAccess: true }, forceDownload }
+      { loadExtensionOptions: { allowFileAccess: true }, forceDownload },
     )
     .catch(console.log);
 };

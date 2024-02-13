@@ -3,6 +3,7 @@
  */
 
 import webpack from 'webpack';
+import TsconfigPathsPlugins from 'tsconfig-paths-webpack-plugin';
 import webpackPaths from './webpack.paths';
 import { dependencies as externals } from '../../release/app/package.json';
 
@@ -47,6 +48,8 @@ const configuration: webpack.Configuration = {
     fallback: {
       path: require.resolve('path-browserify'),
     },
+    // There is no need to add aliases here, the paths in tsconfig get mirrored
+    plugins: [new TsconfigPathsPlugins()],
   },
 
   plugins: [
