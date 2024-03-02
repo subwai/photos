@@ -1,31 +1,29 @@
-// Disable no-unused-vars, broken for spread args
-/* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 import process from 'process';
 import url from 'url';
 
 export type Channels = string;
 
 const electronHandler = {
-  setRootFolder(path: string) {
+  setRootFolder(path: string | null) {
     ipcRenderer.send('set-root-folder', path);
   },
-  on(channel: Channels, listener: (...args: unknown[]) => void) {
-    ipcRenderer.on(channel, (_: IpcRendererEvent, ...args: unknown[]) => listener(...(args || [])));
+  on(channel: Channels, listener: (...args: any[]) => void) {
+    ipcRenderer.on(channel, (_: IpcRendererEvent, ...args: any[]) => listener(...(args || [])));
   },
-  removeListener(channel: Channels, listener: (...args: unknown[]) => void) {
+  removeListener(channel: Channels, listener: (...args: any[]) => void) {
     ipcRenderer.removeListener(channel, listener);
   },
-  send(channel: Channels, ...args: unknown[]) {
+  send(channel: Channels, ...args: any[]) {
     ipcRenderer.send(channel, args);
   },
-  invoke(channel: Channels, ...args: unknown[]) {
+  invoke(channel: Channels, ...args: any[]) {
     return ipcRenderer.invoke(channel, ...(args || []));
   },
   platform: process.platform,
   pathToFileURL(path: string) {
     return url.pathToFileURL(path).toString();
-  }
+  },
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

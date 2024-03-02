@@ -1,9 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { Middleware, configureStore } from '@reduxjs/toolkit';
 import { createReduxHistoryContext } from 'redux-first-history';
 import { createHashHistory } from 'history';
 import { createLogger } from 'redux-logger';
-import createRootReducer from './rootReducer';
-import { loadPersistedState, persistState } from './persistStoreState';
+import createRootReducer from 'renderer/redux/rootReducer';
+import { loadPersistedState, persistState } from 'renderer/redux/persistStoreState';
 
 const { createReduxHistory, routerMiddleware, routerReducer } = createReduxHistoryContext({
   history: createHashHistory(),
@@ -20,7 +20,7 @@ if (shouldIncludeLogger) {
     createLogger({
       level: 'info',
       collapsed: true,
-    })
+    }) as Middleware,
   );
 }
 
@@ -51,6 +51,6 @@ if (process.env.NODE_ENV === 'development' && module.hot) {
   module.hot.accept(
     './rootReducer',
     // eslint-disable-next-line global-require
-    () => store.replaceReducer(require('./rootReducer').default)
+    () => store.replaceReducer(require('./rootReducer').default),
   );
 }

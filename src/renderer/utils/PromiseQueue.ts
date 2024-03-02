@@ -27,7 +27,7 @@ export default class PromiseQueue {
 
   options: PromiseQueueOptions;
 
-  constructor(options: PromiseQueueOptions = { concurrency: 1 }) {
+  constructor(options: PromiseQueueOptions = { concurrency: 10 }) {
     this.options = options;
   }
 
@@ -58,15 +58,20 @@ export default class PromiseQueue {
 
   maybeRunNext() {
     if (this.hasOpenSlots()) {
-      const job = this.jobs.shift();
+      const job = this.getNextJob();
       if (job) {
-        if (job.cancelled) {
-          this.maybeRunNext();
-        } else {
-          this.runJob(job);
-        }
+        this.runJob(job);
       }
     }
+  }
+
+  getNextJob(): Job | undefined {
+    let job: Job | undefined;
+    do {
+      job = this.jobs.shift();
+    } while (job?.cancelled);
+
+    return job;
   }
 
   hasOpenSlots() {

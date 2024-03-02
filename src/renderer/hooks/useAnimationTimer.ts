@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { shallowEqual } from 'react-redux';
 
-export default function useAnimationTimer(duration = 1000, delay = 0, dependencies: ReadonlyArray<unknown>) {
+export default function useAnimationTimer(duration = 1000, delay = 0, dependencies: ReadonlyArray<unknown> = []) {
   const [elapsed, setTime] = useState(0);
   const [oldDependencies, setDependencies] = useState<ReadonlyArray<unknown>>(dependencies);
 
@@ -53,7 +53,7 @@ export default function useAnimationTimer(duration = 1000, delay = 0, dependenci
         cancelAnimationFrame(animationFrame);
       };
     },
-    [duration, delay, ...dependencies] // Only re-run effect if duration or delay changes
+    [duration, delay, ...dependencies], // Only re-run effect if duration or delay changes
   );
 
   useEffect(() => {

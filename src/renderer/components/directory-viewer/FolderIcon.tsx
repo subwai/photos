@@ -1,8 +1,8 @@
 import classNames from 'classnames';
-import { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
-import useThumbnail from '../../hooks/useThumbnail';
-import { FileEntryModel, findFirstImageOrVideo, isImage, isVideo } from '../../models/FileEntry';
+
+import useThumbnail from 'renderer/hooks/useThumbnail';
+import { FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
 
 export const FOLDER_ICON_SIDE_MARGIN = 4;
 
@@ -46,10 +46,9 @@ interface Props {
 
 export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
-  const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [fileEntry.children]);
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
+  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry.cover);
 
-  if (preview && isVideo(preview)) {
+  if (fileEntry.cover && isVideo(fileEntry.cover)) {
     return (
       <img
         key={key}
@@ -61,7 +60,7 @@ export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
     );
   }
 
-  if (preview && isImage(preview)) {
+  if (fileEntry.cover && isImage(fileEntry.cover)) {
     return (
       <img
         key={key}

@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
-import type { FileEntryModel } from '../models/FileEntry';
-import { selectRootFolder } from '../redux/slices/rootFolderSlice';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import { selectRootFolder } from 'renderer/redux/slices/rootFolderSlice';
 
 export default function useSelectedFolder(): [FileEntryModel | null, (folder: FileEntryModel | null) => void] {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function useSelectedFolder(): [FileEntryModel | null, (folder: Fi
         navigate(`/${decodeURI(nextPath)}`);
       }
     },
-    [location]
+    [location],
   );
 
   return [root?.find(decodeURIComponent(location.pathname).substring(1)) || null, setSelectedFolder];

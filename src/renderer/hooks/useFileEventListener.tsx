@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
-import type { FileEntryEvent, FileEntryModel } from '../models/FileEntry';
+
+import type { EventName, FileEntryEvent, FileEntryModel } from 'renderer/models/FileEntry';
 
 export default function useFileEventListener(
-  eventName: string,
+  eventName: EventName,
   handler: (event: FileEntryEvent) => void,
-  fileEntry: FileEntryModel | null
+  fileEntry: FileEntryModel | null,
 ) {
   // Create a ref that stores handler
   const savedHandler = useRef<(event: FileEntryEvent) => void>();
@@ -35,6 +36,6 @@ export default function useFileEventListener(
         fileEntry.removeEventListener(eventName, eventListener);
       };
     },
-    [eventName, fileEntry] // Re-run if eventName or element changes
+    [eventName, fileEntry], // Re-run if eventName or element changes
   );
 }

@@ -84,7 +84,7 @@ export default function animate({
       onUpdate(
         getValue(fromValue, toValue, elapsed, easing, duration),
         // Callback
-        elapsed <= duration ? tick : onComplete
+        elapsed <= duration ? tick : onComplete,
       );
     });
   };

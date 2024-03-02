@@ -4,14 +4,15 @@ import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { AutoSizer } from 'react-virtualized';
 import { useDebounce } from 'use-debounce';
-import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
-import useDragging from '../../../hooks/useDragging';
-import useSelectedFolder from '../../../hooks/useSelectedFolder';
-import type { FileEntryModel } from '../../../models/FileEntry';
-import { selectGalleryScrollerHeight, setHeight } from '../../../redux/slices/galleryViewerSlice';
-import ImageViewer from '../ImageViewer';
-import GalleryScroller from './LineScroller';
-import { THUMBNAIL_PADDING } from './Thumbnail';
+
+import ImageViewer from 'renderer/components/gallery-viewer/ImageViewer';
+import GalleryScroller from 'renderer/components/gallery-viewer/line-viewer/LineScroller';
+import { THUMBNAIL_PADDING } from 'renderer/components/gallery-viewer/line-viewer/Thumbnail';
+import useAutomaticChildrenLoader from 'renderer/hooks/useAutomaticChildrenLoader';
+import useDragging from 'renderer/hooks/useDragging';
+import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import { selectGalleryScrollerHeight, setHeight } from 'renderer/redux/slices/galleryViewerSlice';
 
 const useStyles = createUseStyles({
   imageContainer: {
@@ -69,7 +70,7 @@ export default function LineViewer() {
     ({ y }) => {
       const newHeight = max([0, height - y]) || 0;
       dispatch(setHeight(Math.round(newHeight - THUMBNAIL_PADDING * 2)));
-    }
+    },
   );
 
   return (
@@ -93,8 +94,8 @@ interface GalleryScrollerWrapperProps {
   height: number;
 }
 
-const GalleryScrollerWrapper = ({ folder, width, height }: GalleryScrollerWrapperProps) => {
+function GalleryScrollerWrapper({ folder, width, height }: GalleryScrollerWrapperProps) {
   const [debouncedWidth] = useDebounce(width, 1000);
 
   return <GalleryScroller key={folder?.fullPath} folder={folder} width={debouncedWidth} height={height} />;
-};
+}

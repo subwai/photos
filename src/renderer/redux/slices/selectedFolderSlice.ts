@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { FileEntryModel } from '../../models/FileEntry';
-import type { RootState } from '../store';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import type { RootState } from 'renderer/redux/store';
 
 type State = {
   file: FileEntryModel | null;
@@ -9,6 +9,7 @@ type State = {
 
 const selectedFolderSlice = createSlice({
   name: 'selectedFolder',
+  // eslint-disable-next-line prettier/prettier
   initialState: <State>{ file: null, index: null },
   reducers: {
     setSelectedFile: (state, action) => {

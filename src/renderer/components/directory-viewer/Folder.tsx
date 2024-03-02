@@ -1,18 +1,13 @@
-import type Promise from 'bluebird';
 import classNames from 'classnames';
-import { filter } from 'lodash';
-import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
+import React, { ComponentProps, memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { useThrottledCallback } from 'use-debounce';
-import { v4 as uuid4 } from 'uuid';
-import useFileEventListener from '../../hooks/useFileEventListener';
-import type FileEntryObject from '../../models/FileEntry';
-import type { Children, FileEntryModel } from '../../models/FileEntry';
-import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import FileSystemService from '../../utils/FileSystemService';
-import FolderName from './FolderName';
+
+import FolderName from 'renderer/components/directory-viewer/FolderName';
+import useAutomaticCoverLoader from 'renderer/hooks/useAutomaticCoverLoader';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import { closeFolder, openFolder, selectOpenFolders } from 'renderer/redux/slices/folderVisibilitySlice';
+import { selectRootFolder } from 'renderer/redux/slices/rootFolderSlice';
 
 const useStyles = createUseStyles<string, { level: number }>({
   root: {
@@ -38,38 +33,19 @@ const useStyles = createUseStyles<string, { level: number }>({
 });
 
 interface Props {
-  isRoot?: boolean;
   isSelected: boolean;
   fileEntry: FileEntryModel;
-  selectPrevious?: () => void;
-  selectNext?: () => void;
-  closeParent?: () => void;
   onClick: (entry: FileEntryModel) => void;
+  style: ComponentProps<'div'>['style'];
 }
 
-export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): JSX.Element {
+export default memo(function Folder({ isSelected, fileEntry, onClick, style }: Props): JSX.Element {
   const rootFolder = useSelector(selectRootFolder);
   const openFolders = useSelector(selectOpenFolders);
-  const [update, triggerUpdate] = useState<string>(uuid4());
   const classes = useStyles({ level: fileEntry.level });
-  const getChildrenPromise = useRef<Promise<Children<FileEntryObject>>>();
   const dispatch = useDispatch();
 
-  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
-  useFileEventListener('all', triggerUpdateThrottled, fileEntry);
-
-  useEffect(() => {
-    if (fileEntry.isFolder && fileEntry.children === null) {
-      getChildrenPromise.current = FileSystemService.getChildren(fileEntry.fullPath);
-      getChildrenPromise.current.then((children) => fileEntry.addChildren(children)).catch(console.error);
-    }
-
-    return () => getChildrenPromise.current?.cancel();
-  }, []);
-
-  const subFolders = useMemo(() => {
-    return fileEntry.children && filter(fileEntry.children, 'isFolder');
-  }, [fileEntry.children, update]);
+  useAutomaticCoverLoader(fileEntry);
 
   const isRoot = fileEntry === rootFolder;
   const isOpen = openFolders[fileEntry.fullPath] || isRoot;
@@ -84,11 +60,11 @@ export default memo(function Folder({ isSelected, fileEntry, onClick }: Props): 
     <div
       className={classNames(classes.entry, `folder-${fileEntry.objectPath}`, 'folder-size')}
       onClick={() => onClick(fileEntry)}
+      style={style}
     >
       <FolderName
         {...{
           fileEntry,
-          subFolders,
           isSelected,
           isOpen,
           onChangeOpen,

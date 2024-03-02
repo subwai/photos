@@ -1,10 +1,11 @@
 import { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
-import { selectGalleryViewer } from '../../redux/slices/galleryViewerSlice';
-import GridViewer from './grid-viewer/GridViewer';
-import LineViewer from './line-viewer/LineViewer';
-import MetaBar from './MetaBar';
+
+import MetaBar from 'renderer/components/gallery-viewer/MetaBar';
+import GridViewer from 'renderer/components/gallery-viewer/grid-viewer/GridViewer';
+import LineViewer from 'renderer/components/gallery-viewer/line-viewer/LineViewer';
+import { selectGalleryViewer } from 'renderer/redux/slices/galleryViewerSlice';
 
 const useStyles = createUseStyles({
   container: {

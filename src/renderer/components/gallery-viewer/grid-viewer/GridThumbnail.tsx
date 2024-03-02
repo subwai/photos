@@ -1,9 +1,14 @@
 import classNames from 'classnames';
-import React, { memo } from 'react';
+import { ComponentProps, memo } from 'react';
 import { createUseStyles } from 'react-jss';
-import useThumbnail from '../../../hooks/useThumbnail';
-import { FileEntryModel, isVideo } from '../../../models/FileEntry';
-import GridFolderThumbnail, { THUMBNAIL_HEIGHT, THUMBNAIL_PADDING, THUMBNAIL_WIDTH } from './GridFolderThumbnail';
+
+import GridFolderThumbnail, {
+  THUMBNAIL_HEIGHT,
+  THUMBNAIL_PADDING,
+  THUMBNAIL_WIDTH,
+} from 'renderer/components/gallery-viewer/grid-viewer/GridFolderThumbnail';
+import useThumbnail from 'renderer/hooks/useThumbnail';
+import { FileEntryModel, isVideo } from 'renderer/models/FileEntry';
 
 const useStyles = createUseStyles({
   thumbnail: {
@@ -57,9 +62,11 @@ const useStyles = createUseStyles({
 interface Props {
   fileEntry: FileEntryModel;
   index: number;
-  onClick: (event: React.MouseEvent) => void;
-  onDoubleClick: (event: React.MouseEvent) => void;
-  style: object;
+  classPrefix?: string;
+  onClick: ComponentProps<'div'>['onClick'];
+  onDoubleClick: ComponentProps<'div'>['onDoubleClick'];
+  onAuxClick: ComponentProps<'div'>['onAuxClick'];
+  style: ComponentProps<'div'>['style'];
 }
 
 export default memo(function GridThumbnail({
@@ -67,7 +74,9 @@ export default memo(function GridThumbnail({
   index,
   onClick,
   onDoubleClick,
+  onAuxClick,
   style,
+  classPrefix = '',
 }: Props): JSX.Element | null {
   const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
@@ -75,10 +84,15 @@ export default memo(function GridThumbnail({
   if (fileEntry.isFolder) {
     return (
       <div
-        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+        className={classNames(
+          classes.thumbnail,
+          `${classPrefix}grid-thumbnail`,
+          `${classPrefix}grid-thumbnail-${index}`,
+        )}
         style={style}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
+        onAuxClick={onAuxClick}
       >
         <GridFolderThumbnail fileEntry={fileEntry} />
         <span className={classes.folderName}>{fileEntry.name}</span>
@@ -89,10 +103,15 @@ export default memo(function GridThumbnail({
   if (isVideo(fileEntry)) {
     return (
       <div
-        className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+        className={classNames(
+          classes.thumbnail,
+          `${classPrefix}grid-thumbnail`,
+          `${classPrefix}grid-thumbnail-${index}`,
+        )}
         style={style}
         onClick={onClick}
         onDoubleClick={onDoubleClick}
+        onAuxClick={onAuxClick}
       >
         <img
           key={key}
@@ -108,10 +127,11 @@ export default memo(function GridThumbnail({
 
   return (
     <div
-      className={classNames(classes.thumbnail, 'grid-thumbnail', `grid-thumbnail-${index}`)}
+      className={classNames(classes.thumbnail, `${classPrefix}grid-thumbnail`, `${classPrefix}grid-thumbnail-${index}`)}
       style={style}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
+      onAuxClick={onAuxClick}
     >
       <img
         key={key}

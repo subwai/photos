@@ -3,8 +3,10 @@ import { defaults, values } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
-import type { FileEntryModel } from '../models/FileEntry';
-import useFileEventListener from './useFileEventListener';
+
+import useFileEventListener from 'renderer/hooks/useFileEventListener';
+import useFileRerenderListener from 'renderer/hooks/useFileRerenderListener';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
 
 type Options = {
   deep?: boolean;
@@ -15,7 +17,10 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
   const mergedOptions = defaults(options, { deep: false, priority: 1 });
   const updateFolderPromise = useRef<Promise<void>>();
   const [update, triggerUpdate] = useState<string>(uuid4());
-  const triggerUpdateThrottled = useDebouncedCallback(() => triggerUpdate(uuid4()), 2000);
+  const [rerender, triggerRerender] = useState<string>(uuid4());
+  const triggerUpdateThrottled = useDebouncedCallback(() => triggerUpdate(uuid4()), 5000);
+
+  useFileRerenderListener(() => triggerRerender(uuid4()), selectedFolder);
 
   useFileEventListener(
     'all',
@@ -26,17 +31,19 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
         triggerUpdateThrottled();
       }
     },
-    selectedFolder
+    selectedFolder,
   );
 
   useEffect(() => {
     function updateFoldersRecursively(entry: FileEntryModel): Promise<void> {
       return Promise.resolve()
-        .then(() => entry.children || entry.loadChildren({ priority: mergedOptions.priority }))
+        .then(() =>
+          !entry.didLoadChildren ? entry.refreshChildren({ priority: mergedOptions.priority }) : entry.children,
+        )
         .then((children) => {
           if (mergedOptions.deep) {
             return Promise.map(values(children), (child) =>
-              child.isFolder ? updateFoldersRecursively(child) : Promise.resolve()
+              child.isFolder ? updateFoldersRecursively(child) : Promise.resolve(),
             );
           }
 
@@ -45,12 +52,12 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
         .then(() => {});
     }
 
-    if (selectedFolder) {
+    if (selectedFolder && !selectedFolder.didLoadChildren) {
       updateFolderPromise.current = updateFoldersRecursively(selectedFolder);
     }
 
     return () => updateFolderPromise.current?.cancel();
   }, [selectedFolder, update]);
 
-  return update;
+  return rerender;
 }

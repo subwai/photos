@@ -1,4 +1,4 @@
-import useAnimationTimer from './useAnimationTimer';
+import useAnimationTimer from 'renderer/hooks/useAnimationTimer';
 
 // Some easing functions copied from:
 // https://github.com/streamich/ts-easing/blob/master/src/index.ts
@@ -9,7 +9,13 @@ const easing = {
   inExpo: (n: number): number => 2 ** (10 * (n - 1)),
 };
 
-export default function useAnimation(easingName = 'linear', from: number, to: number, duration = 500, delay = 0) {
+export default function useAnimation(
+  easingName: keyof typeof easing,
+  from: number,
+  to: number,
+  duration = 500,
+  delay = 0,
+) {
   // The useAnimationTimer hook calls useState every animation frame ...
   // ... giving us elapsed time and causing a rerender as frequently ...
   // ... as possible for a smooth animation.

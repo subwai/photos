@@ -7,16 +7,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Grid } from 'react-virtualized';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
-import useEventListener from '../../../hooks/useEventListener';
-import useFileEventListener from '../../../hooks/useFileEventListener';
-import useSelectedIndex from '../../../hooks/useSelectedIndex';
-import { FileEntryModel, findAllFilesRecursive } from '../../../models/FileEntry';
-import { selectHiddenFolders } from '../../../redux/slices/folderVisibilitySlice';
-import { selectGallerySort, setFilesCount } from '../../../redux/slices/galleryViewerSlice';
-import { selectSelectedFile, setSelectedFile } from '../../../redux/slices/selectedFolderSlice';
-import { selectPlaying } from '../../../redux/slices/viewerSlice';
-import animate from '../../../utils/animate';
-import Thumbnail from './Thumbnail';
+
+import Thumbnail from 'renderer/components/gallery-viewer/line-viewer/Thumbnail';
+import useEventListener from 'renderer/hooks/useEventListener';
+import useFileRerenderListener from 'renderer/hooks/useFileRerenderListener';
+import useSelectedIndex from 'renderer/hooks/useSelectedIndex';
+import { FileEntryModel, findAllFilesRecursive } from 'renderer/models/FileEntry';
+import { selectHiddenFolders } from 'renderer/redux/slices/folderVisibilitySlice';
+import { selectGallerySort, setFilesCount } from 'renderer/redux/slices/galleryViewerSlice';
+import { selectSelectedFile, setSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
+import { selectPlaying } from 'renderer/redux/slices/viewerSlice';
+import animate from 'renderer/utils/animate';
 
 type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
 
@@ -64,8 +65,8 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
   };
   const updateFlattenedFilesDebounced = useDebouncedCallback(updateFlattenedFiles, 250);
-  const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 2000);
-  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
+  const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 5000);
+  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 5000);
 
   const sortedFiles = useMemo(() => {
     const [sortProperty, direction] = sort.split(':');
@@ -83,7 +84,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
 
   useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);
-  useFileEventListener('all', triggerUpdateThrottled, folder);
+  useFileRerenderListener(triggerUpdateThrottled, folder);
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
@@ -108,7 +109,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
       }
     },
     100,
-    { leading: true }
+    { leading: true },
   );
 
   useEffect(() => {
@@ -137,7 +138,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     event.preventDefault();
     const nextSelectedIndex = Math.min(
       selectedIndex === null ? 0 : selectedIndex + 1,
-      sortedFiles ? sortedFiles.length - 1 : 0
+      sortedFiles ? sortedFiles.length - 1 : 0,
     );
     setSelectedIndex(nextSelectedIndex);
     maybeScrollAnimate(nextSelectedIndex);
@@ -156,7 +157,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
       }
     },
     window,
-    !playing
+    !playing,
   );
 
   const firstChild = container.current?.firstChild as HTMLElement;
@@ -164,11 +165,11 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   useEventListener(
     'wheel',
     (event: WheelEvent) => {
-      if (event.deltaY !== 0) {
-        scrollTo(firstChild?.scrollLeft + event.deltaY);
+      if (firstChild && event.deltaY !== 0) {
+        scrollTo(firstChild.scrollLeft + event.deltaY);
       }
     },
-    container.current
+    container.current,
   );
 
   const scrollTo = (x: number) => {

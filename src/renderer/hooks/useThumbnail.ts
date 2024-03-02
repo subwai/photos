@@ -5,9 +5,10 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import { v4 as uuid4 } from 'uuid';
-import { FileEntryModel, isImage, isVideo } from '../models/FileEntry';
-import { selectCachePath } from '../redux/slices/rootFolderSlice';
-import PromiseQueue from '../utils/PromiseQueue';
+
+import { FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
+import { selectCachePath } from 'renderer/redux/slices/rootFolderSlice';
+import PromiseQueue from 'renderer/utils/PromiseQueue';
 
 const ignore = ['.gif'];
 
@@ -18,7 +19,7 @@ function isIgnored(fileEntry?: FileEntryModel | null) {
 }
 
 export default function useThumbnail(
-  fileEntry?: FileEntryModel | null
+  fileEntry?: FileEntryModel | null,
 ): [string | undefined, string | undefined, React.Dispatch<React.SetStateAction<string | null>>] {
   const [key, setKey] = useState<string | undefined>(undefined);
   const [requestThumbnail, setRequestThumbnail] = useState<string | null>(null);
@@ -56,7 +57,7 @@ export default function useThumbnail(
   } else {
     const extension = isVideo(fileEntry) ? '.jpg' : '.webp';
     fullPath = `${window.electron.pathToFileURL(
-      path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}${extension}`)
+      path.join(cachePath, 'thumbs', `${sha1(fileEntry.fullPath)}${extension}`),
     )}#${fileEntry.fullPath}`;
   }
 

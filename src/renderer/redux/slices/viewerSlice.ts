@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { RootState } from '../store';
+
+import type { RootState } from 'renderer/redux/store';
 
 const viewerSlice = createSlice({
   name: 'viewer',

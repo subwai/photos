@@ -2,9 +2,10 @@ import classNames from 'classnames';
 import type { MouseEvent } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import type { FileEntryModel } from '../../models/FileEntry';
-import { selectHiddenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
-import FolderIcon from './FolderIcon';
+
+import FolderIcon from 'renderer/components/directory-viewer/FolderIcon';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import { selectHiddenFolders, toggleHiddenFolder } from 'renderer/redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
   container: {
@@ -20,6 +21,7 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
   },
   caretIcon: {
     width: 18,
+    minWidth: 18,
     composes: '$icon fas',
   },
   eyeIcon: {
@@ -35,13 +37,12 @@ const useStyles = createUseStyles<string, { hidden: boolean }>({
 
 interface Props {
   fileEntry: FileEntryModel;
-  subFolders: FileEntryModel[] | null;
   isSelected: boolean;
   isOpen: boolean;
   onChangeOpen: (event: MouseEvent) => void;
 }
 
-export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
+export default function FolderName({ fileEntry, isSelected, isOpen, onChangeOpen }: Props): JSX.Element {
   const hiddenFolders = useSelector(selectHiddenFolders);
   const hidden = hiddenFolders[fileEntry.fullPath] && !isSelected;
   const classes = useStyles({ hidden });
@@ -57,7 +58,7 @@ export default function FolderName({ fileEntry, subFolders, isSelected, isOpen, 
 
   return (
     <>
-      {subFolders && subFolders.length > 0 ? (
+      {fileEntry.isFolder ? (
         <i
           className={classNames(classes.caretIcon, { 'fa-caret-down': isOpen, 'fa-caret-right': !isOpen })}
           style={{ marginLeft: fileEntry.level * 10 }}

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { RootState } from '../store';
+import type { RootState } from 'renderer/redux/store';
 
 export interface FoldersHash {
   [key: string]: boolean;
@@ -12,6 +12,7 @@ type State = {
 
 const folderVisibilitySlice = createSlice({
   name: 'folderVisibility',
+  // eslint-disable-next-line prettier/prettier
   initialState: <State>{ hidden: {}, open: {} },
   reducers: {
     toggleHiddenFolder: (state, action) => {

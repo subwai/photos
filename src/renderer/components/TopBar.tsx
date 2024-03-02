@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
-import { selectSelectedFile } from '../redux/slices/selectedFolderSlice';
+import { selectSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   topBar: {

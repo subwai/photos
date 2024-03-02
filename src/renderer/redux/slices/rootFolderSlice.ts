@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { get } from 'lodash';
-import FileEntryObject, { FileEntryModel } from '../../models/FileEntry';
-import type { RootState } from '../store';
+import FileEntryObject, { FileEntryModel } from 'renderer/models/FileEntry';
+import type { RootState } from 'renderer/redux/store';
 
 type State = {
   folder: FileEntryModel | null;
@@ -11,6 +11,7 @@ type State = {
 
 const rootFolderSlice = createSlice({
   name: 'rootFolder',
+  // eslint-disable-next-line prettier/prettier
   initialState: <State>{ folder: null, path: null, cachePath: null },
   reducers: {
     setRootFolder: (state, action) => {

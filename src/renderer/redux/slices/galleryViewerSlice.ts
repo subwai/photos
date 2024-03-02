@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { RootState } from '../store';
+import type { RootState } from 'renderer/redux/store';
 
 export type State = {
   height: number;
@@ -10,6 +10,7 @@ export type State = {
 
 const galleryViewerSlice = createSlice({
   name: 'galleryViewer',
+  // eslint-disable-next-line prettier/prettier
   initialState: <State>{ height: 120, sort: 'fullPath:asc', count: 0, viewer: 'grid' },
   reducers: {
     setHeight: (state, action) => {

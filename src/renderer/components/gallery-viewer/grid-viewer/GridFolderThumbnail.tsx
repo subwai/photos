@@ -1,9 +1,10 @@
 import classNames from 'classnames';
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { createUseStyles } from 'react-jss';
-import useAutomaticChildrenLoader from '../../../hooks/useAutomaticChildrenLoader';
-import useThumbnail from '../../../hooks/useThumbnail';
-import { FileEntryModel, findFirstImageOrVideo, isImage, isVideoThumbnail } from '../../../models/FileEntry';
+
+import useAutomaticCoverLoader from 'renderer/hooks/useAutomaticCoverLoader';
+import useThumbnail from 'renderer/hooks/useThumbnail';
+import { FileEntryModel, isImage, isVideoThumbnail } from 'renderer/models/FileEntry';
 
 export const THUMBNAIL_PADDING = 6;
 export const THUMBNAIL_SIZE = 200;
@@ -50,11 +51,10 @@ interface Props {
 
 export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
-  const updated = useAutomaticChildrenLoader(fileEntry);
-  const preview = useMemo(() => findFirstImageOrVideo(fileEntry), [updated]);
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(preview);
+  useAutomaticCoverLoader(fileEntry);
+  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry.cover);
 
-  if (preview && isVideoThumbnail(preview)) {
+  if (fileEntry.cover && isVideoThumbnail(fileEntry.cover)) {
     return (
       <img
         key={key}
@@ -66,7 +66,7 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
     );
   }
 
-  if (preview && isImage(preview)) {
+  if (fileEntry.cover && isImage(fileEntry.cover)) {
     return (
       <img
         key={key}

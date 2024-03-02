@@ -1,10 +1,10 @@
 import type { RouterState } from 'redux-first-history';
 import { combineReducers, Reducer } from 'redux';
-import folderVisibilityReducer from './slices/folderVisibilitySlice';
-import galleryScrollerReducer from './slices/galleryViewerSlice';
-import viewerReducer from './slices/viewerSlice';
-import rootFolderReducer from './slices/rootFolderSlice';
-import selectedFolderReducer from './slices/selectedFolderSlice';
+import folderVisibilityReducer from 'renderer/redux/slices/folderVisibilitySlice';
+import galleryScrollerReducer from 'renderer/redux/slices/galleryViewerSlice';
+import viewerReducer from 'renderer/redux/slices/viewerSlice';
+import rootFolderReducer from 'renderer/redux/slices/rootFolderSlice';
+import selectedFolderReducer from 'renderer/redux/slices/selectedFolderSlice';
 
 export default function createRootReducer(routerReducer: Reducer<RouterState>) {
   return combineReducers({

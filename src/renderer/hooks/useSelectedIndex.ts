@@ -2,12 +2,13 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDebouncedCallback } from 'use-debounce';
-import { selectSelectedIndex, setSelectedIndex } from '../redux/slices/selectedFolderSlice';
+
+import { selectSelectedIndex, setSelectedIndex } from 'renderer/redux/slices/selectedFolderSlice';
 
 type IndexValue = number | null;
 
 export default function useSelectedIndex(
-  defaultIndex: IndexValue = null
+  defaultIndex: IndexValue = null,
 ): [IndexValue, (folder: IndexValue, scroll?: number | null) => void] {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -15,11 +16,11 @@ export default function useSelectedIndex(
   const selectedIndex = useSelector(selectSelectedIndex);
 
   const debouncedHashReplace = useDebouncedCallback(
-    (index: IndexValue, scroll: number) => {
-      navigate(`${location.pathname}#${index}_${scroll}`, { replace: true });
+    (pathname: string, index: IndexValue, scroll: number) => {
+      navigate(`${pathname}#${index}_${scroll}`, { replace: true });
     },
     100,
-    { leading: true }
+    { leading: true },
   );
 
   const setSelectedIndexCallback = useCallback(
@@ -30,10 +31,10 @@ export default function useSelectedIndex(
         dispatch(setSelectedIndex(index));
       }
       if (index !== hashIndex || (hashScroll !== scroll && scroll !== null)) {
-        debouncedHashReplace(index, scroll || 0);
+        debouncedHashReplace(location.pathname, index, scroll || 0);
       }
     },
-    [selectedIndex]
+    [selectedIndex, location],
   );
 
   return [selectedIndex === null ? defaultIndex : selectedIndex, setSelectedIndexCallback];

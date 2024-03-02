@@ -8,17 +8,17 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import path from 'path';
-import { app, BrowserWindow, BrowserWindowConstructorOptions, shell, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
+import { BrowserWindow, BrowserWindowConstructorOptions, app, ipcMain, shell } from 'electron';
 import log from 'electron-log';
+import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
-import FileSystem, { getCachePath } from './file-system';
-import './general';
-import './thumbnails';
-import MenuBuilder from './menu';
-import '../utils/configure-bluebird';
-import { resolveHtmlPath } from './util';
+import FileSystem, { getCachePath } from 'main/file-system';
+import 'main/general';
+import MenuBuilder from 'main/menu';
+import 'main/thumbnails';
+import { resolveHtmlPath } from 'main/util';
+import path from 'path';
+import 'utils/configure-bluebird';
 
 class AppUpdater {
   constructor() {

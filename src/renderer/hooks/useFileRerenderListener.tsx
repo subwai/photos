@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react';
 
-export default function useEventListener(
-  eventName: string,
-  handler: Function,
-  element: HTMLElement | typeof window | null = window,
-  enabled = true,
-  options: undefined | boolean | AddEventListenerOptions = undefined,
+import type { FileEntryEvent, FileEntryModel } from 'renderer/models/FileEntry';
+
+export default function useFileEventListener(
+  handler: (event: FileEntryEvent) => void,
+  fileEntry: FileEntryModel | null,
 ) {
   // Create a ref that stores handler
-  const savedHandler = useRef<Function>();
+  const savedHandler = useRef<(event: FileEntryEvent) => void>();
 
   // Update ref.current value if handler changes.
   // This allows our effect below to always get latest handler ...
@@ -22,22 +21,20 @@ export default function useEventListener(
     () => {
       // Make sure element supports addEventListener
       // On
-      if (!element || !element.addEventListener) return;
-
-      if (!enabled) return;
+      if (!fileEntry) return;
 
       // Create event listener that calls handler function stored in ref
-      const eventListener = (event: unknown) => savedHandler.current && savedHandler.current(event);
+      const eventListener = (event: FileEntryEvent) => savedHandler.current && savedHandler.current(event);
 
       // Add event listener
-      element.addEventListener(eventName, eventListener, options);
+      fileEntry.addRerenderListener(eventListener);
 
       // Remove event listener on cleanup
       // eslint-disable-next-line consistent-return
       return () => {
-        element.removeEventListener(eventName, eventListener, options);
+        fileEntry.removeRerenderListener(eventListener);
       };
     },
-    [eventName, element, enabled], // Re-run if eventName or element changes
+    [fileEntry], // Re-run if eventName or element changes
   );
 }

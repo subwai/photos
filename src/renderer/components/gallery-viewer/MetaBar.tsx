@@ -2,14 +2,15 @@ import classNames from 'classnames';
 import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+
 import {
+  State,
   selectFilesCount,
   selectGallerySort,
   selectGalleryViewer,
   setSort,
   setViewer,
-  State,
-} from '../../redux/slices/galleryViewerSlice';
+} from 'renderer/redux/slices/galleryViewerSlice';
 
 const useStyles = createUseStyles({
   metaBar: {

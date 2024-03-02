@@ -1,10 +1,11 @@
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
 import { AutoSizer } from 'react-virtualized';
-import { selectSelectedIndex } from '../../../redux/slices/selectedFolderSlice';
-import { selectPreview } from '../../../redux/slices/viewerSlice';
-import ImageViewer from '../ImageViewer';
-import GridScroller from './GridScroller';
+
+import ImageViewer from 'renderer/components/gallery-viewer/ImageViewer';
+import GridScroller from 'renderer/components/gallery-viewer/grid-viewer/GridScroller';
+import { selectSelectedIndex } from 'renderer/redux/slices/selectedFolderSlice';
+import { selectPreview } from 'renderer/redux/slices/viewerSlice';
 
 const useStyles = createUseStyles({
   container: {

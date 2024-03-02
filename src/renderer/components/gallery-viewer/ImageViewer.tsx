@@ -3,11 +3,14 @@ import React, { useEffect, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReactZoomPanPinchRef, TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch';
-import useEventListener from '../../hooks/useEventListener';
-import { isVideo } from '../../models/FileEntry';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import { selectSelectedFile } from '../../redux/slices/selectedFolderSlice';
-import { pause, play, selectPlaying, selectPreview, setPreview } from '../../redux/slices/viewerSlice';
+
+// eslint-disable-next-line import/no-cycle
+import PeekGridViewer from 'renderer/components/gallery-viewer/peek-grid-viewer/PeekGridViewer';
+import useEventListener from 'renderer/hooks/useEventListener';
+import { FileEntryModel, isVideo } from 'renderer/models/FileEntry';
+import { selectRootFolder } from 'renderer/redux/slices/rootFolderSlice';
+import { selectSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
+import { pause, play, selectPlaying, selectPreview, setPreview } from 'renderer/redux/slices/viewerSlice';
 
 const useStyles = createUseStyles({
   image: {
@@ -18,6 +21,23 @@ const useStyles = createUseStyles({
   selectText: {
     margin: '0 auto',
     alignSelf: 'center',
+  },
+  gridWrapper: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+    background: 'rgba(20,20,20,.9)',
+  },
+  innerGridWrapper: {
+    width: '80%',
+    height: '80%',
+    background: 'black',
   },
   imageWrapper: {
     width: '100%',
@@ -45,10 +65,21 @@ const useStyles = createUseStyles({
 });
 
 export default function ImageViewer() {
+  const selectedFile = useSelector(selectSelectedFile);
+
+  return <FileImageViewer fileEntry={selectedFile} />;
+}
+
+type FileImageViewerProps = {
+  fileEntry: FileEntryModel | null;
+  setPeek?: (value: boolean) => void;
+};
+
+export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
-  const selectedFile = useSelector(selectSelectedFile);
+  const globalSelectedFile = useSelector(selectSelectedFile);
   const playing = useSelector(selectPlaying);
   const preview = useSelector(selectPreview);
   const videoElement = useRef<HTMLVideoElement>(null);
@@ -56,15 +87,17 @@ export default function ImageViewer() {
   const imageWrapper = useRef<HTMLDivElement>(null);
   const transformer = useRef<ReactZoomPanPinchRef>(null);
 
+  const context = transformer.current?.instance.getContext();
+
   useEffect(() => {
     if (playing) {
       dispatch(pause());
     }
-  }, [selectedFile, dispatch]);
+  }, [fileEntry, dispatch]);
 
   useEffect(() => {
-    transformer.current?.setTransform(transformer.current?.state.positionX, 0, transformer.current?.state.scale, 0);
-  }, [selectedFile]);
+    transformer.current?.setTransform(context?.state.positionX || 0, 0, context?.state.scale || 1, 0);
+  }, [fileEntry]);
 
   const space = (event: React.KeyboardEvent) => {
     if (videoElement.current) {
@@ -98,32 +131,30 @@ export default function ImageViewer() {
   };
 
   const pageDown = (event: React.KeyboardEvent) => {
-    if (transformer.current) {
+    if (transformer.current && context) {
       const offsetMultiplier = event.shiftKey ? 0.5 : 1;
       transformer.current.setTransform(
-        transformer.current.state.positionX,
+        context.state.positionX,
         Math.max(
-          transformer.current.state.positionY -
-            transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
-          transformer.current.instance.bounds!.minPositionY
+          context.state.positionY - transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
+          transformer.current.instance.bounds!.minPositionY,
         ),
-        transformer.current.state.scale
+        context.state.scale,
       );
       event.preventDefault();
     }
   };
 
   const pageUp = (event: React.KeyboardEvent) => {
-    if (transformer.current) {
+    if (transformer.current && context) {
       const offsetMultiplier = event.shiftKey ? 0.5 : 1;
       transformer.current.setTransform(
-        transformer.current.state.positionX,
+        context.state.positionX,
         Math.min(
-          transformer.current.state.positionY +
-            transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
-          transformer.current.instance.bounds!.maxPositionY
+          context.state.positionY + transformer.current.instance.contentComponent!.offsetHeight * offsetMultiplier,
+          transformer.current.instance.bounds!.maxPositionY,
         ),
-        transformer.current.state.scale
+        context.state.scale,
       );
       event.preventDefault();
     }
@@ -171,7 +202,7 @@ export default function ImageViewer() {
     window.electron.send('open-folder');
   }
 
-  if (!selectedFile && !rootFolder) {
+  if (!fileEntry && !rootFolder) {
     return (
       <div ref={imageWrapper} className={classes.imageWrapper}>
         <h2 className={classes.selectText} onClick={selectFolder}>
@@ -181,24 +212,40 @@ export default function ImageViewer() {
     );
   }
 
-  if (selectedFile && isVideo(selectedFile)) {
+  if (fileEntry?.isFolder) {
+    return (
+      <div className={classNames(classes.gridWrapper)}>
+        <div className={classes.innerGridWrapper}>
+          <PeekGridViewer fileEntry={fileEntry} />
+        </div>
+      </div>
+    );
+  }
+
+  if (fileEntry && isVideo(fileEntry)) {
     return (
       <video
-        key={selectedFile.fullPath}
+        key={fileEntry.fullPath}
         ref={videoElement}
         className={classNames(classes.image, { [classes.preview]: preview })}
-        // eslint-disable-next-line react/no-unknown-property
         controls
         loop
         onFocus={preventFocus}
-        // eslint-disable-next-line react/no-unknown-property
         onPlay={() => dispatch(play())}
-        // eslint-disable-next-line react/no-unknown-property
         onPause={() => dispatch(pause())}
-        // eslint-disable-next-line react/no-unknown-property
-        onAuxClick={() => dispatch(setPreview(false))}
+        onAuxClick={() => {
+          if (preview && globalSelectedFile?.isFolder) {
+            if (setPeek) {
+              setPeek(false);
+            }
+
+            return;
+          }
+
+          dispatch(setPreview(false));
+        }}
       >
-        <source src={`${window.electron.pathToFileURL(selectedFile.fullPath).toString()}#t=0.5`} />
+        <source src={`${window.electron.pathToFileURL(fileEntry.fullPath).toString()}#t=0.5`} />
       </video>
     );
   }
@@ -207,8 +254,17 @@ export default function ImageViewer() {
     <div
       ref={imageWrapper}
       className={classNames(classes.imageWrapper, { [classes.preview]: preview })}
-      // eslint-disable-next-line react/no-unknown-property
-      onAuxClick={() => dispatch(setPreview(false))}
+      onAuxClick={() => {
+        if (preview && globalSelectedFile?.isFolder) {
+          if (setPeek) {
+            setPeek(false);
+          }
+
+          return;
+        }
+
+        dispatch(setPreview(false));
+      }}
     >
       <TransformWrapper
         ref={transformer}
@@ -216,16 +272,18 @@ export default function ImageViewer() {
           mode: 'reset',
         }}
       >
-        <TransformComponent wrapperClass={classes.transformWrapper} contentClass={classes.transformComponent}>
-          {selectedFile && (
-            <img
-              ref={imageElement}
-              className={classes.image}
-              alt={selectedFile.fullPath}
-              src={window.electron.pathToFileURL(selectedFile.fullPath).toString()}
-            />
-          )}
-        </TransformComponent>
+        {() => (
+          <TransformComponent wrapperClass={classes.transformWrapper} contentClass={classes.transformComponent}>
+            {fileEntry && (
+              <img
+                ref={imageElement}
+                className={classes.image}
+                alt={fileEntry.fullPath}
+                src={window.electron.pathToFileURL(fileEntry.fullPath).toString()}
+              />
+            )}
+          </TransformComponent>
+        )}
       </TransformWrapper>
     </div>
   );

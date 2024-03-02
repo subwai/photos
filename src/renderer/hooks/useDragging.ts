@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import useEventListener from './useEventListener';
+import useEventListener from 'renderer/hooks/useEventListener';
 
 type DragState = {
   x: number;
@@ -10,7 +10,7 @@ export default function useDragging(
   target: React.RefObject<HTMLElement>,
   onDrag: (state: DragState) => void,
   onStart: (state: DragState) => void,
-  onEnd: (state: DragState) => void
+  onEnd: (state: DragState) => void,
 ) {
   const [dragStart, setDragStart] = useState<DragState | null>(null);
 
@@ -33,11 +33,11 @@ export default function useDragging(
             x: currentTarget.offsetLeft || 0,
             y: currentTarget.offsetTop || 0,
           },
-          event
-        )
+          event,
+        ),
       );
     },
-    target.current
+    target.current,
   );
 
   useEventListener(
@@ -51,7 +51,7 @@ export default function useDragging(
       onDrag(getDiff(dragStart, event));
     },
     window,
-    dragStart !== null
+    dragStart !== null,
   );
 
   useEventListener(
@@ -66,6 +66,6 @@ export default function useDragging(
       setDragStart(null);
     },
     window,
-    dragStart !== null
+    dragStart !== null,
   );
 }

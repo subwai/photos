@@ -1,15 +1,11 @@
 import Bluebird from 'bluebird';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
-import fs from 'fs';
+import fs, { WatchListener } from 'fs';
+import { readdir } from 'fs/promises';
 import path from 'path';
-import { some } from 'lodash';
-import type FileEntryObject from '../renderer/models/FileEntry';
-import type { Children } from '../renderer/models/FileEntry';
-
-const readdirAsync: (arg1: fs.PathLike, arg2: { withFileTypes: Boolean }) => Bluebird<fs.Dirent[] | string[]> =
-  Bluebird.promisify(fs.readdir);
-
-const statAsync: (arg1: fs.PathLike) => Bluebird<fs.Stats> = Bluebird.promisify(fs.stat);
+import { includes, some } from 'lodash';
+import type FileEntryObject from 'renderer/models/FileEntry';
+import type { Children } from 'renderer/models/FileEntry';
 
 export function getCachePath() {
   return path.join(app.getPath('userData'), 'app-cache');
@@ -50,6 +46,7 @@ export default class FileSystem {
   start() {
     ipcMain.handle('get-cache-path', getCachePath);
     ipcMain.handle('get-children', (_: Electron.IpcMainInvokeEvent, fullPath: string) => this.getChildren(fullPath));
+    ipcMain.handle('get-cover', (_: Electron.IpcMainInvokeEvent, fullPath: string) => this.getCover(fullPath))
     ipcMain.on('open-folder', this.openFolder);
     ipcMain.on('set-root-folder', (_: Electron.IpcMainInvokeEvent, fullPath: string) =>
       this.setRootFolderPath(fullPath)
@@ -94,11 +91,15 @@ export default class FileSystem {
       return;
     }
 
-    this.watcher = fs.watch(this.rootFolder, { recursive: true }, this.handleFileWatchEvent);
+    try {
+      this.watcher = fs.watch(this.rootFolder, { recursive: true }, this.handleFileWatchEvent);
+    } catch (err) {
+      this.rootFolder = undefined;
+    }
   }
 
-  handleFileWatchEvent = async (eventType: string, fileName: string) => {
-    if (!this.rootFolder || this.inExcludes(fileName)) {
+  handleFileWatchEvent: WatchListener<string> = async (eventType: string, fileName: string | null) => {
+    if (!this.rootFolder || !fileName || FileSystem.inExcludes(fileName)) {
       return;
     }
 
@@ -113,11 +114,12 @@ export default class FileSystem {
     }
 
     try {
-      const stats = await statAsync(fullPath);
+      const stats = await fs.statSync(fullPath);
       const level = fullPath.split(/[\\/]/).length - rootLevel;
 
       this.mainWindow.webContents.send('file-changed', {
         entry: <FileEntryObject>{
+          // eslint-disable-next-line prettier/prettier
           name: path.basename(fullPath),
           fullPath,
           isFolder: stats.isDirectory(),
@@ -129,7 +131,6 @@ export default class FileSystem {
         },
         eventType,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.code === 'ENOENT') {
         this.mainWindow.webContents.send('file-removed', fullPath);
@@ -142,19 +143,59 @@ export default class FileSystem {
 
     this.blackList.set(fullPath, new Date().valueOf() + 500);
     try {
-      const files = (await readdirAsync(fullPath, { withFileTypes: false })) as string[];
+      const files = await readdir(fullPath, { withFileTypes: false });
       const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
 
       const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
       const children: Children<FileEntryObject> = {};
-      await Bluebird.each(files, (file: string) =>
-        statAsync(path.resolve(fullPath, file)).then((stats: fs.Stats) => {
-          if (this.inExcludes(file)) {
-            return;
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const file of files) {
+        const stats = fs.statSync(path.resolve(fullPath, file));
+        if (FileSystem.inExcludes(file)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        }
+
+        children[file] = {
+          name: file,
+          fullPath: path.resolve(fullPath, file),
+          isFolder: stats.isDirectory(),
+          children: null,
+          accessedTime: stats.atime,
+          modifiedTime: stats.mtime,
+          createdTime: stats.ctime,
+          level,
+        };
+      }
+
+      return children;
+    } catch (err) {
+      return null;
+    }
+  };
+
+  getCover = async (fullPath: string): Promise<FileEntryObject | null> => {
+    console.log('Scanning cover', fullPath);
+
+    this.blackList.set(fullPath, new Date().valueOf() + 500);
+    try {
+      const files = await readdir(fullPath, { withFileTypes: false });
+      const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
+
+      const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const file of files) {
+        if (FileSystem.isImageOrVideo(file)) {
+          const stats = fs.statSync(path.resolve(fullPath, file));
+          if (FileSystem.inExcludes(file)) {
+            // eslint-disable-next-line no-continue
+            continue;
           }
 
-          children[file] = {
+          return {
             name: file,
             fullPath: path.resolve(fullPath, file),
             isFolder: stats.isDirectory(),
@@ -164,18 +205,30 @@ export default class FileSystem {
             createdTime: stats.ctime,
             level,
           };
-        })
-      );
-
-      return children;
+        }
+      }
+      return null;
     } catch (err) {
       return null;
     }
   };
 
-  inExcludes = (name: String) => {
+
+  static inExcludes = (name: String) => {
     const exludes = [/\.DS_Store/i, /\.Thumbs.db/i, /desktop.ini/i];
 
     return some(exludes, (regex: RegExp) => name.match(regex));
   };
+
+  static IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+
+  static VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv'];
+
+  static VIDEO_THUMBNAIL_EXTENSIONS = ['.webp', ...FileSystem.VIDEO_EXTENSIONS];
+
+   static isImageOrVideo(filePath: string) {
+    const ext = path.extname(filePath).toLowerCase();
+
+    return includes(FileSystem.VIDEO_EXTENSIONS, ext) || includes(FileSystem.IMAGE_EXTENSIONS, ext);
+  }
 }

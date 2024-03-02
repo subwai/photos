@@ -4,18 +4,20 @@ import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { AutoSizer } from 'react-virtualized';
 import { useDebouncedCallback, useThrottledCallback } from 'use-debounce';
 import { v4 as uuid4 } from 'uuid';
-import useDragging from '../../hooks/useDragging';
-import useEventListener from '../../hooks/useEventListener';
-import useFileEventListener from '../../hooks/useFileEventListener';
-import useSelectedFolder from '../../hooks/useSelectedFolder';
-import type { FileEntryModel } from '../../models/FileEntry';
-import { closeFolder, openFolder, selectOpenFolders } from '../../redux/slices/folderVisibilitySlice';
-import { selectGalleryViewer } from '../../redux/slices/galleryViewerSlice';
-import { selectRootFolder } from '../../redux/slices/rootFolderSlice';
-import { FOLDER_ICON_SIDE_MARGIN } from './FolderIcon';
-import FolderList from './FolderList';
+
+import { FOLDER_ICON_SIDE_MARGIN } from 'renderer/components/directory-viewer/FolderIcon';
+import FolderList from 'renderer/components/directory-viewer/FolderList';
+import useDragging from 'renderer/hooks/useDragging';
+import useEventListener from 'renderer/hooks/useEventListener';
+import useFileRerenderListener from 'renderer/hooks/useFileRerenderListener';
+import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
+import type { FileEntryModel } from 'renderer/models/FileEntry';
+import { closeFolder, openFolder, selectOpenFolders } from 'renderer/redux/slices/folderVisibilitySlice';
+import { selectGalleryViewer } from 'renderer/redux/slices/galleryViewerSlice';
+import { selectRootFolder } from 'renderer/redux/slices/rootFolderSlice';
 
 const FOLDER_RESIZE_PADDING = 10;
 
@@ -101,7 +103,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
   const [width, setWidth] = useState<number>(250);
   const [folderSize, setFolderSize] = useState<number>(DEFAULT_FOLDER_SIZE);
   const [folderResizeHandlePosition, setFolderResizeHandlePosition] = useState<number>(
-    getPositionFromFolderSize(folderSize, width)
+    getPositionFromFolderSize(folderSize, width),
   );
 
   const container = useRef<HTMLDivElement>(null);
@@ -147,42 +149,24 @@ export default memo(function DirectoryViewer(): JSX.Element {
 
           return index;
         },
-        {}
+        {},
       ),
-    [visibleFolders]
+    [visibleFolders],
   );
 
   const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 2000);
   const setSelectedFolderDebounced = useDebouncedCallback((f) => setSelectedFolder(f), 250);
 
-  useFileEventListener(
-    'all',
-    ({ target }: { target: FileEntryModel }) => {
-      if (
-        find(
-          { [rootFolder?.fullPath || '']: true, ...openFolders },
-          (_, path: string) => path.indexOf(target.fullPath) !== -1
-        )
-      ) {
-        triggerUpdateThrottled();
-      }
-    },
-    rootFolder
-  );
-  useFileEventListener(
-    'remove',
-    ({ target }: { target: FileEntryModel }) => {
-      if (
-        find(
-          { [rootFolder?.fullPath || '']: true, ...openFolders },
-          (_, path: string) => path.indexOf(target.fullPath) !== -1
-        )
-      ) {
-        triggerUpdateThrottled();
-      }
-    },
-    rootFolder
-  );
+  useFileRerenderListener(({ target }: { target: FileEntryModel }) => {
+    if (
+      find(
+        { [rootFolder?.fullPath || '']: true, ...openFolders },
+        (_, path: string) => path.indexOf(target.fullPath) !== -1,
+      )
+    ) {
+      triggerUpdateThrottled();
+    }
+  }, rootFolder);
 
   useEffect(() => {
     if (!locallySelectedFolder) {
@@ -242,7 +226,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
       const newWidth = max([0, width + x]) || 0;
       setWidth(newWidth);
       setFolderResizeHandlePosition(getPositionFromFolderSize(folderSize, newWidth));
-    }
+    },
   );
 
   useDragging(
@@ -274,7 +258,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
       setFolderResizeHandlePosition(newPosition);
       setFolderSize(newSize);
       updateFolderSizeJssRule(newSize);
-    }
+    },
   );
 
   const resetFolderSize = () => {
@@ -395,7 +379,16 @@ export default memo(function DirectoryViewer(): JSX.Element {
         style={{ left: width - 1 }}
       />
       <div ref={scrollContainer} className={classes.folderNames}>
-        <FolderList visibleFolders={visibleFolders} onSelectFolder={setLocallySelectedFolder} />
+        <AutoSizer>
+          {({ height }) => (
+            <FolderList
+              width={width}
+              height={height}
+              visibleFolders={visibleFolders}
+              onSelectFolder={setLocallySelectedFolder}
+            />
+          )}
+        </AutoSizer>
       </div>
       <div className={classes.containerFolderResize}>
         <div className={classes.lineFolderResize} ref={sliderFolderResize}>

@@ -3,9 +3,13 @@ import { filter } from 'lodash';
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import useSelectedFolder from '../../hooks/useSelectedFolder';
-import type FileEntryObject from '../../models/FileEntry';
-import { selectHiddenFolders, selectOpenFolders, toggleHiddenFolder } from '../../redux/slices/folderVisibilitySlice';
+import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
+import type FileEntryObject from 'renderer/models/FileEntry';
+import {
+  selectHiddenFolders,
+  selectOpenFolders,
+  toggleHiddenFolder,
+} from 'renderer/redux/slices/folderVisibilitySlice';
 
 const useStyles = createUseStyles<string, { hidden: boolean }>({
   eyeIcon: {
@@ -64,7 +68,7 @@ export default function FolderVisibility({ isRoot = true, fileEntry }: Props): J
       {isOpen &&
         subFolders &&
         subFolders.map(
-          (child) => child.isFolder && <FolderVisibility key={child.fullPath} fileEntry={child} isRoot={false} />
+          (child) => child.isFolder && <FolderVisibility key={child.fullPath} fileEntry={child} isRoot={false} />,
         )}
     </>
   );

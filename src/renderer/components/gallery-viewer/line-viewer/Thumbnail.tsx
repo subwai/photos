@@ -1,8 +1,9 @@
 import classNames from 'classnames';
 import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
-import useThumbnail from '../../../hooks/useThumbnail';
-import { FileEntryModel, isVideoThumbnail } from '../../../models/FileEntry';
+
+import useThumbnail from 'renderer/hooks/useThumbnail';
+import { FileEntryModel, isVideoThumbnail } from 'renderer/models/FileEntry';
 
 export const THUMBNAIL_PADDING = 6;
 

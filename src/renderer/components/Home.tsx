@@ -1,13 +1,15 @@
 import Promise from 'bluebird';
 import { values } from 'lodash';
 import path from 'path';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import type { Listener, Update } from 'history';
-import useSelectedFolder from '../hooks/useSelectedFolder';
-import useSelectedIndex from '../hooks/useSelectedIndex';
-import FileEntryObject, { FileEntryModel } from '../models/FileEntry';
+
+import DirectoryViewer from 'renderer/components/directory-viewer/DirectoryViewer';
+import GalleryViewer from 'renderer/components/gallery-viewer/GalleryViewer';
+import useEventListener from 'renderer/hooks/useEventListener';
+import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
+import FileEntryObject, { FileEntryModel } from 'renderer/models/FileEntry';
 import {
   removeFile,
   selectRootFolder,
@@ -16,10 +18,7 @@ import {
   setRootFolder,
   setRootFolderPath,
   updateFile,
-} from '../redux/slices/rootFolderSlice';
-import DirectoryViewer from './directory-viewer/DirectoryViewer';
-import GalleryViewer from './gallery-viewer/GalleryViewer';
-import { history } from '../redux/store';
+} from 'renderer/redux/slices/rootFolderSlice';
 
 const useStyles = createUseStyles({
   container: {
@@ -34,7 +33,6 @@ export default function Home() {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [, setSelectedFolder] = useSelectedFolder();
-  const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
@@ -87,7 +85,7 @@ export default function Home() {
     const promise = Promise.resolve()
       .then(() => root?.loadChildren({ priority: 2 }))
       .then((children) =>
-        Promise.map(values(children || {}), (child: FileEntryModel) => child.loadChildren({ priority: 2 }))
+        Promise.map(values(children || {}), (child: FileEntryModel) => child.loadChildren({ priority: 2 })),
       )
       .catch(console.error);
 
@@ -103,25 +101,17 @@ export default function Home() {
     return () => promise.cancel();
   }, []);
 
-  const callback = ({ location, action }: Update) => {
-    if (location.hash === '' || action === 'REPLACE') {
-      return;
+  useEventListener('keydown', (event: React.KeyboardEvent) => {
+    switch (true) {
+      case event.key === 'R' && event.ctrlKey:
+        event.preventDefault();
+        console.log('reload', rootFolder);
+        rootFolder?.triggerEvent('update');
+        break;
+      default:
+        break;
     }
-
-    const [index] = location.hash.replace('#', '').split('_').map(Number);
-    if (index !== selectedIndex && !Number.isNaN(index)) {
-      setSelectedIndex(index);
-    }
-  };
-
-  const callbackRef = useRef<Listener>(callback);
-  callbackRef.current = callback;
-
-  useEffect(() => {
-    const stopListen = history.listen((update) => callbackRef.current(update));
-
-    return () => stopListen();
-  }, [history]);
+  });
 
   return (
     <div className={classes.container}>
