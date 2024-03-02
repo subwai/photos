@@ -179,9 +179,9 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
       case ' ':
         return space(event);
       case 'ArrowLeft':
-        return arrowLeft(event);
+        return !event.ctrlKey && arrowLeft(event);
       case 'ArrowRight':
-        return arrowRight(event);
+        return !event.ctrlKey && arrowRight(event);
       case 'PageDown':
         return pageDown(event);
       case 'PageUp':
@@ -228,6 +228,7 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
         key={fileEntry.fullPath}
         ref={videoElement}
         className={classNames(classes.image, { [classes.preview]: preview })}
+        autoPlay
         controls
         loop
         onFocus={preventFocus}

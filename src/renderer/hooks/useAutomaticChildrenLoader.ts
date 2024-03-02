@@ -52,7 +52,7 @@ export default function useAutomaticChildrenLoader(selectedFolder: FileEntryMode
         .then(() => {});
     }
 
-    if (selectedFolder && !selectedFolder.didLoadChildren) {
+    if (selectedFolder) {
       updateFolderPromise.current = updateFoldersRecursively(selectedFolder);
     }
 

@@ -22,9 +22,9 @@ export default memo(function GalleryViewer(): JSX.Element {
 
   return (
     <div className={classes.container}>
+      <MetaBar />
       {viewer === 'grid' && <GridViewer />}
       {viewer === 'line' && <LineViewer />}
-      <MetaBar />
     </div>
   );
 });

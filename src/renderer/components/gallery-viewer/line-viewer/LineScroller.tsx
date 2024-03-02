@@ -14,7 +14,11 @@ import useFileRerenderListener from 'renderer/hooks/useFileRerenderListener';
 import useSelectedIndex from 'renderer/hooks/useSelectedIndex';
 import { FileEntryModel, findAllFilesRecursive } from 'renderer/models/FileEntry';
 import { selectHiddenFolders } from 'renderer/redux/slices/folderVisibilitySlice';
-import { selectGallerySort, setFilesCount } from 'renderer/redux/slices/galleryViewerSlice';
+import {
+  selectGallerySortBy,
+  selectGallerySortDirection,
+  setFilesCount,
+} from 'renderer/redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
 import { selectPlaying } from 'renderer/redux/slices/viewerSlice';
 import animate from 'renderer/utils/animate';
@@ -50,7 +54,8 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const hiddenFolders = useSelector(selectHiddenFolders);
   const selectedFile = useSelector(selectSelectedFile);
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
-  const sort = useSelector(selectGallerySort);
+  const sortBy = useSelector(selectGallerySortBy);
+  const sortDirection = useSelector(selectGallerySortDirection);
   const container = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
@@ -69,18 +74,16 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 5000);
 
   const sortedFiles = useMemo(() => {
-    const [sortProperty, direction] = sort.split(':');
-
-    if (sortProperty === 'fullPath') {
+    if (sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
-        desc: direction === 'desc',
+        desc: sortDirection === 'desc',
       });
-      return flattenedFiles?.sort((a, b) => sorter(a[sortProperty], b[sortProperty])) || [];
+      return flattenedFiles?.sort((a, b) => sorter(a[sortBy], b[sortBy])) || [];
     }
 
-    return orderBy(flattenedFiles, ...sort.split(':'));
-  }, [flattenedFiles, sort]);
+    return orderBy(flattenedFiles, sortBy, sortDirection);
+  }, [flattenedFiles, sortBy, sortDirection]);
 
   useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);
@@ -149,15 +152,14 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     (event: React.KeyboardEvent) => {
       switch (event.key) {
         case 'ArrowLeft':
-          return !event.shiftKey && arrowLeft(event);
+          return !event.shiftKey && (!playing || event.ctrlKey) && arrowLeft(event);
         case 'ArrowRight':
-          return !event.shiftKey && arrowRight(event);
+          return !event.shiftKey && (!playing || event.ctrlKey) && arrowRight(event);
         default:
           return false;
       }
     },
     window,
-    !playing,
   );
 
   const firstChild = container.current?.firstChild as HTMLElement;

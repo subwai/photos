@@ -1,9 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { RootState } from 'renderer/redux/store';
 
+export const sortByValues = ['fullPath', 'accessedTime', 'modifiedTime', 'createdTime'] as const;
+export type SortBy = typeof sortByValues[number];
+
+export const sortDirectionValues = ['asc', 'desc'] as const;
+export type SortDirection = typeof sortDirectionValues[number];
+
 export type State = {
   height: number;
-  sort: string;
+  sortBy: SortBy;
+  sortDirection: SortDirection;
   count: number;
   viewer: 'grid' | 'line';
 };
@@ -11,13 +18,16 @@ export type State = {
 const galleryViewerSlice = createSlice({
   name: 'galleryViewer',
   // eslint-disable-next-line prettier/prettier
-  initialState: <State>{ height: 120, sort: 'fullPath:asc', count: 0, viewer: 'grid' },
+  initialState: <State>{ height: 120, sortBy: 'fullPath', sortDirection: 'asc', count: 0, viewer: 'grid' },
   reducers: {
     setHeight: (state, action) => {
       state.height = action.payload;
     },
-    setSort: (state, action) => {
-      state.sort = action.payload;
+    setSortBy: (state, action) => {
+      state.sortBy = action.payload;
+    },
+    setSortDirection: (state, action) => {
+      state.sortDirection = action.payload;
     },
     setFilesCount: (state, action) => {
       state.count = action.payload;
@@ -28,11 +38,12 @@ const galleryViewerSlice = createSlice({
   },
 });
 
-export const { setHeight, setSort, setFilesCount, setViewer } = galleryViewerSlice.actions;
+export const { setHeight, setSortBy, setSortDirection, setFilesCount, setViewer } = galleryViewerSlice.actions;
 
 export default galleryViewerSlice.reducer;
 
 export const selectGalleryScrollerHeight = (state: RootState) => state.galleryScroller.height;
-export const selectGallerySort = (state: RootState) => state.galleryScroller.sort;
+export const selectGallerySortBy = (state: RootState) => state.galleryScroller.sortBy;
+export const selectGallerySortDirection = (state: RootState) => state.galleryScroller.sortDirection;
 export const selectGalleryViewer = (state: RootState) => state.galleryScroller.viewer;
 export const selectFilesCount = (state: RootState) => state.galleryScroller.count;

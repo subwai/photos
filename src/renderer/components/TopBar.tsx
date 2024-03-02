@@ -1,11 +1,12 @@
 import classNames from 'classnames';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
+
 import { selectSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
 
 const useStyles = createUseStyles({
   topBar: {
-    minHeight: 30,
+    height: 30,
     display: 'flex',
     justifyContent: 'space-between',
     background: 'rgba(255,255,255,.05)',

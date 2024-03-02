@@ -1,9 +1,10 @@
 import { Middleware, configureStore } from '@reduxjs/toolkit';
-import { createReduxHistoryContext } from 'redux-first-history';
 import { createHashHistory } from 'history';
+import { createReduxHistoryContext } from 'redux-first-history';
 import { createLogger } from 'redux-logger';
-import createRootReducer from 'renderer/redux/rootReducer';
+
 import { loadPersistedState, persistState } from 'renderer/redux/persistStoreState';
+import createRootReducer from 'renderer/redux/rootReducer';
 
 const { createReduxHistory, routerMiddleware, routerReducer } = createReduxHistoryContext({
   history: createHashHistory(),

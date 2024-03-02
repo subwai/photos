@@ -8,5 +8,5 @@
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
   "importOrder": ["<THIRD_PARTY_MODULES>", "^@local/(.*)$", "^main(.*)$", "^renderer(.*)$", "^[./]"],
-  "plugins": ["@trivago/prettier-plugin-sort-imports"]
+  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"]
 }

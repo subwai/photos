@@ -12,7 +12,7 @@ import GridThumbnail from 'renderer/components/gallery-viewer/grid-viewer/GridTh
 import useAutomaticChildrenLoader from 'renderer/hooks/useAutomaticChildrenLoader';
 import useEventListener from 'renderer/hooks/useEventListener';
 import { FileEntryModel } from 'renderer/models/FileEntry';
-import { selectGallerySort } from 'renderer/redux/slices/galleryViewerSlice';
+import { selectGallerySortBy, selectGallerySortDirection } from 'renderer/redux/slices/galleryViewerSlice';
 import { selectPlaying, setPreview } from 'renderer/redux/slices/viewerSlice';
 import animate from 'renderer/utils/animate';
 
@@ -47,7 +47,8 @@ export default function PeekGridScroller({
   const [selectedFolder, setSelectedFolder] = useState(fileEntry);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const playing = useSelector(selectPlaying);
-  const sort = useSelector(selectGallerySort);
+  const sortBy = useSelector(selectGallerySortBy);
+  const sortDirection = useSelector(selectGallerySortDirection);
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
@@ -58,19 +59,18 @@ export default function PeekGridScroller({
 
   const updated = useAutomaticChildrenLoader(selectedFolder);
   const sortedFiles = useMemo(() => {
-    const [sortProperty, direction] = sort.split(':');
     const entries = values(selectedFolder?.children);
 
-    if (sortProperty === 'fullPath') {
+    if (sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
-        desc: direction === 'desc',
+        desc: sortDirection === 'desc',
       });
-      return entries.sort((a, b) => sorter(a[sortProperty], b[sortProperty]));
+      return entries.sort((a, b) => sorter(a[sortBy], b[sortBy]));
     }
 
-    return orderBy(entries, ...sort.split(':'));
-  }, [selectedFolder, sort, updated]);
+    return orderBy(entries, sortBy, sortDirection);
+  }, [selectedFolder, sortBy, sortDirection, updated]);
 
   useEffect(() => {
     setSelectedIndex(null);
@@ -113,12 +113,12 @@ export default function PeekGridScroller({
   });
 
   const space = (event: React.KeyboardEvent) => {
-    if (selectedIndex === null || (peek && selectedFile?.isVideo() && !event.shiftKey)) {
-      return;
-    }
-
     event.preventDefault();
-    setPeek(!peek);
+    if (selectedIndex === null || (peek && selectedFile?.isVideo() && !event.shiftKey)) {
+      dispatch(setPreview(false));
+    } else {
+      setPeek(!peek);
+    }
   };
 
   const enter = (event: React.KeyboardEvent) => {

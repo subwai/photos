@@ -15,7 +15,11 @@ import useEventListener from 'renderer/hooks/useEventListener';
 import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
 import useSelectedIndex from 'renderer/hooks/useSelectedIndex';
 import { openFolder } from 'renderer/redux/slices/folderVisibilitySlice';
-import { selectGallerySort, setFilesCount } from 'renderer/redux/slices/galleryViewerSlice';
+import {
+  selectGallerySortBy,
+  selectGallerySortDirection,
+  setFilesCount,
+} from 'renderer/redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
 import { selectPlaying, selectPreview, setPreview } from 'renderer/redux/slices/viewerSlice';
 import animate from 'renderer/utils/animate';
@@ -38,7 +42,8 @@ export default function GridScroller({ width, height }: Props) {
   const [selectedFolder, setSelectedFolder] = useSelectedFolder();
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
   const selectedFile = useSelector(selectSelectedFile);
-  const sort = useSelector(selectGallerySort);
+  const sortBy = useSelector(selectGallerySortBy);
+  const sortDirection = useSelector(selectGallerySortDirection);
   const preview = useSelector(selectPreview);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
@@ -53,19 +58,18 @@ export default function GridScroller({ width, height }: Props) {
   const updated = useAutomaticChildrenLoader(selectedFolder);
 
   const sortedFiles = useMemo(() => {
-    const [sortProperty, direction] = sort.split(':');
     const entries = values(selectedFolder?.children);
 
-    if (sortProperty === 'fullPath') {
+    if (sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
-        desc: direction === 'desc',
+        desc: sortDirection === 'desc',
       });
-      return entries.sort((a, b) => sorter(a[sortProperty], b[sortProperty]));
+      return entries.sort((a, b) => sorter(a[sortBy], b[sortBy]));
     }
 
-    return orderBy(entries, ...sort.split(':'));
-  }, [selectedFolder, sort, updated]);
+    return orderBy(entries, sortBy, sortDirection);
+  }, [selectedFolder, sortBy, sortDirection, updated]);
 
   useLayoutEffect(() => {
     const [, scrollValue] = location.hash.replace('#', '').split('_').map(Number);

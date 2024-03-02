@@ -13,6 +13,7 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'react/require-default-props': 'off',
     'react/jsx-filename-extension': 'off',
+    'react/jsx-props-no-spreading': 'off',
     'no-console': 'off',
     'no-relative-import-paths/no-relative-import-paths': ['error', { rootDir: 'src' }],
     'no-shadow': 'off',

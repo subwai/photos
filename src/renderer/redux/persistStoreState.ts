@@ -1,4 +1,5 @@
 import { debounce } from 'lodash';
+
 import type { RootState } from 'renderer/redux/store';
 
 const persistStateRaw = (state: RootState) => {
