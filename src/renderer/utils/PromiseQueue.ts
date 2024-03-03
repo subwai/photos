@@ -1,4 +1,4 @@
-import Promise from 'bluebird';
+import Promise, { CancellationError } from 'bluebird';
 import { debounce, orderBy } from 'lodash';
 
 export interface PromiseQueueJobOptions {
@@ -89,5 +89,12 @@ export default class PromiseQueue {
         this.maybeRunNext();
       })
       .catch(job.reject);
+  }
+
+  clear() {
+    this.jobs.forEach((job) => {
+      job.cancelled = true;
+      job.reject(new CancellationError('Queue was cleared'));
+    });
   }
 }

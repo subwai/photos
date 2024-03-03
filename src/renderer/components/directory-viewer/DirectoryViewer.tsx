@@ -308,7 +308,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
     }
   };
   const arrowUp = (event: React.KeyboardEvent) => {
-    if (viewer === 'grid' && !event.shiftKey) {
+    if (viewer === 'grid' && !event.ctrlKey) {
       return;
     }
     if (!locallySelectedFolder) {
@@ -323,7 +323,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
     }
   };
   const arrowDown = (event: React.KeyboardEvent) => {
-    if (viewer === 'grid' && !event.shiftKey) {
+    if (viewer === 'grid' && !event.ctrlKey) {
       return;
     }
     if (!locallySelectedFolder) {
@@ -358,9 +358,9 @@ export default memo(function DirectoryViewer(): JSX.Element {
   useEventListener('keydown', (event: React.KeyboardEvent) => {
     switch (event.key) {
       case 'ArrowLeft':
-        return event.shiftKey && arrowLeft(event);
+        return event.ctrlKey && arrowLeft(event);
       case 'ArrowRight':
-        return event.shiftKey && arrowRight(event);
+        return event.ctrlKey && arrowRight(event);
       case 'ArrowUp':
         return !document.fullscreenElement && arrowUp(event);
       case 'ArrowDown':

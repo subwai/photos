@@ -10,7 +10,14 @@ import useEventListener from 'renderer/hooks/useEventListener';
 import { FileEntryModel, isVideo } from 'renderer/models/FileEntry';
 import { selectRootFolder } from 'renderer/redux/slices/rootFolderSlice';
 import { selectSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
-import { pause, play, selectPlaying, selectPreview, setPreview } from 'renderer/redux/slices/viewerSlice';
+import {
+  type PreviewType,
+  pause,
+  play,
+  selectPreview,
+  selectPreviewType,
+  setPreview,
+} from 'renderer/redux/slices/viewerSlice';
 
 const useStyles = createUseStyles({
   image: {
@@ -65,22 +72,25 @@ const useStyles = createUseStyles({
 });
 
 export default function ImageViewer() {
+  const dispatch = useDispatch();
   const selectedFile = useSelector(selectSelectedFile);
+  const previewType = useSelector(selectPreviewType);
+  const setPeek = (peek: boolean) => dispatch(setPreview(peek));
 
-  return <FileImageViewer fileEntry={selectedFile} />;
+  return <FileImageViewer fileEntry={selectedFile} previewType={previewType} setPeek={setPeek} />;
 }
 
 type FileImageViewerProps = {
   fileEntry: FileEntryModel | null;
-  setPeek?: (value: boolean) => void;
+  setPeek: (value: boolean) => void;
+  previewType: PreviewType;
 };
 
-export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
+export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageViewerProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const rootFolder = useSelector(selectRootFolder);
   const globalSelectedFile = useSelector(selectSelectedFile);
-  const playing = useSelector(selectPlaying);
   const preview = useSelector(selectPreview);
   const videoElement = useRef<HTMLVideoElement>(null);
   const imageElement = useRef<HTMLImageElement>(null);
@@ -89,22 +99,21 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
 
   const context = transformer.current?.instance.getContext();
 
+  const targetEntry = fileEntry?.isFolder && previewType === 'cover' ? fileEntry?.cover : fileEntry;
+
   useEffect(() => {
-    if (playing) {
+    return () => {
       dispatch(pause());
-    }
-  }, [fileEntry, dispatch]);
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     transformer.current?.setTransform(context?.state.positionX || 0, 0, context?.state.scale || 1, 0);
-  }, [fileEntry]);
+  }, [targetEntry]);
 
   const space = (event: React.KeyboardEvent) => {
     if (videoElement.current) {
-      event.preventDefault();
-      if (event.shiftKey) {
-        dispatch(setPreview(!preview));
-      } else if (videoElement.current.paused) {
+      if (videoElement.current.paused) {
         videoElement.current.play().catch(console.error);
       } else {
         videoElement.current.pause();
@@ -112,7 +121,14 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
     }
     if (imageWrapper.current && !document.fullscreenElement) {
       event.preventDefault();
-      dispatch(setPreview(!preview));
+      setPeek(false);
+    }
+    if (targetEntry?.isFolder) {
+      return;
+    }
+    if (event.shiftKey) {
+      event.preventDefault();
+      setPeek(false);
     }
   };
 
@@ -179,9 +195,9 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
       case ' ':
         return space(event);
       case 'ArrowLeft':
-        return !event.ctrlKey && arrowLeft(event);
+        return !event.ctrlKey && !event.shiftKey && arrowLeft(event);
       case 'ArrowRight':
-        return !event.ctrlKey && arrowRight(event);
+        return !event.ctrlKey && !event.shiftKey && arrowRight(event);
       case 'PageDown':
         return pageDown(event);
       case 'PageUp':
@@ -202,7 +218,7 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
     window.electron.send('open-folder');
   }
 
-  if (!fileEntry && !rootFolder) {
+  if (!targetEntry && !rootFolder) {
     return (
       <div ref={imageWrapper} className={classes.imageWrapper}>
         <h2 className={classes.selectText} onClick={selectFolder}>
@@ -212,20 +228,20 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
     );
   }
 
-  if (fileEntry?.isFolder) {
+  if (targetEntry?.isFolder) {
     return (
       <div className={classNames(classes.gridWrapper)}>
         <div className={classes.innerGridWrapper}>
-          <PeekGridViewer fileEntry={fileEntry} />
+          <PeekGridViewer fileEntry={targetEntry} />
         </div>
       </div>
     );
   }
 
-  if (fileEntry && isVideo(fileEntry)) {
+  if (targetEntry && isVideo(targetEntry)) {
     return (
       <video
-        key={fileEntry.fullPath}
+        key={targetEntry.fullPath}
         ref={videoElement}
         className={classNames(classes.image, { [classes.preview]: preview })}
         autoPlay
@@ -234,19 +250,9 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
         onFocus={preventFocus}
         onPlay={() => dispatch(play())}
         onPause={() => dispatch(pause())}
-        onAuxClick={() => {
-          if (preview && globalSelectedFile?.isFolder) {
-            if (setPeek) {
-              setPeek(false);
-            }
-
-            return;
-          }
-
-          dispatch(setPreview(false));
-        }}
+        onAuxClick={() => setPeek(false)}
       >
-        <source src={`${window.electron.pathToFileURL(fileEntry.fullPath).toString()}#t=0.5`} />
+        <source src={`${window.electron.pathToFileURL(targetEntry.fullPath).toString()}#t=0.5`} />
       </video>
     );
   }
@@ -275,12 +281,12 @@ export function FileImageViewer({ fileEntry, setPeek }: FileImageViewerProps) {
       >
         {() => (
           <TransformComponent wrapperClass={classes.transformWrapper} contentClass={classes.transformComponent}>
-            {fileEntry && (
+            {targetEntry && (
               <img
                 ref={imageElement}
                 className={classes.image}
-                alt={fileEntry.fullPath}
-                src={window.electron.pathToFileURL(fileEntry.fullPath).toString()}
+                alt={targetEntry.fullPath}
+                src={window.electron.pathToFileURL(targetEntry.fullPath).toString()}
               />
             )}
           </TransformComponent>

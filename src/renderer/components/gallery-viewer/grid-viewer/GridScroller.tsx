@@ -21,7 +21,13 @@ import {
   setFilesCount,
 } from 'renderer/redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
-import { selectPlaying, selectPreview, setPreview } from 'renderer/redux/slices/viewerSlice';
+import {
+  selectPlaying,
+  selectPreview,
+  selectPreviewType,
+  setPreview,
+  setPreviewType,
+} from 'renderer/redux/slices/viewerSlice';
 import animate from 'renderer/utils/animate';
 
 type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
@@ -45,6 +51,7 @@ export default function GridScroller({ width, height }: Props) {
   const sortBy = useSelector(selectGallerySortBy);
   const sortDirection = useSelector(selectGallerySortDirection);
   const preview = useSelector(selectPreview);
+  const previewType = useSelector(selectPreviewType);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
 
@@ -124,19 +131,12 @@ export default function GridScroller({ width, height }: Props) {
   });
 
   const space = (event: React.KeyboardEvent) => {
-    if (selectedIndex === null) {
-      return;
-    }
-
-    if (preview && selectedFile?.isVideo() && !event.shiftKey) {
-      return;
-    }
-
-    if (preview && selectedFile?.isFolder) {
+    if (selectedIndex === null || preview) {
       return;
     }
 
     event.preventDefault();
+    dispatch(setPreviewType(event.shiftKey ? 'cover' : 'file'));
     dispatch(setPreview(!preview));
   };
 
@@ -155,11 +155,11 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const arrowLeft = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isFolder) {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
       return;
     }
 
-    if (event.shiftKey || playing) {
+    if (playing && !event.shiftKey) {
       return;
     }
 
@@ -172,11 +172,11 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isFolder) {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
       return;
     }
 
-    if (event.shiftKey || playing) {
+    if (playing && !event.shiftKey) {
       return;
     }
 
@@ -189,7 +189,7 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const arrowUp = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isFolder) {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
       return;
     }
 
@@ -202,7 +202,7 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const arrowDown = (event: React.KeyboardEvent) => {
-    if (preview && selectedFile?.isFolder) {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
       return;
     }
 
@@ -235,13 +235,13 @@ export default function GridScroller({ width, height }: Props) {
       case 'Enter':
         return enter(event);
       case 'ArrowLeft':
-        return arrowLeft(event);
+        return !event.ctrlKey && arrowLeft(event);
       case 'ArrowRight':
-        return arrowRight(event);
+        return !event.ctrlKey && arrowRight(event);
       case 'ArrowUp':
-        return arrowUp(event);
+        return !event.ctrlKey && arrowUp(event);
       case 'ArrowDown':
-        return arrowDown(event);
+        return !event.ctrlKey && arrowDown(event);
       default:
         return false;
     }

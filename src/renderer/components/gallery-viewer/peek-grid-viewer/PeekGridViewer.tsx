@@ -35,7 +35,6 @@ export default function PeekGridViewer({ fileEntry }: Props) {
               width={width}
               height={height}
               fileEntry={fileEntry}
-              selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
               peek={peek}
               setPeek={setPeek}
@@ -43,7 +42,9 @@ export default function PeekGridViewer({ fileEntry }: Props) {
           )}
         </AutoSizer>
       </div>
-      {selectedFile !== null && peek && <FileImageViewer fileEntry={selectedFile} setPeek={setPeek} />}
+      {selectedFile !== null && peek && (
+        <FileImageViewer fileEntry={selectedFile} setPeek={setPeek} previewType="file" />
+      )}
     </>
   );
 }

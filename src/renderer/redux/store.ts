@@ -24,10 +24,10 @@ if (shouldIncludeLogger) {
     }) as Middleware,
   );
 }
-
 // Create Store
 export const store = configureStore({
   reducer: rootReducer,
+  // @ts-expect-error TODO: See if update to @reduxjs/toolkit fixes
   middleware: (getDefaultMiddleware) => [
     ...getDefaultMiddleware({
       serializableCheck: false,
@@ -36,6 +36,14 @@ export const store = configureStore({
     ...middleware,
   ],
   preloadedState: loadPersistedState(),
+  devTools: false,
+  // devTools: {
+  //   stateSanitizer: (state: RootState) => ({
+  //     ...state,
+  //     rootFolder: { ...state.rootFolder, folder: '<object>' },
+  //     selectedFolder: { ...state.selectedFolder, file: '<object>' },
+  //   }),
+  // },
 });
 
 export const history = createReduxHistory(store);

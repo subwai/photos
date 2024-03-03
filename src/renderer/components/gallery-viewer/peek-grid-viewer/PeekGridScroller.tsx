@@ -26,21 +26,12 @@ type Props = {
   width: number;
   height: number;
   fileEntry: FileEntryModel | null;
-  selectedFile: FileEntryModel | null;
   setSelectedFile: (selectedFile: FileEntryModel | null) => void;
   peek: boolean;
   setPeek: (value: boolean) => void;
 };
 
-export default function PeekGridScroller({
-  width,
-  height,
-  fileEntry,
-  selectedFile,
-  setSelectedFile,
-  peek,
-  setPeek,
-}: Props) {
+export default function PeekGridScroller({ width, height, fileEntry, setSelectedFile, peek, setPeek }: Props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
@@ -113,12 +104,15 @@ export default function PeekGridScroller({
   });
 
   const space = (event: React.KeyboardEvent) => {
-    event.preventDefault();
-    if (selectedIndex === null || (peek && selectedFile?.isVideo() && !event.shiftKey)) {
-      dispatch(setPreview(false));
-    } else {
-      setPeek(!peek);
+    if (peek) {
+      return;
     }
+
+    event.preventDefault();
+    if (selectedIndex === null || event.shiftKey) {
+      dispatch(setPreview(false));
+    }
+    setPeek(!peek);
   };
 
   const enter = (event: React.KeyboardEvent) => {
@@ -132,7 +126,7 @@ export default function PeekGridScroller({
   };
 
   const arrowLeft = (event: React.KeyboardEvent) => {
-    if (event.shiftKey || playing) {
+    if (playing && !event.shiftKey) {
       return;
     }
 
@@ -145,7 +139,7 @@ export default function PeekGridScroller({
   };
 
   const arrowRight = (event: React.KeyboardEvent) => {
-    if (event.shiftKey || playing) {
+    if (playing && !event.shiftKey) {
       return;
     }
 
@@ -209,13 +203,13 @@ export default function PeekGridScroller({
       case 'Enter':
         return enter(event);
       case 'ArrowLeft':
-        return arrowLeft(event);
+        return !event.ctrlKey && arrowLeft(event);
       case 'ArrowRight':
-        return arrowRight(event);
+        return !event.ctrlKey && arrowRight(event);
       case 'ArrowUp':
-        return arrowUp(event);
+        return !event.ctrlKey && arrowUp(event);
       case 'ArrowDown':
-        return arrowDown(event);
+        return !event.ctrlKey && arrowDown(event);
       default:
         return false;
     }

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 export default function useEventListener(
   eventName: string,
   handler: Function,
-  element: HTMLElement | typeof window | null = window,
+  element: HTMLElement | typeof window | Worker | null = window,
   enabled = true,
   options: undefined | boolean | AddEventListenerOptions = undefined,
 ) {

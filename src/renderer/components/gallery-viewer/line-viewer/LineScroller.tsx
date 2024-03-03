@@ -21,6 +21,7 @@ import {
 } from 'renderer/redux/slices/galleryViewerSlice';
 import { selectSelectedFile, setSelectedFile } from 'renderer/redux/slices/selectedFolderSlice';
 import { selectPlaying } from 'renderer/redux/slices/viewerSlice';
+import { useIsFileSystemServiceWorking } from 'renderer/utils/FileSystemService';
 import animate from 'renderer/utils/animate';
 
 type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
@@ -50,6 +51,7 @@ interface Props {
 export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
   const classes = useStyles();
   const dispatch = useDispatch();
+  const isFileSystemServiceWorking = useIsFileSystemServiceWorking();
   const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const selectedFile = useSelector(selectSelectedFile);
@@ -71,10 +73,13 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   };
   const updateFlattenedFilesDebounced = useDebouncedCallback(updateFlattenedFiles, 250);
   const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 5000);
-  const triggerUpdateThrottled = useThrottledCallback(() => triggerUpdate(uuid4()), 5000);
+  const triggerUpdateThrottled = useThrottledCallback(
+    () => triggerUpdate(uuid4()),
+    (flattenedFiles && flattenedFiles.length) || 0 < 300_000 ? 5000 : 10000,
+  );
 
   const sortedFiles = useMemo(() => {
-    if (sortBy === 'fullPath') {
+    if (!isFileSystemServiceWorking && sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
         desc: sortDirection === 'desc',
@@ -83,7 +88,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     }
 
     return orderBy(flattenedFiles, sortBy, sortDirection);
-  }, [flattenedFiles, sortBy, sortDirection]);
+  }, [flattenedFiles, sortBy, sortDirection, isFileSystemServiceWorking]);
 
   useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);
