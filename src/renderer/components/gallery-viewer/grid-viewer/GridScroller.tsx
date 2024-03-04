@@ -1,7 +1,7 @@
 import type { StyleSheet } from 'jss';
 import { orderBy, size, some, values } from 'lodash';
 import natsort from 'natsort';
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -79,12 +79,6 @@ export default function GridScroller({ width, height }: Props) {
 
     return orderBy(entries, sortBy, sortDirection);
   }, [selectedFolder, sortBy, sortDirection, updated]);
-
-  useLayoutEffect(() => {
-    const [, scrollValue] = location.hash.replace('#', '').split('_').map(Number);
-
-    // gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: scrollValue || 0 });
-  }, [selectedFolder]);
 
   useEffect(() => {
     const [index] = location.hash.replace('#', '').split('_').map(Number);
