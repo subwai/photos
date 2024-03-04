@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import useEventListener from 'renderer/hooks/useEventListener';
 
 type DragState = {

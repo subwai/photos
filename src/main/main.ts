@@ -12,13 +12,14 @@ import { BrowserWindow, BrowserWindowConstructorOptions, app, ipcMain, shell } f
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
+import path from 'path';
+import 'utils/configure-bluebird';
+
 import FileSystem, { getCachePath } from 'main/file-system';
 import 'main/general';
 import MenuBuilder from 'main/menu';
 import 'main/thumbnails';
 import { resolveHtmlPath } from 'main/util';
-import path from 'path';
-import 'utils/configure-bluebird';
 
 class AppUpdater {
   constructor() {

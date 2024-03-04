@@ -20,16 +20,19 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: npm install
+      - name: Install node modules
         run: |
           npm ci
           npm audit signatures
 
-      - name: npm test
+      - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run package
+
+      - name: Run tests
+        run: |
           npm run lint
           npm exec tsc
           npm test

@@ -1,5 +1,6 @@
-import { app, BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, shell } from 'electron';
-import type FileSystem from './file-system';
+import { BrowserWindow, Menu, MenuItem, MenuItemConstructorOptions, app, shell } from 'electron';
+
+import type FileSystem from 'main/file-system';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -40,7 +41,7 @@ export default class MenuBuilder {
             click: () => {
               this.mainWindow.webContents.inspectElement(x, y);
             },
-          })
+          }),
         );
       }
 
@@ -60,7 +61,7 @@ export default class MenuBuilder {
                 shell.showItemInFolder(decodeURI(url.hash.substr(1)));
               }
             },
-          })
+          }),
         );
       }
 
@@ -191,9 +192,7 @@ export default class MenuBuilder {
         {
           label: 'Documentation',
           click() {
-            shell.openExternal(
-              'https://github.com/electron/electron/tree/main/docs#readme',
-            );
+            shell.openExternal('https://github.com/electron/electron/tree/main/docs#readme');
           },
         },
         {
@@ -252,9 +251,7 @@ export default class MenuBuilder {
                   label: 'Toggle &Full Screen',
                   accelerator: 'F11',
                   click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
-                    );
+                    this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
                   },
                 },
                 {
@@ -270,9 +267,7 @@ export default class MenuBuilder {
                   label: 'Toggle &Full Screen',
                   accelerator: 'F11',
                   click: () => {
-                    this.mainWindow.setFullScreen(
-                      !this.mainWindow.isFullScreen(),
-                    );
+                    this.mainWindow.setFullScreen(!this.mainWindow.isFullScreen());
                   },
                 },
               ],
@@ -289,9 +284,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal(
-                'https://github.com/electron/electron/tree/main/docs#readme',
-              );
+              shell.openExternal('https://github.com/electron/electron/tree/main/docs#readme');
             },
           },
           {

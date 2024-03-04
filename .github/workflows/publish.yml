@@ -23,9 +23,12 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Install and build
+      - name: Install node modules
         run: |
           npm ci
+
+      - name: Build
+        run: |
           npm run postinstall
           npm run build
 

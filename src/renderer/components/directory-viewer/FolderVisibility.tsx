@@ -3,6 +3,7 @@ import { filter } from 'lodash';
 import React, { useMemo } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+
 import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
 import type FileEntryObject from 'renderer/models/FileEntry';
 import {

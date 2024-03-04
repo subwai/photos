@@ -1,5 +1,39 @@
 module.exports = {
-  extends: 'erb',
+  extends: [
+    'airbnb',
+    'airbnb-typescript',
+    'airbnb/hooks',
+    // 'plugin:@typescript-eslint/recommended',
+    'plugin:jest/recommended',
+    'plugin:promise/recommended',
+    'plugin:compat/recommended',
+    'plugin:prettier/recommended',
+  ],
+  root: true,
+  env: {
+    browser: true,
+    node: true,
+  },
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module',
+    project: ['./tsconfig.json'],
+  },
+  settings: {
+    'import/resolver': {
+      // See https://github.com/benmosher/eslint-plugin-import/issues/1396#issuecomment-575727774 for line below
+      node: {},
+      webpack: {
+        config: require.resolve('./.erb/configs/webpack.config.eslint.ts'),
+      },
+      typescript: {},
+    },
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts', '.tsx'],
+    },
+  },
+  plugins: ['@typescript-eslint', 'no-relative-import-paths'],
   rules: {
     'import/no-extraneous-dependencies': 'off',
     'import/extensions': 'off',
@@ -27,24 +61,9 @@ module.exports = {
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-shadow': 'error',
     '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    'no-param-reassign': ['error', { props: false }],
   },
-  parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: 'module',
-  },
-  plugins: ['@typescript-eslint', 'no-relative-import-paths'],
-  settings: {
-    'import/resolver': {
-      // See https://github.com/benmosher/eslint-plugin-import/issues/1396#issuecomment-575727774 for line below
-      node: {},
-      webpack: {
-        config: require.resolve('./.erb/configs/webpack.config.eslint.ts'),
-      },
-      typescript: {},
-    },
-    'import/parsers': {
-      '@typescript-eslint/parser': ['.ts', '.tsx'],
-    },
-  },
-  root: true,
 };
