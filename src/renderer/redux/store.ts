@@ -1,18 +1,12 @@
 import { Middleware, configureStore } from '@reduxjs/toolkit';
-import { createHashHistory } from 'history';
-import { createReduxHistoryContext } from 'redux-first-history';
 import { createLogger } from 'redux-logger';
 
 import { loadPersistedState, persistState } from 'renderer/redux/persistStoreState';
 import createRootReducer from 'renderer/redux/rootReducer';
 
-const { createReduxHistory, routerMiddleware, routerReducer } = createReduxHistoryContext({
-  history: createHashHistory(),
-});
+const rootReducer = createRootReducer();
 
-const rootReducer = createRootReducer(routerReducer);
-
-const middleware = [routerMiddleware];
+const middleware: Middleware[] = [];
 const excludeLoggerEnvs = ['test', 'production'];
 const shouldIncludeLogger = !excludeLoggerEnvs.includes(process.env.NODE_ENV || '');
 
@@ -21,20 +15,17 @@ if (shouldIncludeLogger) {
     createLogger({
       level: 'info',
       collapsed: true,
-    }) as Middleware,
+    }),
   );
 }
 // Create Store
 export const store = configureStore({
   reducer: rootReducer,
-  // @ts-expect-error TODO: See if update to @reduxjs/toolkit fixes
-  middleware: (getDefaultMiddleware) => [
-    ...getDefaultMiddleware({
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
       serializableCheck: false,
       immutableCheck: false,
-    }),
-    ...middleware,
-  ],
+    }).concat(...middleware),
   preloadedState: loadPersistedState(),
   devTools: false,
   // devTools: {
@@ -45,8 +36,6 @@ export const store = configureStore({
   //   }),
   // },
 });
-
-export const history = createReduxHistory(store);
 
 export type RootState = ReturnType<typeof rootReducer>;
 
