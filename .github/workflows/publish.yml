@@ -6,7 +6,7 @@ on:
       - test
 
 jobs:
-  setup:
+  publish:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -24,36 +24,34 @@ jobs:
           cache: npm
 
       - name: Check if version changed
+        id: check
         uses: EndBug/version-check@v2
 
-  publish:
-    needs: setup
-    if: needs.setup.steps.check.outputs.changed == 'true'
-    steps:
       - name: Install node modules
         if: steps.check.outputs.changed == 'true'
         run: |
           npm ci
 
-      # - name: Build
-      #   if: steps.check.outputs.changed == 'true'
-      #   run: |
-      #     npm run postinstall
-      #     npm run build
+      - name: Build
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          npm run postinstall
+          npm run build
 
-      # - name: Publish release (macOS)
-      #   if: startsWith(matrix.os, 'macos')
-      #   env:
-      #     CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
-      #     # This is used for uploading release assets to github
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     npm exec electron-builder -- --publish always --mac
+      - name: Publish release (macOS)
+        if: startsWith(matrix.os, 'macos') && steps.check.outputs.changed == 'true'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
+          # This is used for uploading release assets to github
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm exec electron-builder -- --publish always --mac
 
-      # - name: Publish release (Windows)
-      #   if: startsWith(matrix.os, 'windows')
-      #   env:
-      #     # This is used for uploading release assets to github
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     npm exec electron-builder -- --publish always --win
+      - name: Publish release (Windows)
+        if: startsWith(matrix.os, 'windows') && steps.check.outputs.changed == 'true'
+        env:
+          # This is used for uploading release assets to github
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm exec electron-builder -- --publish always --win
+  
