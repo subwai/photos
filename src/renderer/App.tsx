@@ -32,12 +32,6 @@ export default function App() {
     <Provider store={store}>
       <TopBar />
       <RouterProvider router={router} />
-      {/* <HistoryRouter history={history}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path=":query" element={<Home />} />
-        </Routes>
-      </HistoryRouter> */}
     </Provider>
   );
 }

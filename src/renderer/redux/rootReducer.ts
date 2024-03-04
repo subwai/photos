@@ -1,5 +1,4 @@
-import { Reducer, combineReducers } from 'redux';
-import type { RouterState } from 'redux-first-history';
+import { combineReducers } from 'redux';
 
 import folderVisibilityReducer from 'renderer/redux/slices/folderVisibilitySlice';
 import galleryScrollerReducer from 'renderer/redux/slices/galleryViewerSlice';
@@ -7,9 +6,8 @@ import rootFolderReducer from 'renderer/redux/slices/rootFolderSlice';
 import selectedFolderReducer from 'renderer/redux/slices/selectedFolderSlice';
 import viewerReducer from 'renderer/redux/slices/viewerSlice';
 
-export default function createRootReducer(routerReducer: Reducer<RouterState>) {
+export default function createRootReducer() {
   return combineReducers({
-    router: routerReducer,
     viewer: viewerReducer,
     folderVisibility: folderVisibilityReducer,
     galleryScroller: galleryScrollerReducer,
