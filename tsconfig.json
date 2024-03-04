@@ -21,7 +21,7 @@
     "plugins": [{ "transform": "typescript-transform-paths" }]
   },
   "include": ["src/**/*", "assets/**/*", ".erb/**/*", ".eslintrc.js", "postcss.config.js", "tailwind.config.js"],
-  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"],
+  "exclude": ["node_modules", "test", "release/build", "release/app/dist", ".erb/dll"],
   "ts-node": {
     "require": ["tsconfig-paths/register", "./src/utils/fix-esm.js"],
     "esm": true

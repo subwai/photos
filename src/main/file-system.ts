@@ -2,8 +2,8 @@ import Bluebird from 'bluebird';
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs, { WatchListener } from 'fs';
 import { readdir } from 'fs/promises';
-import path from 'path';
 import { includes, some } from 'lodash';
+import path from 'path';
 import type FileEntryObject from 'renderer/models/FileEntry';
 import type { Children } from 'renderer/models/FileEntry';
 
@@ -95,6 +95,7 @@ export default class FileSystem {
       this.watcher = fs.watch(this.rootFolder, { recursive: true }, this.handleFileWatchEvent);
     } catch (err) {
       this.rootFolder = undefined;
+      console.error('Error starting watcher', err);
     }
   }
 
@@ -172,6 +173,7 @@ export default class FileSystem {
 
       return children;
     } catch (err) {
+      console.error('Error getting children', err);
       return null;
     }
   };
@@ -209,6 +211,7 @@ export default class FileSystem {
       }
       return null;
     } catch (err) {
+      console.error('Error getting cover', err);
       return null;
     }
   };

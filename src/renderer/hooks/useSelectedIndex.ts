@@ -16,22 +16,22 @@ export default function useSelectedIndex(
   const selectedIndex = useSelector(selectSelectedIndex);
 
   const debouncedHashReplace = useDebouncedCallback(
-    (pathname: string, index: IndexValue, scroll: number) => {
-      navigate(`${pathname}#${index}_${scroll}`, { replace: true });
+    (pathname: string, index: IndexValue) => {
+      navigate(`${pathname}#${index}`, { replace: true, preventScrollReset: true });
     },
     100,
     { leading: true },
   );
 
   const setSelectedIndexCallback = useCallback(
-    (index: IndexValue, scroll: number | null = null) => {
-      const [hashIndex, hashScroll] = location.hash.replace('#', '').split('_').map(Number);
+    (index: IndexValue) => {
+      const [hashIndex] = location.hash.replace('#', '').split('_').map(Number);
 
       if (index !== selectedIndex && !Number.isNaN(index)) {
         dispatch(setSelectedIndex(index));
       }
-      if (index !== hashIndex || (hashScroll !== scroll && scroll !== null)) {
-        debouncedHashReplace(location.pathname, index, scroll || 0);
+      if (index !== hashIndex) {
+        debouncedHashReplace(location.pathname, index);
       }
     },
     [selectedIndex, location],

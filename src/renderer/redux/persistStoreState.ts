@@ -27,6 +27,7 @@ export const loadPersistedState = () => {
     }
     return JSON.parse(serializedState);
   } catch (err) {
+    console.error("Couldn't parse persisted state", err);
     return undefined;
   }
 };
