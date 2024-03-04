@@ -4,12 +4,13 @@ import natsort from 'natsort';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Grid, GridCellProps } from 'react-virtualized';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { THUMBNAIL_HEIGHT, THUMBNAIL_SIZE } from 'renderer/components/gallery-viewer/grid-viewer/GridFolderThumbnail';
 import GridThumbnail from 'renderer/components/gallery-viewer/grid-viewer/GridThumbnail';
+import ScrollRestoration from 'renderer/components/gallery-viewer/grid-viewer/ScrollRestoration';
 import useAutomaticChildrenLoader from 'renderer/hooks/useAutomaticChildrenLoader';
 import useEventListener from 'renderer/hooks/useEventListener';
 import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
@@ -30,7 +31,7 @@ import {
 } from 'renderer/redux/slices/viewerSlice';
 import animate from 'renderer/utils/animate';
 
-type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
+export type ExtendedGrid = Grid & { _scrollingContainer: HTMLDivElement };
 
 const useStyles = createUseStyles({
   grid: {},
@@ -54,6 +55,7 @@ export default function GridScroller({ width, height }: Props) {
   const previewType = useSelector(selectPreviewType);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
@@ -81,13 +83,13 @@ export default function GridScroller({ width, height }: Props) {
   useLayoutEffect(() => {
     const [, scrollValue] = location.hash.replace('#', '').split('_').map(Number);
 
-    gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: scrollValue || 0 });
+    // gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: scrollValue || 0 });
   }, [selectedFolder]);
 
   useEffect(() => {
-    const [index, scrollValue] = location.hash.replace('#', '').split('_').map(Number);
+    const [index] = location.hash.replace('#', '').split('_').map(Number);
 
-    setSelectedIndex(index || null, scrollValue || 0);
+    setSelectedIndex(index || null);
   }, [selectedFolder]);
 
   useEffect(() => {
@@ -221,8 +223,18 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   useEventListener('mousedown', (event: React.MouseEvent) => {
-    if (event.button === 1) {
-      event.preventDefault();
+    switch (event.button) {
+      case 1:
+        event.preventDefault();
+        break;
+      case 3:
+        navigate(-1);
+        break;
+      case 4:
+        navigate(1);
+        break;
+      default:
+        break;
     }
   });
 
@@ -260,7 +272,7 @@ export default function GridScroller({ width, height }: Props) {
   );
 
   const selectIndex = (index: number | null) => {
-    setSelectedIndex(index, scroll.current);
+    setSelectedIndex(index);
     if (index !== null) {
       const file = sortedFiles[index];
       setSelectedFileDebounced(file);
@@ -269,10 +281,11 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   const openIndex = (index: number | null) => {
-    setSelectedIndex(index, scroll.current);
+    setSelectedIndex(index);
     if (index !== null) {
       const file = sortedFiles[index];
       if (file && file.isFolder) {
+        if (cancelAnimation.current) cancelAnimation.current();
         setSelectedFolder(file);
         dispatch(openFolder(file.parent));
       } else {
@@ -356,18 +369,22 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   return (
-    <Grid
-      ref={gridRef}
-      className={classes.grid}
-      cellRenderer={cellRenderer}
-      columnWidth={THUMBNAIL_HEIGHT}
-      columnCount={columnCount}
-      rowHeight={THUMBNAIL_SIZE}
-      rowCount={rowCount}
-      height={height}
-      width={width}
-      overscanRowCount={5}
-      onScroll={handleScroll}
-    />
+    <>
+      <Grid
+        ref={gridRef}
+        className={classes.grid}
+        cellRenderer={cellRenderer}
+        columnWidth={THUMBNAIL_HEIGHT}
+        columnCount={columnCount}
+        rowHeight={THUMBNAIL_SIZE}
+        rowCount={rowCount}
+        height={height}
+        width={width}
+        overscanRowCount={5}
+        onScroll={handleScroll}
+      />
+      {/* eslint-disable-next-line no-underscore-dangle */}
+      <ScrollRestoration grid={gridRef.current || undefined} />
+    </>
   );
 }
