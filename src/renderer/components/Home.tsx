@@ -4,6 +4,7 @@ import path from 'path';
 import { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import DirectoryViewer from 'renderer/components/directory-viewer/DirectoryViewer';
 import GalleryViewer from 'renderer/components/gallery-viewer/GalleryViewer';
@@ -36,6 +37,7 @@ export default function Home() {
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleFolderChanged(newPath: string) {
@@ -107,6 +109,19 @@ export default function Home() {
         event.preventDefault();
         console.log('reload', rootFolder);
         rootFolder?.triggerEvent('update');
+        break;
+      default:
+        break;
+    }
+  });
+
+  useEventListener('mousedown', (event: React.MouseEvent) => {
+    switch (event.button) {
+      case 3:
+        navigate(-1);
+        break;
+      case 4:
+        navigate(1);
         break;
       default:
         break;

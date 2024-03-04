@@ -4,7 +4,7 @@ import natsort from 'natsort';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Grid, GridCellProps } from 'react-virtualized';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -55,7 +55,6 @@ export default function GridScroller({ width, height }: Props) {
   const previewType = useSelector(selectPreviewType);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
-  const navigate = useNavigate();
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
@@ -217,18 +216,8 @@ export default function GridScroller({ width, height }: Props) {
   };
 
   useEventListener('mousedown', (event: React.MouseEvent) => {
-    switch (event.button) {
-      case 1:
-        event.preventDefault();
-        break;
-      case 3:
-        navigate(-1);
-        break;
-      case 4:
-        navigate(1);
-        break;
-      default:
-        break;
+    if (event.button === 1) {
+      event.preventDefault();
     }
   });
 
@@ -377,7 +366,6 @@ export default function GridScroller({ width, height }: Props) {
         overscanRowCount={5}
         onScroll={handleScroll}
       />
-      {/* eslint-disable-next-line no-underscore-dangle */}
       <ScrollRestoration grid={gridRef.current || undefined} />
     </>
   );
