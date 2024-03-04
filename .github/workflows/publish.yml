@@ -34,7 +34,10 @@ jobs:
           to: HEAD
 
       - name: Delete previous drafts
+        if: steps.check.outputs.changed == 'true'
         uses: hugo19941994/delete-draft-releases@v1.0.0
+        with:
+          threshold: 15m
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
