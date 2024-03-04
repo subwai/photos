@@ -33,6 +33,11 @@ jobs:
           from: HEAD~
           to: HEAD
 
+      - name: Delete previous drafts
+        uses: hugo19941994/delete-draft-releases@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install node modules
         if: steps.check.outputs.changed == 'true'
         run: |
