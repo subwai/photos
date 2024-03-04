@@ -1,11 +1,12 @@
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
 import { Route, Routes } from 'react-router-dom';
+
 import 'renderer/App.css';
 import HistoryRouter from 'renderer/components/HistoryRouter';
 import Home from 'renderer/components/Home';
 import TopBar from 'renderer/components/TopBar';
-import { store, history } from 'renderer/redux/store';
+import { history, store } from 'renderer/redux/store';
 
 const aero = window.electron.platform === 'win32';
 
