@@ -2,7 +2,7 @@
   "name": "photos",
   "productName": "Photos",
   "description": "Photos",
-  "version": "1.7.4",
+  "version": "1.7.5",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subwai/photos.git"
