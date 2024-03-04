@@ -42,6 +42,6 @@ ${chalk.bold('https://electron-react-boilerplate.js.org/docs/adding-dependencies
       process.exit(1);
     }
   } catch (e) {
-    console.log('Native dependencies could not be checked');
+    console.error('Native dependencies could not be checked', e);
   }
 }

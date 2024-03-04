@@ -1,6 +1,6 @@
 import { createUseStyles } from 'react-jss';
 import { Provider } from 'react-redux';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, ScrollRestoration } from 'react-router-dom';
 
 import 'renderer/App.css';
 import HistoryRouter from 'renderer/components/HistoryRouter';
@@ -30,6 +30,7 @@ export default function App() {
           <Route path=":query" element={<Home />} />
         </Routes>
       </HistoryRouter>
+      <ScrollRestoration />
     </Provider>
   );
 }

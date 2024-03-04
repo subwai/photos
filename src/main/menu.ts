@@ -48,7 +48,7 @@ export default class MenuBuilder {
       let url: URL | null;
       try {
         url = new URL(srcURL);
-      } catch (err) {
+      } catch (_err) {
         url = null;
       }
       if (url && url.hash) {
