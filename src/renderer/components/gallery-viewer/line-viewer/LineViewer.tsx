@@ -46,7 +46,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function LineViewer() {
+export default function LineViewer({ search }: { search: string }) {
   const classes = useStyles();
   const container = useRef<HTMLDivElement>(null);
   const dragHandle = useRef<HTMLDivElement>(null);
@@ -81,7 +81,9 @@ export default function LineViewer() {
       <div ref={container} className={classes.galleryContainer} style={{ height }}>
         <div className={classes.dragHandle} ref={dragHandle} />
         <AutoSizer disableHeight style={{ width: '100%' }}>
-          {({ width }) => <GalleryScrollerWrapper folder={selectedFolder} width={width} height={height} />}
+          {({ width }) => (
+            <GalleryScrollerWrapper width={width} height={height} folder={selectedFolder} search={search} />
+          )}
         </AutoSizer>
       </div>
     </>
@@ -89,13 +91,16 @@ export default function LineViewer() {
 }
 
 interface GalleryScrollerWrapperProps {
-  folder: FileEntryModel | null;
   width: number;
   height: number;
+  folder: FileEntryModel | null;
+  search: string;
 }
 
-function GalleryScrollerWrapper({ folder, width, height }: GalleryScrollerWrapperProps) {
+function GalleryScrollerWrapper({ folder, width, height, search }: GalleryScrollerWrapperProps) {
   const [debouncedWidth] = useDebounce(width, 1000);
 
-  return <GalleryScroller key={folder?.fullPath} folder={folder} width={debouncedWidth} height={height} />;
+  return (
+    <GalleryScroller key={folder?.fullPath} width={debouncedWidth} height={height} folder={folder} search={search} />
+  );
 }

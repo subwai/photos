@@ -11,21 +11,30 @@ const useStyles = createUseStyles({
     justifyContent: 'space-between',
     background: 'rgba(255,255,255,.05)',
   },
-  fileName: {
+  folderPath: {
     margin: 0,
-    padding: '7px 4px 4px',
+    overflow: 'hidden',
     textAlign: 'center',
+    textWrap: 'nowrap',
     textOverflow: 'ellipsis',
     fontSize: 14,
     display: 'block',
+  },
+  fileName: {
+    margin: 0,
+    overflow: 'hidden',
+    textAlign: 'center',
+    textWrap: 'nowrap',
+    textOverflow: 'ellipsis',
+    fontSize: 14,
+    display: 'block',
+    // direction: 'rtl',
   },
   dragArea: {
     flex: 1,
     display: '-webkit-box',
     '-webkitAppRegion': 'drag',
     '-webkitBoxOrient': 'vertical',
-    justifyContent: 'center',
-    overflow: 'hidden',
   },
   resizer: {
     position: 'absolute',
@@ -88,10 +97,21 @@ export default function TopBar(): JSX.Element | null {
 
   const isMac = window.electron.platform === 'darwin';
 
+  const folderPath = selectedFile ? selectedFile.parent?.fullPath : '';
+  const pathDeliminator = isMac ? '/' : '\\';
+
   return (
     <div className={classes.topBar}>
-      <div className={classes.dragArea} onDoubleClick={maximizeWindow}>
-        <span className={classes.fileName}>{selectedFile?.name}</span>
+      <div className={classes.dragArea} onDoubleClick={maximizeWindow} title={selectedFile?.fullPath}>
+        <div className="flex h-full w-full ">
+          <div className="flex h-full w-[80%] items-center justify-center">
+            <span className={classes.folderPath}>{folderPath}</span>
+            <span className={classes.fileName}>
+              {selectedFile?.name ? pathDeliminator : ''}
+              {selectedFile?.name}
+            </span>
+          </div>
+        </div>
       </div>
       {!isMac && (
         <div className={classes.actionButtons}>

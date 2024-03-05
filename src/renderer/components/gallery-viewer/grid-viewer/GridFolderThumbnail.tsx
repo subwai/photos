@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 
 import useAutomaticCoverLoader from 'renderer/hooks/useAutomaticCoverLoader';
@@ -30,11 +30,14 @@ const useStyles = createUseStyles({
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
+      margin: '10%',
+      width: '80%',
+      height: '80%',
+      borderRadius: '4px',
       backgroundColor: '#222',
       justifyContent: 'center',
       alignItems: 'center',
+      visibility: 'visible',
     },
   },
   folderIcon: {
@@ -42,6 +45,9 @@ const useStyles = createUseStyles({
     textAlign: 'center',
     verticalAlign: 'middle',
     marginTop: -6,
+  },
+  hidden: {
+    visibility: 'hidden',
   },
 });
 
@@ -53,15 +59,18 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
   const classes = useStyles();
   useAutomaticCoverLoader(fileEntry);
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry.cover);
+  const [loaded, setLoaded] = useState(false);
 
   if (fileEntry.cover && isVideoThumbnail(fileEntry.cover)) {
     return (
       <img
         key={key}
-        className={classes.previewIcon}
+        className={classNames(classes.previewIcon, { [classes.hidden]: !loaded })}
         alt=""
         src={fullPath}
+        loading="lazy"
         onError={() => setRequestThumbnail('video')}
+        onLoad={() => setLoaded(true)}
       />
     );
   }
@@ -70,10 +79,12 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
     return (
       <img
         key={key}
-        className={classes.previewIcon}
+        className={classNames(classes.previewIcon, { [classes.hidden]: !loaded })}
         alt=""
         src={fullPath}
+        loading="lazy"
         onError={() => setRequestThumbnail('image')}
+        onLoad={() => setLoaded(true)}
       />
     );
   }

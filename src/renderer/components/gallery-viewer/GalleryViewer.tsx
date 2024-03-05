@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
 
@@ -19,12 +19,13 @@ const useStyles = createUseStyles({
 export default memo(function GalleryViewer(): JSX.Element {
   const viewer = useSelector(selectGalleryViewer);
   const classes = useStyles();
+  const [search, setSearch] = useState('');
 
   return (
     <div className={classes.container}>
-      <MetaBar />
-      {viewer === 'grid' && <GridViewer />}
-      {viewer === 'line' && <LineViewer />}
+      <MetaBar search={search} onSearch={setSearch} />
+      {viewer === 'grid' && <GridViewer search={search} />}
+      {viewer === 'line' && <LineViewer search={search} />}
     </div>
   );
 });

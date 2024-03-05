@@ -16,7 +16,7 @@ const useStyles = createUseStyles({
   },
 });
 
-export default function GridViewer() {
+export default function GridViewer({ search }: { search: string }) {
   const classes = useStyles();
   const selectedIndex = useSelector(selectSelectedIndex);
   const preview = useSelector(selectPreview);
@@ -24,7 +24,7 @@ export default function GridViewer() {
   return (
     <>
       <div className={classes.container}>
-        <AutoSizer>{({ width, height }) => <GridScroller width={width} height={height} />}</AutoSizer>
+        <AutoSizer>{({ width, height }) => <GridScroller width={width} height={height} search={search} />}</AutoSizer>
       </div>
       {selectedIndex !== null && preview && <ImageViewer />}
     </>

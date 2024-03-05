@@ -1,10 +1,11 @@
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon, EllipsisHorizontalIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
 import classNames from 'classnames';
-import { Fragment, memo, useState } from 'react';
+import { Fragment, memo, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
 
+import useEventListener from 'renderer/hooks/useEventListener';
 import {
   type SortBy,
   type SortDirection,
@@ -123,7 +124,7 @@ const sortByNames: Record<SortBy, string> = {
   createdTime: 'Created',
 } as const;
 
-export default memo(function MetaBar() {
+export default memo(function MetaBar({ search, onSearch }: { search: string; onSearch: (value: string) => void }) {
   const filesCount = useSelector(selectFilesCount);
   const selectedSortBy = useSelector(selectGallerySortBy);
   const selectedSortDirection = useSelector(selectGallerySortDirection);
@@ -131,7 +132,7 @@ export default memo(function MetaBar() {
   const isFileSystemServiceWorking = useIsFileSystemServiceWorking();
   const dispatch = useDispatch();
   const classes = useStyles();
-  const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onSortByChange = (newSortBy: SortBy) => {
     dispatch(setSortBy(newSortBy));
@@ -146,20 +147,27 @@ export default memo(function MetaBar() {
     dispatch(setSelectedIndex(nextViewer === 'line' ? 0 : null));
   };
 
+  useEventListener('keydown', (event: KeyboardEvent) => {
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Esc'].includes(event.key)) {
+      inputRef.current?.focus();
+    } else {
+      inputRef.current?.blur();
+    }
+  });
+
   const unselectedViewer = viewer === 'line' ? 'grid' : 'line';
 
   return (
     <div className={classes.metaBar}>
       <div className={classes.leftSide} />
       <div className={classes.center}>
-        <div className={classes.inputWrapper}>
-          <input
-            type="text"
-            className={classes.inputElement}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        <input
+          ref={inputRef}
+          type="text"
+          className="block w-full rounded-lg border border-zinc-600 bg-transparent p-1.5 text-sm text-gray-400"
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+        />
         <Menu as="div" className="display-inline relative text-left">
           <div className="flex h-full items-center">
             <Menu.Button className="group inline-flex items-center justify-center text-base font-medium text-zinc-400 hover:text-zinc-300">

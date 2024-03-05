@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { ComponentProps, memo } from 'react';
+import { ComponentProps, memo, useState } from 'react';
 import { createUseStyles } from 'react-jss';
 
 import GridFolderThumbnail, {
@@ -17,6 +17,7 @@ const useStyles = createUseStyles({
     display: 'flex',
     justifyContent: 'center',
     cursor: 'pointer',
+    borderRadius: '4px',
   },
   image: {
     width: '100%',
@@ -35,11 +36,14 @@ const useStyles = createUseStyles({
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
+      margin: '10%',
+      width: '80%',
+      height: '80%',
+      borderRadius: '4px',
       backgroundColor: '#222',
       justifyContent: 'center',
       alignItems: 'center',
+      visibility: 'visible',
     },
   },
   folderName: {
@@ -56,6 +60,9 @@ const useStyles = createUseStyles({
     textShadow: '0 0 2px #000, 0 0 2px #000',
     padding: '0 2px',
     boxSizing: 'border-box',
+  },
+  hidden: {
+    visibility: 'hidden',
   },
 });
 
@@ -80,6 +87,7 @@ export default memo(function GridThumbnail({
 }: Props): JSX.Element | null {
   const classes = useStyles();
   const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
+  const [loaded, setLoaded] = useState(false);
 
   if (fileEntry.isFolder) {
     return (
@@ -115,11 +123,12 @@ export default memo(function GridThumbnail({
       >
         <img
           key={key}
-          className={classNames(classes.image)}
+          className={classNames(classes.image, { [classes.hidden]: !loaded })}
           alt=""
           src={fullPath}
-          onError={() => setRequestThumbnail('video')}
           loading="lazy"
+          onError={() => setRequestThumbnail('video')}
+          onLoad={() => setLoaded(true)}
         />
       </div>
     );
@@ -135,11 +144,12 @@ export default memo(function GridThumbnail({
     >
       <img
         key={key}
-        className={classNames(classes.image)}
+        className={classNames(classes.image, { [classes.hidden]: !loaded })}
         alt=""
         src={fullPath}
-        onError={() => setRequestThumbnail('image')}
         loading="lazy"
+        onError={() => setRequestThumbnail('image')}
+        onLoad={() => setLoaded(true)}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import type { StyleSheet } from 'jss';
-import { orderBy, size, some, values } from 'lodash';
+import { orderBy, some, values } from 'lodash';
 import natsort from 'natsort';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
@@ -40,9 +40,10 @@ const useStyles = createUseStyles({
 type Props = {
   width: number;
   height: number;
+  search: string;
 };
 
-export default function GridScroller({ width, height }: Props) {
+export default function GridScroller({ width, height, search }: Props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
@@ -55,29 +56,37 @@ export default function GridScroller({ width, height }: Props) {
   const previewType = useSelector(selectPreviewType);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
+  const [isScrolling, setIsScrolling] = useState<boolean | undefined>(undefined);
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
   const cancelAnimation = useRef<Function | null>(null);
 
-  const columnCount = Math.floor(width / THUMBNAIL_HEIGHT);
-  const rowCount = Math.ceil(size(selectedFolder?.children) / columnCount);
-
   const updated = useAutomaticChildrenLoader(selectedFolder);
 
-  const sortedFiles = useMemo(() => {
+  const filteredFiles = useMemo(() => {
     const entries = values(selectedFolder?.children);
 
+    return search
+      ? entries.filter((file) => file.fullPath.toLowerCase().indexOf(search.toLocaleLowerCase()) !== -1)
+      : entries;
+  }, [selectedFolder, updated, search]);
+
+  const columnCount = Math.floor(width / THUMBNAIL_HEIGHT);
+  const rowCount = Math.ceil(filteredFiles.length / columnCount);
+  const rowCountInWindow = Math.floor(height / THUMBNAIL_SIZE);
+
+  const sortedFiles = useMemo(() => {
     if (sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
         desc: sortDirection === 'desc',
       });
-      return entries.sort((a, b) => sorter(a[sortBy], b[sortBy]));
+      return filteredFiles.sort((a, b) => sorter(a[sortBy], b[sortBy]));
     }
 
-    return orderBy(entries, sortBy, sortDirection);
-  }, [selectedFolder, sortBy, sortDirection, updated]);
+    return orderBy(filteredFiles, sortBy, sortDirection);
+  }, [filteredFiles, sortBy, sortDirection]);
 
   useEffect(() => {
     const [index] = location.hash.replace('#', '').split('_').map(Number);
@@ -86,8 +95,15 @@ export default function GridScroller({ width, height }: Props) {
   }, [selectedFolder]);
 
   useEffect(() => {
-    dispatch(setFilesCount(sortedFiles.length));
-  }, [sortedFiles]);
+    dispatch(setFilesCount(filteredFiles.length));
+  }, [filteredFiles.length]);
+
+  useEffect(() => {
+    if (gridRef.current) {
+      gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: 0 });
+    }
+    selectIndex(0);
+  }, [search]);
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
@@ -131,7 +147,7 @@ export default function GridScroller({ width, height }: Props) {
     }
 
     event.preventDefault();
-    dispatch(setPreviewType(event.shiftKey ? 'cover' : 'file'));
+    dispatch(setPreviewType(event.shiftKey ? 'file' : 'cover'));
     dispatch(setPreview(!preview));
   };
 
@@ -209,6 +225,32 @@ export default function GridScroller({ width, height }: Props) {
     }
   };
 
+  const pageUp = (event: React.KeyboardEvent) => {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
+      return;
+    }
+
+    event.preventDefault();
+    if (selectedIndex !== null) {
+      trySelectIndex(Math.max((selectedIndex ?? 0) - columnCount * rowCountInWindow, 0));
+    } else {
+      startAnimation(Math.max(scroll.current - height, 0));
+    }
+  };
+
+  const pageDown = (event: React.KeyboardEvent) => {
+    if (preview && selectedFile?.isFolder && previewType === 'file') {
+      return;
+    }
+
+    event.preventDefault();
+    if (selectedIndex !== null) {
+      trySelectIndex(Math.min(selectedIndex + columnCount * rowCountInWindow, THUMBNAIL_SIZE * rowCount));
+    } else {
+      startAnimation(Math.min(scroll.current + height, THUMBNAIL_SIZE * rowCount));
+    }
+  };
+
   const trySelectIndex = (nextIndex: number) => {
     if (nextIndex >= 0 && nextIndex < sortedFiles.length) {
       selectIndex(nextIndex);
@@ -237,6 +279,10 @@ export default function GridScroller({ width, height }: Props) {
         return !event.ctrlKey && arrowUp(event);
       case 'ArrowDown':
         return !event.ctrlKey && arrowDown(event);
+      case 'PageDown':
+        return pageDown(event);
+      case 'PageUp':
+        return pageUp(event);
       default:
         return false;
     }
@@ -303,6 +349,7 @@ export default function GridScroller({ width, height }: Props) {
       cancelAnimation.current();
     }
 
+    setIsScrolling(true);
     cancelAnimation.current = animate({
       easing: 'linear',
       fromValue: scroll.current,
@@ -316,7 +363,7 @@ export default function GridScroller({ width, height }: Props) {
         callback();
       },
       onComplete: () => {
-        gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: toValue });
+        setIsScrolling(false);
       },
       duration: 150,
     });
@@ -351,6 +398,8 @@ export default function GridScroller({ width, height }: Props) {
     );
   };
 
+  console.log({ rowCount, columnCount, rowCountInWindow });
+
   return (
     <>
       <Grid
@@ -363,8 +412,9 @@ export default function GridScroller({ width, height }: Props) {
         rowCount={rowCount}
         height={height}
         width={width}
-        overscanRowCount={5}
+        overscanRowCount={rowCountInWindow + 1}
         onScroll={handleScroll}
+        isScrolling={isScrolling}
       />
       <ScrollRestoration grid={gridRef.current || undefined} />
     </>

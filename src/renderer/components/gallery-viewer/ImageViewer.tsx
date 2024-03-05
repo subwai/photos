@@ -105,7 +105,7 @@ export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageVi
     return () => {
       dispatch(pause());
     };
-  }, [dispatch]);
+  }, [dispatch, fileEntry]);
 
   useEffect(() => {
     transformer.current?.setTransform(context?.state.positionX || 0, 0, context?.state.scale || 1, 0);

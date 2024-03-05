@@ -209,6 +209,11 @@ export default class FileSystem {
           };
         }
       }
+
+      const firstFolder = files.find(file => path.extname(file) === '');
+      if (firstFolder) {
+        return await this.getCover(path.resolve(fullPath, firstFolder));
+      }
       return null;
     } catch (err) {
       console.error('Error getting cover', err);

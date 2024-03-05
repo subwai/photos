@@ -43,16 +43,17 @@ const useStyles = createUseStyles({
 });
 
 interface Props {
-  folder: FileEntryModel | null;
   width: number;
   height: number;
+  folder: FileEntryModel | null;
+  search: string;
 }
 
-export default memo(function LineScroller({ folder, width, height }: Props): JSX.Element | null {
+export default memo(function LineScroller({ width, height, folder, search }: Props): JSX.Element | null {
   const classes = useStyles();
   const dispatch = useDispatch();
   const isFileSystemServiceWorking = useIsFileSystemServiceWorking();
-  const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[] | null>(null);
+  const [flattenedFiles, setFlattenedFiles] = useState<FileEntryModel[]>([]);
   const hiddenFolders = useSelector(selectHiddenFolders);
   const selectedFile = useSelector(selectSelectedFile);
   const [selectedIndex, setSelectedIndex] = useSelectedIndex();
@@ -61,6 +62,8 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const container = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
+  const [isScrolling, setIsScrolling] = useState<boolean | undefined>(undefined);
+
   const cellWidth = height;
   const cellHeight = height;
 
@@ -69,7 +72,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   const cancelAnimation = useRef<Function | null>(null);
 
   const updateFlattenedFiles = () => {
-    setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : null);
+    setFlattenedFiles(folder ? (findAllFilesRecursive(folder, hiddenFolders) as FileEntryModel[]) : []);
   };
   const updateFlattenedFilesDebounced = useDebouncedCallback(updateFlattenedFiles, 250);
   const calculateAllFilesRecursiveThrottled = useThrottledCallback(updateFlattenedFiles, 5000);
@@ -78,17 +81,28 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     (flattenedFiles && flattenedFiles.length) || 0 < 300_000 ? 5000 : 10000,
   );
 
+  const filteredFiles = useMemo(() => {
+    if (search) {
+      const searches = search.toLocaleLowerCase().split(' ');
+      return flattenedFiles.filter((file) =>
+        searches.every((term) => file.fullPath.toLowerCase().indexOf(term) !== -1),
+      );
+    }
+
+    return flattenedFiles;
+  }, [flattenedFiles, search]);
+
   const sortedFiles = useMemo(() => {
     if (!isFileSystemServiceWorking && sortBy === 'fullPath') {
       const sorter = natsort({
         insensitive: true,
         desc: sortDirection === 'desc',
       });
-      return flattenedFiles?.sort((a, b) => sorter(a[sortBy], b[sortBy])) || [];
+      return filteredFiles.sort((a, b) => sorter(a[sortBy], b[sortBy])) || [];
     }
 
-    return orderBy(flattenedFiles, sortBy, sortDirection);
-  }, [flattenedFiles, sortBy, sortDirection, isFileSystemServiceWorking]);
+    return orderBy(filteredFiles, sortBy, sortDirection);
+  }, [filteredFiles, sortBy, sortDirection, isFileSystemServiceWorking]);
 
   useEffect(updateFlattenedFilesDebounced, [folder, hiddenFolders]);
   useEffect(calculateAllFilesRecursiveThrottled, [update]);
@@ -105,9 +119,19 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
   }, []);
 
   useEffect(() => {
-    dispatch(setFilesCount(sortedFiles.length));
     setSelectedFileByIndexDebounced(selectedIndex);
-  }, [sortedFiles]);
+  }, [sortBy, sortDirection]);
+
+  useEffect(() => {
+    dispatch(setFilesCount(filteredFiles.length));
+  }, [filteredFiles.length]);
+
+  useEffect(() => {
+    if (gridRef.current) {
+      gridRef.current?.scrollToPosition({ scrollLeft: 0, scrollTop: 0 });
+    }
+    setSelectedIndex(0);
+  }, [search]);
 
   const setSelectedFileByIndexDebounced = useDebouncedCallback(
     (nextIndex: number | null) => {
@@ -152,20 +176,16 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
     maybeScrollAnimate(nextSelectedIndex);
   };
 
-  useEventListener(
-    'keydown',
-    (event: React.KeyboardEvent) => {
-      switch (event.key) {
-        case 'ArrowLeft':
-          return !event.shiftKey && (!playing || event.ctrlKey) && arrowLeft(event);
-        case 'ArrowRight':
-          return !event.shiftKey && (!playing || event.ctrlKey) && arrowRight(event);
-        default:
-          return false;
-      }
-    },
-    window,
-  );
+  useEventListener('keydown', (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case 'ArrowLeft':
+        return !event.ctrlKey && (!playing || event.shiftKey) && arrowLeft(event);
+      case 'ArrowRight':
+        return !event.ctrlKey && (!playing || event.shiftKey) && arrowRight(event);
+      default:
+        return false;
+    }
+  });
 
   const firstChild = container.current?.firstChild as HTMLElement;
 
@@ -211,6 +231,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
       cancelAnimation.current();
     }
 
+    setIsScrolling(true);
     cancelAnimation.current = animate({
       easing: 'linear',
       fromValue: scroll.current,
@@ -224,7 +245,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         callback();
       },
       onComplete: () => {
-        gridRef.current?.scrollToPosition({ scrollLeft: toValue, scrollTop: 0 });
+        setIsScrolling(false);
       },
       duration: 150,
     });
@@ -265,6 +286,7 @@ export default memo(function LineScroller({ folder, width, height }: Props): JSX
         width={width - 12}
         overscanColumnCount={5}
         onScroll={handleScroll}
+        isScrolling={isScrolling}
       />
     </div>
   );
