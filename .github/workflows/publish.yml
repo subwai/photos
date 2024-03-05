@@ -16,8 +16,6 @@ jobs:
     steps:
       - name: Checkout git repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Install Node and NPM
         uses: actions/setup-node@v4
@@ -25,35 +23,17 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Check if version changed
-        id: check
-        uses: Octopus-Moneycoach/version-has-changed@v1
-        with:
-          path: package.json # Root package.json file
-          from: HEAD~
-          to: HEAD
-
-      - name: Delete previous drafts
-        if: steps.check.outputs.changed == 'true'
-        uses: hugo19941994/delete-draft-releases@v1.0.0
-        with:
-          threshold: 15m
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install node modules
-        if: steps.check.outputs.changed == 'true'
         run: |
           npm ci
 
       - name: Build
-        if: steps.check.outputs.changed == 'true'
         run: |
           npm run postinstall
           npm run build
 
       - name: Publish release (macOS)
-        if: startsWith(matrix.os, 'macos') && steps.check.outputs.changed == 'true'
+        if: startsWith(matrix.os, 'macos'
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
           # This is used for uploading release assets to github
@@ -62,7 +42,7 @@ jobs:
           npm exec electron-builder -- --config electron-builder.config.json --publish always --mac
 
       - name: Publish release (Windows)
-        if: startsWith(matrix.os, 'windows') && steps.check.outputs.changed == 'true'
+        if: startsWith(matrix.os, 'windows')
         env:
           # This is used for uploading release assets to github
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
