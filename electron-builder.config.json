@@ -1,6 +1,6 @@
 {
-  "productName": "Photos",
-  "appId": "org.adamlyren.Photos",
+  "productName": "Prism",
+  "appId": "org.adamlyren.Prism",
   "asar": true,
   "asarUnpack": "**\\*.{node,dll}",
   "files": ["dist", "node_modules", "package.json"],

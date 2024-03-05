@@ -327,6 +327,7 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
   return (
     <Grid
       ref={gridRef}
+      key={selectedFolder?.fullPath}
       className={classes.grid}
       cellRenderer={cellRenderer}
       columnWidth={THUMBNAIL_HEIGHT}
