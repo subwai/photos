@@ -29,7 +29,6 @@ jobs:
 
       - name: Build
         run: |
-          npm run postinstall
           npm run build
 
       - name: Publish release (macOS)
