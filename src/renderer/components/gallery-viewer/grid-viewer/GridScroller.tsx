@@ -56,7 +56,6 @@ export default function GridScroller({ width, height, search }: Props) {
   const previewType = useSelector(selectPreviewType);
   const playing = useSelector(selectPlaying);
   const location = useLocation();
-  const [isScrolling, setIsScrolling] = useState<boolean | undefined>(undefined);
 
   const gridRef = useRef<ExtendedGrid | null>(null);
   const scroll = useRef<number>(0);
@@ -349,7 +348,6 @@ export default function GridScroller({ width, height, search }: Props) {
       cancelAnimation.current();
     }
 
-    setIsScrolling(true);
     cancelAnimation.current = animate({
       easing: 'linear',
       fromValue: scroll.current,
@@ -361,9 +359,6 @@ export default function GridScroller({ width, height, search }: Props) {
           scroll.current = value;
         }
         callback();
-      },
-      onComplete: () => {
-        setIsScrolling(false);
       },
       duration: 150,
     });
@@ -398,8 +393,6 @@ export default function GridScroller({ width, height, search }: Props) {
     );
   };
 
-  console.log({ rowCount, columnCount, rowCountInWindow });
-
   return (
     <>
       <Grid
@@ -414,7 +407,6 @@ export default function GridScroller({ width, height, search }: Props) {
         width={width}
         overscanRowCount={rowCountInWindow + 1}
         onScroll={handleScroll}
-        isScrolling={isScrolling}
       />
       <ScrollRestoration grid={gridRef.current || undefined} />
     </>

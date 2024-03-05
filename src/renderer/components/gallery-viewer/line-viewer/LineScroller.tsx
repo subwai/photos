@@ -62,7 +62,6 @@ export default memo(function LineScroller({ width, height, folder, search }: Pro
   const container = useRef<HTMLDivElement>(null);
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string | null>(null);
-  const [isScrolling, setIsScrolling] = useState<boolean | undefined>(undefined);
 
   const cellWidth = height;
   const cellHeight = height;
@@ -231,7 +230,6 @@ export default memo(function LineScroller({ width, height, folder, search }: Pro
       cancelAnimation.current();
     }
 
-    setIsScrolling(true);
     cancelAnimation.current = animate({
       easing: 'linear',
       fromValue: scroll.current,
@@ -243,9 +241,6 @@ export default memo(function LineScroller({ width, height, folder, search }: Pro
           scroll.current = value;
         }
         callback();
-      },
-      onComplete: () => {
-        setIsScrolling(false);
       },
       duration: 150,
     });
@@ -286,7 +281,6 @@ export default memo(function LineScroller({ width, height, folder, search }: Pro
         width={width - 12}
         overscanColumnCount={5}
         onScroll={handleScroll}
-        isScrolling={isScrolling}
       />
     </div>
   );
