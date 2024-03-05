@@ -33,7 +33,7 @@ jobs:
           npm run build
 
       - name: Publish release (macOS)
-        if: startsWith(matrix.os, 'macos'
+        if: startsWith(matrix.os, 'macos')
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.CSC_IDENTITY_AUTO_DISCOVERY }}
           # This is used for uploading release assets to github
