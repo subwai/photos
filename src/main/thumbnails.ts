@@ -1,5 +1,6 @@
 import Bluebird from 'bluebird';
 import { ipcMain } from 'electron';
+import ffmpegPath from 'ffmpeg-static';
 import ffmpeg, { FfprobeStream } from 'fluent-ffmpeg';
 import path from 'path';
 import sha1 from 'sha1';
@@ -9,7 +10,15 @@ import { getCachePath } from 'main/file-system';
 
 import type FileEntryObject from 'renderer/models/FileEntry';
 
+const ffmpegUnpackedPath = ffmpegPath?.replace('app.asar', 'app.asar.unpacked');
+if (ffmpegUnpackedPath) {
+  ffmpeg.setFfmpegPath(ffmpegUnpackedPath);
+  console.log('ffmpeg at', ffmpegUnpackedPath);
+}
+
 ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject) => {
+  console.log('Generating video thumbnail', fileEntry.fullPath);
+
   const command = ffmpeg(fileEntry.fullPath);
   const duration = await getVideoDuration(command);
 
@@ -26,6 +35,8 @@ ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject
 });
 
 ipcMain.handle('generate-image-thumbnail', (_e, fileEntry: FileEntryObject) => {
+  console.log('Generating image thumbnail', fileEntry.fullPath);
+
   return sharp(fileEntry.fullPath)
     .resize({ height: 384 })
     .webp({ quality: 90 })

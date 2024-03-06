@@ -2,7 +2,12 @@
   "productName": "Prism",
   "appId": "org.adamlyren.Prism",
   "asar": true,
-  "asarUnpack": "**\\*.{node,dll}",
+  "asarUnpack": [
+    "**\\*.{node,dll}",
+    "node_modules/ffmpeg-static/bin/${os}/${arch}/ffmpeg",
+    "node_modules/ffmpeg-static/index.js",
+    "node_modules/ffmpeg-static/package.json"
+  ],
   "files": ["dist", "node_modules", "package.json"],
   "afterSign": ".erb/scripts/notarize.js",
   "mac": {

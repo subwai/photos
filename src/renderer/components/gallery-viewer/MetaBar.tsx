@@ -147,13 +147,39 @@ export default memo(function MetaBar({ search, onSearch }: { search: string; onS
     dispatch(setSelectedIndex(nextViewer === 'line' ? 0 : null));
   };
 
-  useEventListener('keydown', (event: KeyboardEvent) => {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Esc'].includes(event.key)) {
-      inputRef.current?.focus();
-    } else {
+  useEventListener(
+    'keydown',
+    (event: KeyboardEvent) => {
+      if (event.key === ' ' && document.activeElement === inputRef.current) {
+        event.stopPropagation();
+        return;
+      }
+
+      if (
+        ![
+          'Shift',
+          'Ctrl',
+          'Alt',
+          'Cmd',
+          'ArrowLeft',
+          'ArrowRight',
+          'ArrowUp',
+          'ArrowDown',
+          'Enter',
+          'Esc',
+          ' ',
+        ].includes(event.key)
+      ) {
+        inputRef.current?.focus();
+        return;
+      }
+
       inputRef.current?.blur();
-    }
-  });
+    },
+    undefined,
+    true,
+    { capture: true },
+  );
 
   const unselectedViewer = viewer === 'line' ? 'grid' : 'line';
 

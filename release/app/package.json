@@ -1,6 +1,6 @@
 {
   "name": "prism",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "license": "GPL-3.0-only",
   "author": {
     "name": "Adam Lyrén",
@@ -13,7 +13,8 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {
+    "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
-    "sharp": "^0.30.7"
+    "sharp": "^0.33.2"
   }
 }
