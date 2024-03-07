@@ -47,4 +47,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm exec electron-builder -- --config electron-builder.config.json --publish always --win
-  
