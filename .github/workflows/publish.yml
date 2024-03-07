@@ -31,9 +31,6 @@ jobs:
         run: |
           npm run build
 
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
         env:
@@ -41,7 +38,6 @@ jobs:
           # This is used for uploading release assets to github
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install setuptools
           npm exec electron-builder -- --config electron-builder.config.json --publish always --mac
 
       - name: Publish release (Windows)
