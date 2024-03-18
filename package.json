@@ -2,7 +2,7 @@
   "name": "prism",
   "productName": "Prism",
   "description": "A Photo/Image viewer application, powered by Electron",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subwai/photos.git"
@@ -24,10 +24,10 @@
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --config electron-builder.config.json --publish never && npm run build:dll",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
-    "start:main": "cross-env NODE_ENV=development electronmon src/main/dev.js",
-    "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
-    "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
+    "dev": "ts-node ./.erb/scripts/check-port-in-use.js && npm run dev:renderer",
+    "dev:main": "cross-env NODE_ENV=development electronmon src/main/dev.js",
+    "dev:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
+    "dev:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
     "test": "jest"
   },
   "browserslist": [],

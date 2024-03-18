@@ -1,5 +1,5 @@
 import type { Rule, StyleSheet } from 'jss';
-import { each, find, max, min, reduce, values } from 'lodash';
+import { each, find, reduce, values } from 'lodash';
 import natsort from 'natsort';
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createUseStyles, jss } from 'react-jss';
@@ -10,6 +10,7 @@ import { v4 as uuid4 } from 'uuid';
 
 import { FOLDER_ICON_SIDE_MARGIN } from 'renderer/components/directory-viewer/FolderIcon';
 import FolderList from 'renderer/components/directory-viewer/FolderList';
+import { ExtendedGrid } from 'renderer/components/gallery-viewer/grid-viewer/GridScroller';
 import useDragging from 'renderer/hooks/useDragging';
 import useEventListener from 'renderer/hooks/useEventListener';
 import useFileRerenderListener from 'renderer/hooks/useFileRerenderListener';
@@ -48,7 +49,6 @@ const useStyles = createUseStyles({
   },
   folderNames: {
     flex: 1,
-    overflow: 'auto',
     display: 'flex',
   },
   list: {
@@ -100,8 +100,10 @@ export default memo(function DirectoryViewer(): JSX.Element {
   const viewer = useSelector(selectGalleryViewer);
   const [selectedFolder, setSelectedFolder] = useSelectedFolder();
   const [locallySelectedFolder, setLocallySelectedFolder] = useState<FileEntryModel | null>(rootFolder);
-  const [width, setWidth] = useState<number>(250);
+  const [wantedWidth, setWantWidth] = useState<number>(250);
   const [folderSize, setFolderSize] = useState<number>(DEFAULT_FOLDER_SIZE);
+  const maxWidth = window.innerWidth - 388;
+  const width = Math.min(wantedWidth, maxWidth);
   const [folderResizeHandlePosition, setFolderResizeHandlePosition] = useState<number>(
     getPositionFromFolderSize(folderSize, width),
   );
@@ -114,6 +116,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
   const [update, triggerUpdate] = useState<string>(uuid4());
   const folderSizeRules = useRef<(Rule | null)[]>();
+  const gridRef = useRef<ExtendedGrid | null>(null);
 
   const visibleFolders = useMemo(() => {
     function appendChildren(carry: FileEntryModel[], entry: FileEntryModel) {
@@ -213,9 +216,21 @@ export default memo(function DirectoryViewer(): JSX.Element {
         return;
       }
 
-      const newWidth = max([0, width + x]) || 0;
+      const newWidth = Math.min(Math.max(0, width + x) || 0, maxWidth);
       container.current.style.width = `${newWidth}px`;
+      container.current.style.minWidth = `${newWidth}px`;
       dragHandleContainerResize.current.style.left = `${newWidth - 1}px`;
+
+      if (gridRef.current) {
+        // eslint-disable-next-line no-underscore-dangle
+        const scrollingContainer = gridRef.current._scrollingContainer;
+        scrollingContainer.style.width = `${newWidth}px`;
+        scrollingContainer.style.maxWidth = `${newWidth}px`;
+        if (scrollingContainer.firstElementChild) {
+          const innerContainer = scrollingContainer.firstElementChild as HTMLElement;
+          innerContainer.style.maxWidth = `${newWidth}px`;
+        }
+      }
 
       if (dragHandleFolderResize.current) {
         dragHandleFolderResize.current.style.left = `${getPositionFromFolderSize(folderSize, newWidth)}px`;
@@ -223,8 +238,8 @@ export default memo(function DirectoryViewer(): JSX.Element {
     },
     () => {},
     ({ x }) => {
-      const newWidth = max([0, width + x]) || 0;
-      setWidth(newWidth);
+      const newWidth = Math.min(Math.max(0, width + x) || 0, maxWidth);
+      setWantWidth(newWidth);
       setFolderResizeHandlePosition(getPositionFromFolderSize(folderSize, newWidth));
     },
   );
@@ -236,7 +251,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
         return;
       }
 
-      const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
+      const newPosition = Math.min(width - FOLDER_RESIZE_PADDING * 2, Math.max(0, folderResizeHandlePosition + x)) || 0;
       const newSize = getFolderSizeFromPosition(newPosition, width);
       updateFolderSizeJssRuleThrottled(newSize);
       dragHandleFolderResize.current.style.left = `${newPosition}px`;
@@ -253,7 +268,7 @@ export default memo(function DirectoryViewer(): JSX.Element {
       dragHandleFolderResize.current.style.left = `${x}px`;
     },
     ({ x }) => {
-      const newPosition = min([width - FOLDER_RESIZE_PADDING * 2, max([0, folderResizeHandlePosition + x])]) || 0;
+      const newPosition = Math.min(width - FOLDER_RESIZE_PADDING * 2, Math.max(0, folderResizeHandlePosition + x)) || 0;
       const newSize = getFolderSizeFromPosition(newPosition, width);
       setFolderResizeHandlePosition(newPosition);
       setFolderSize(newSize);
@@ -371,17 +386,18 @@ export default memo(function DirectoryViewer(): JSX.Element {
   });
 
   return (
-    <div ref={container} className={classes.container} style={{ width }}>
+    <div ref={container} className={`${classes.container}`} style={{ width, minWidth: width }}>
       <div
         ref={dragHandleContainerResize}
         className={classes.dragHandleContainerResize}
         role="separator"
         style={{ left: width - 1 }}
       />
-      <div ref={scrollContainer} className={classes.folderNames}>
+      <div ref={scrollContainer} className={`${classes.folderNames} overflow-hidden`}>
         <AutoSizer>
           {({ height }) => (
             <FolderList
+              gridRef={gridRef}
               width={width}
               height={height}
               visibleFolders={visibleFolders}

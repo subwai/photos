@@ -22,7 +22,7 @@ export default memo(function GalleryViewer(): JSX.Element {
   const [search, setSearch] = useState('');
 
   return (
-    <div className={classes.container}>
+    <div className={`${classes.container} min-w-[386px]`}>
       <MetaBar search={search} onSearch={setSearch} />
       {viewer === 'grid' && <GridViewer search={search} />}
       {viewer === 'line' && <LineViewer search={search} />}

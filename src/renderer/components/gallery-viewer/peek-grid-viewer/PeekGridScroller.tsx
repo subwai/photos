@@ -324,6 +324,10 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
     );
   };
 
+  if (columnCount === 0) {
+    return null;
+  }
+
   return (
     <Grid
       ref={gridRef}

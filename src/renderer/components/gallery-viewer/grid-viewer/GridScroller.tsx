@@ -393,6 +393,10 @@ export default function GridScroller({ width, height, search }: Props) {
     );
   };
 
+  if (columnCount === 0) {
+    return null;
+  }
+
   return (
     <>
       <Grid

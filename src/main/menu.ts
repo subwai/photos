@@ -54,7 +54,7 @@ export default class MenuBuilder {
       if (url && url.hash) {
         menu.append(
           new MenuItem({
-            label: 'Reveal In Finder',
+            label: process.platform === 'darwin' ? 'Show in Finder' : 'Show in Explorer',
             click: () => {
               if (url && url.hash) {
                 console.log(decodeURI(url.hash.substr(1)));

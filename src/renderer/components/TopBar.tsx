@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import { createUseStyles } from 'react-jss';
 import { useSelector } from 'react-redux';
 
@@ -31,7 +30,6 @@ const useStyles = createUseStyles({
     // direction: 'rtl',
   },
   dragArea: {
-    flex: 1,
     display: '-webkit-box',
     '-webkitAppRegion': 'drag',
     '-webkitBoxOrient': 'vertical',
@@ -52,7 +50,6 @@ const useStyles = createUseStyles({
     background: 'transparent',
     color: '#eee',
     fontSize: 11,
-    padding: '5px 17px',
     margin: 0,
     transition: 'background 200ms',
     fontFamily: 'Segoe MDL2 Assets',
@@ -102,26 +99,25 @@ export default function TopBar(): JSX.Element | null {
 
   return (
     <div className={classes.topBar}>
-      <div className={classes.dragArea} onDoubleClick={maximizeWindow} title={selectedFile?.fullPath}>
-        <div className="flex h-full w-full ">
-          <div className="flex h-full w-[80%] items-center justify-center">
-            <span className={classes.folderPath}>{folderPath}</span>
-            <span className={classes.fileName}>
-              {selectedFile?.name ? pathDeliminator : ''}
-              {selectedFile?.name}
-            </span>
-          </div>
+      {!isMac && <div className={`${classes.dragArea} max-w-[7.5rem] grow-[100] basis-0 after:content-['_']`} />}
+      <div className={`${classes.dragArea} min-w-0 grow`} onDoubleClick={maximizeWindow} title={selectedFile?.fullPath}>
+        <div className="flex h-full min-w-0 shrink items-center justify-center px-4">
+          <span className={classes.folderPath}>{folderPath}</span>
+          <span className={classes.fileName}>
+            {selectedFile?.name ? pathDeliminator : ''}
+            {selectedFile?.name}
+          </span>
         </div>
       </div>
       {!isMac && (
-        <div className={classes.actionButtons}>
-          <button type="button" className={classes.button} onClick={minimizeWindow}>
+        <div className={`${classes.actionButtons} `}>
+          <button type="button" className={`w-10 ${classes.button}`} onClick={minimizeWindow}>
             &#xE921;
           </button>
-          <button type="button" className={classes.button} onClick={maximizeWindow}>
+          <button type="button" className={`w-10 ${classes.button}`} onClick={maximizeWindow}>
             &#xE922;
           </button>
-          <button type="button" className={classNames(classes.button, classes.close)} onClick={closeWindow}>
+          <button type="button" className={`w-10 ${classes.button} ${classes.close}`} onClick={closeWindow}>
             &#xE8BB;
           </button>
         </div>

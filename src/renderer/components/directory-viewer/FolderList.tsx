@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import { createUseStyles } from 'react-jss';
-import { List, ListRowRenderer } from 'react-virtualized';
+import { Grid, type GridCellRenderer, accessibilityOverscanIndicesGetter } from 'react-virtualized';
 
 import Folder from 'renderer/components/directory-viewer/Folder';
+import type { ExtendedGrid } from 'renderer/components/gallery-viewer/grid-viewer/GridScroller';
 import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
 import type { FileEntryModel } from 'renderer/models/FileEntry';
 
@@ -11,20 +11,25 @@ interface Props {
   height: number;
   visibleFolders: FileEntryModel[];
   onSelectFolder: (entry: FileEntryModel) => void;
+  gridRef?: React.Ref<ExtendedGrid> | null;
 }
 
-const useStyles = createUseStyles({
-  folderList: {
-    flex: 1,
-  },
-});
-
-export default memo(function FolderList({ width, height, visibleFolders, onSelectFolder }: Props): JSX.Element {
+export default memo(function FolderList({
+  width,
+  height,
+  visibleFolders,
+  onSelectFolder,
+  gridRef,
+}: Props): JSX.Element {
   const [selectedFolder] = useSelectedFolder();
-  const classes = useStyles();
 
-  const rowRenderer: ListRowRenderer = ({ index, style }) => {
-    const folder = visibleFolders[index];
+  const rowRenderer: GridCellRenderer = ({ rowIndex, style }) => {
+    const folder = visibleFolders[rowIndex];
+    const widthDescriptor = Object.getOwnPropertyDescriptor(style, 'width');
+    if (widthDescriptor && widthDescriptor.writable) {
+      style.width = '100%';
+    }
+
     return (
       <Folder
         key={folder.fullPath}
@@ -37,15 +42,18 @@ export default memo(function FolderList({ width, height, visibleFolders, onSelec
   };
 
   return (
-    <div className={classes.folderList}>
-      <List
-        width={width}
-        height={height}
-        rowHeight={40}
-        rowCount={visibleFolders.length}
-        rowRenderer={rowRenderer}
-        overscanRowCount={10}
-      />
-    </div>
+    <Grid
+      ref={gridRef}
+      autoContainerWidth
+      width={width}
+      height={height}
+      rowHeight={40}
+      rowCount={visibleFolders.length}
+      columnWidth={width}
+      columnCount={1}
+      cellRenderer={rowRenderer}
+      overscanRowCount={10}
+      overscanIndicesGetter={accessibilityOverscanIndicesGetter}
+    />
   );
 });
