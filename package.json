@@ -2,7 +2,7 @@
   "name": "prism",
   "productName": "Prism",
   "description": "A Photo/Image viewer application, powered by Electron",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subwai/photos.git"
@@ -104,7 +104,7 @@
     "css-loader": "^6.10.0",
     "css-minimizer-webpack-plugin": "^6.0.0",
     "detect-port": "^1.5.1",
-    "electron": "^25.0.1",
+    "electron": "^29.1.5",
     "electron-builder": "^24.2.1",
     "electron-devtools-installer": "^3.2.0",
     "electronmon": "^2.0.2",
