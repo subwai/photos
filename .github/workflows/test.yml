@@ -11,28 +11,47 @@ jobs:
         os: [windows-latest]
 
     steps:
-      - name: Check out Git repository
+      - name: Checkout git repo
         uses: actions/checkout@v4
 
-      - name: Install Node.js and NPM
+      - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
 
-      - name: Install node modules
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
         run: |
-          npm ci
-          npm audit signatures
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: |
+          pnpm install
+          pnpm audit signatures
 
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run package
+          pnpm run package
 
       - name: Run tests
         run: |
-          npm run lint
-          npm exec tsc
-          npm test
+          pnpm run lint
+          pnpm exec tsc
+          pnpm test
