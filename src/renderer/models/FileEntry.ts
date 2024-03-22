@@ -246,7 +246,7 @@ export class FileEntryModel implements FileEntryObject {
 
     return FileSystemService.getCover(this.fullPath, options)
       .then((cover) => {
-        this.cover = cover ? this.convertToFileEntryModel(cover) : undefined;
+        this.cover = cover || undefined;
         this.didLoadCover = true;
         this.triggerRerender();
       })

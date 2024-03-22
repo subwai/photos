@@ -1,12 +1,12 @@
 import Bluebird from 'bluebird';
 import { includes } from 'lodash';
 import path from 'path';
-import React, { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import { v4 as uuid4 } from 'uuid';
 
-import { CoverEntryObject, FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
+import { CoverEntryObject, FileEntryModel, isImage, isVideo, isVideoThumbnail } from 'renderer/models/FileEntry';
 import { selectCachePath } from 'renderer/redux/slices/rootFolderSlice';
 import PromiseQueue from 'renderer/utils/PromiseQueue';
 
@@ -15,47 +15,43 @@ const ignore = ['.gif'];
 const queue = new PromiseQueue({ concurrency: 15 });
 
 function isIgnored(fileEntry?: FileEntryModel | CoverEntryObject | null) {
-  return fileEntry && includes(ignore, path.extname(fileEntry.name).toLowerCase());
+  return !!(fileEntry && includes(ignore, path.extname(fileEntry.name).toLowerCase()));
 }
 
 export default function useThumbnail(
   fileEntry?: FileEntryModel | CoverEntryObject | null,
-): [string | undefined, string | undefined, React.Dispatch<React.SetStateAction<string | null>>] {
-  const [key, setKey] = useState<string | undefined>(undefined);
-  const [requestThumbnail, setRequestThumbnail] = useState<string | null>(null);
-  const [useOriginal, setUseOriginal] = useState(isIgnored(fileEntry));
+): [string | undefined, string, () => void] {
+  const [rerender, triggerRerender] = useState<string>(uuid4());
+  const [thumbnailRequested, triggerThumbnailRequest] = useState(false);
+  const [useOriginal, setUseOriginal] = useState(false);
   const cachePath = useSelector(selectCachePath);
 
   useEffect(() => {
-    if (isIgnored(fileEntry)) {
-      setUseOriginal(true);
-    }
-  }, [fileEntry]);
+    let promise: Bluebird<void>;
 
-  useEffect(() => {
-    let promise = Bluebird.resolve();
-
-    if (requestThumbnail && !useOriginal && fileEntry) {
+    if (thumbnailRequested && fileEntry && !useOriginal && !isIgnored(fileEntry)) {
       promise = queue.add(() => {
         return Bluebird.resolve()
           .then(() =>
             window.electron.invoke(
-              `generate-${requestThumbnail}-thumbnail`,
+              `generate-${getThumbnailType(fileEntry)}-thumbnail`,
               'values' in fileEntry ? fileEntry.values() : fileEntry,
             ),
           )
-          .then(() => setKey(uuid4()))
+          .then(() => triggerRerender(uuid4()))
           .catch(() => setUseOriginal(true));
       });
     }
 
-    return () => promise.cancel();
-  }, [requestThumbnail, useOriginal, fileEntry]);
+    return () => promise?.cancel();
+  }, [thumbnailRequested, useOriginal, fileEntry]);
 
   let fullPath;
   if (!fileEntry) {
     fullPath = undefined;
   } else if (useOriginal) {
+    fullPath = window.electron.pathToFileURL(fileEntry.fullPath);
+  } else if (isIgnored(fileEntry)) {
     fullPath = window.electron.pathToFileURL(fileEntry.fullPath);
   } else if (!cachePath) {
     fullPath = isImage(fileEntry) ? window.electron.pathToFileURL(fileEntry.fullPath) : undefined;
@@ -66,5 +62,13 @@ export default function useThumbnail(
     )}#${fileEntry.fullPath}`;
   }
 
-  return [fullPath, key, setRequestThumbnail];
+  const generateThumbnail = useCallback(() => {
+    triggerThumbnailRequest(true);
+  }, [triggerThumbnailRequest]);
+
+  return [fullPath, rerender, generateThumbnail];
+}
+
+function getThumbnailType(fileEntry: FileEntryModel | CoverEntryObject) {
+  return isVideoThumbnail(fileEntry) ? 'video' : 'image';
 }

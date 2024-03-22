@@ -46,30 +46,14 @@ interface Props {
 
 export default function FolderIcon({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry.cover);
+  const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry.cover);
 
   if (fileEntry.cover && isVideo(fileEntry.cover)) {
-    return (
-      <img
-        key={key}
-        className={classes.previewIcon}
-        alt=""
-        src={fullPath}
-        onError={() => setRequestThumbnail('video')}
-      />
-    );
+    return <img key={key} className={classes.previewIcon} alt="" src={fullPath} onError={() => generateThumbnail()} />;
   }
 
   if (fileEntry.cover && isImage(fileEntry.cover)) {
-    return (
-      <img
-        key={key}
-        className={classes.previewIcon}
-        alt=""
-        src={fullPath}
-        onError={() => setRequestThumbnail('image')}
-      />
-    );
+    return <img key={key} className={classes.previewIcon} alt="" src={fullPath} onError={() => generateThumbnail()} />;
   }
 
   return <i className={classNames(classes.folderIcon, 'fas fa-folder', 'folder-size', 'folder-icon')} />;

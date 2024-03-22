@@ -48,7 +48,7 @@ interface Props {
 
 export default memo(function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
   const classes = useStyles();
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
+  const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry);
 
   if (isVideoThumbnail(fileEntry)) {
     return (
@@ -58,7 +58,7 @@ export default memo(function Thumbnail({ fileEntry, index, onClick, style }: Pro
           className={classNames(classes.image, `file-${index}`)}
           alt=""
           src={fullPath}
-          onError={() => setRequestThumbnail('video')}
+          onError={() => generateThumbnail()}
           onClick={onClick}
           loading="lazy"
         />
@@ -73,7 +73,7 @@ export default memo(function Thumbnail({ fileEntry, index, onClick, style }: Pro
         className={classNames(classes.image, `file-${index}`)}
         alt=""
         src={fullPath}
-        onError={() => setRequestThumbnail('image')}
+        onError={() => generateThumbnail()}
         onClick={onClick}
         loading="lazy"
       />

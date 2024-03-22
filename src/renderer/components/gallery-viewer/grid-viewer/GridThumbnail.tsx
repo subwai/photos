@@ -86,7 +86,7 @@ export default memo(function GridThumbnail({
   classPrefix = '',
 }: Props): JSX.Element | null {
   const classes = useStyles();
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry);
+  const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry);
   const [loaded, setLoaded] = useState(false);
 
   if (fileEntry.isFolder) {
@@ -127,7 +127,7 @@ export default memo(function GridThumbnail({
           alt=""
           src={fullPath}
           loading="lazy"
-          onError={() => setRequestThumbnail('video')}
+          onError={() => generateThumbnail()}
           onLoad={() => setLoaded(true)}
         />
       </div>
@@ -148,7 +148,7 @@ export default memo(function GridThumbnail({
         alt=""
         src={fullPath}
         loading="lazy"
-        onError={() => setRequestThumbnail('image')}
+        onError={() => generateThumbnail()}
         onLoad={() => setLoaded(true)}
       />
     </div>

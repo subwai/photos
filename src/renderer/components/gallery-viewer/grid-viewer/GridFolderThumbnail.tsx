@@ -58,7 +58,7 @@ interface Props {
 export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Element | null {
   const classes = useStyles();
   useAutomaticCoverLoader(fileEntry);
-  const [fullPath, key, setRequestThumbnail] = useThumbnail(fileEntry.cover);
+  const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry.cover);
   const [loaded, setLoaded] = useState(false);
 
   if (fileEntry.cover && isVideoThumbnail(fileEntry.cover)) {
@@ -69,7 +69,7 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
         alt=""
         src={fullPath}
         loading="lazy"
-        onError={() => setRequestThumbnail('video')}
+        onError={() => generateThumbnail()}
         onLoad={() => setLoaded(true)}
       />
     );
@@ -83,7 +83,7 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
         alt=""
         src={fullPath}
         loading="lazy"
-        onError={() => setRequestThumbnail('image')}
+        onError={() => generateThumbnail()}
         onLoad={() => setLoaded(true)}
       />
     );

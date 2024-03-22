@@ -2,7 +2,7 @@ import type Promise from 'bluebird';
 import { useSyncExternalStore } from 'react';
 
 import type FileEntryObject from 'renderer/models/FileEntry';
-import type { Children } from 'renderer/models/FileEntry';
+import type { Children, CoverEntryObject } from 'renderer/models/FileEntry';
 import PromiseQueue, { PromiseQueueJobOptions } from 'renderer/utils/PromiseQueue';
 
 const promises = new Map();
@@ -25,14 +25,14 @@ const getChildren = (fullPath: string, options: PromiseQueueJobOptions = {}): Pr
   return promise;
 };
 
-const getCover = (fullPath: string, options: PromiseQueueJobOptions = {}): Promise<FileEntryObject | null> => {
+const getCover = (fullPath: string, options: PromiseQueueJobOptions = {}): Promise<CoverEntryObject | null> => {
   const key = `${fullPath}-getCover`;
   if (promises.has(key)) {
     return promises.get(key);
   }
 
   const promise = queue
-    .add<FileEntryObject>(() => window.electron.invoke('get-cover', fullPath), options)
+    .add<CoverEntryObject>(() => window.electron.invoke('get-cover', fullPath), options)
     .finally(() => promises.delete(key))
     .finally(emitChangeIfStoppedProcessing);
 
