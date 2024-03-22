@@ -9,7 +9,7 @@ const srcMainPath = path.join(srcPath, 'main');
 const srcRendererPath = path.join(srcPath, 'renderer');
 
 const releasePath = path.join(rootPath, 'release');
-const appPath = path.join(releasePath, 'app');
+const appPath = releasePath;
 const appPackagePath = path.join(appPath, 'package.json');
 const appNodeModulesPath = path.join(appPath, 'node_modules');
 const srcNodeModulesPath = path.join(srcPath, 'node_modules');

@@ -1,13 +1,13 @@
 {
   "preset": "ts-jest",
-  "moduleDirectories": ["node_modules", "<rootDir>/release/app/node_modules", "<rootDir>/src"],
+  "moduleDirectories": ["node_modules", "<rootDir>/src"],
   "moduleFileExtensions": ["js", "jsx", "ts", "tsx", "json"],
   "moduleNameMapper": {
     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/.erb/mocks/fileMock.js",
     "\\.(css|less|sass|scss)$": "identity-obj-proxy",
     "^src/(.*)$": "<rootDir>/src/$1"
   },
-  "modulePathIgnorePatterns": ["<rootDir>/release/app", "<rootDir>/.erb/dll"],
+  "modulePathIgnorePatterns": ["<rootDir>/.erb/dll"],
   "setupFiles": ["<rootDir>/.erb/scripts/check-build-exists.ts"],
   "setupFilesAfterEnv": ["<rootDir>/.erb/scripts/setup-tests.ts"],
   "testEnvironment": "jsdom",

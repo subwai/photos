@@ -5,9 +5,10 @@
   "asarUnpack": [
     "**\\*.{node,dll}",
     "**/node_modules/sharp/**/*",
+    "**/node_modules/@img/**/*",
     "**/node_modules/ffmpeg-static/**/*"
   ],
-  "files": ["dist", "node_modules", "package.json"],
+  "files": ["release/dist", "node_modules", "package.json"],
   "afterSign": ".erb/scripts/notarize.js",
   "mac": {
     "target": {
@@ -43,7 +44,6 @@
     "category": "Development"
   },
   "directories": {
-    "app": "release/app",
     "buildResources": "assets",
     "output": "release/build"
   },
