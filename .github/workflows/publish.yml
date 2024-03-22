@@ -17,19 +17,24 @@ jobs:
       - name: Checkout git repo
         uses: actions/checkout@v4
 
-      - name: Install Node and NPM
+      - uses: pnpm/action-setup@v3
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
+          cache: pnpm
 
-      - name: Install node modules
-        run: |
-          npm ci
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Build
         run: |
-          npm run build
+          pnpm run build
 
       - name: Publish release (macOS)
         if: startsWith(matrix.os, 'macos')
