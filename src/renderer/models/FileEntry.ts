@@ -17,6 +17,8 @@ export default interface FileEntryObject {
   level: number;
 }
 
+export type CoverEntryObject = Pick<FileEntryObject, 'name' | 'fullPath'>;
+
 export type Children<T> = { [key: string]: T } | null;
 
 export type EventName = 'all' | 'update' | 'rerender' | 'add' | 'remove';
@@ -40,7 +42,7 @@ export class FileEntryModel implements FileEntryObject {
 
   name: string;
 
-  cover?: FileEntryModel;
+  cover?: CoverEntryObject;
 
   didLoadCover: boolean;
 
@@ -213,7 +215,7 @@ export class FileEntryModel implements FileEntryObject {
     return this.children ? findFirstImageOrVideo(this.children) : undefined;
   }
 
-  refreshCover(options: PromiseQueueJobOptions = {}): Promise<FileEntryModel | undefined> {
+  refreshCover(options: PromiseQueueJobOptions = {}): Promise<CoverEntryObject | undefined> {
     if (!this.isFolder) {
       return Promise.resolve(undefined);
     }

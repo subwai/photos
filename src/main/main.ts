@@ -11,7 +11,7 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, app, ipcMain, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
-import fs from 'fs';
+import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import 'utils/configure-bluebird';
 
@@ -50,8 +50,8 @@ if (isDebug) {
   require('electron-debug')();
 }
 
-if (!fs.existsSync(getCachePath())) {
-  fs.mkdirSync(getCachePath());
+if (!existsSync(getCachePath())) {
+  mkdirSync(getCachePath());
 }
 
 app.commandLine.appendArgument('--enable-features=Metal');
@@ -173,12 +173,11 @@ app.on('window-all-closed', () => {
 
 app.on('ready', () => {
   const thumbsCachePath = path.join(getCachePath(), 'thumbs');
-  console.log('creating', thumbsCachePath);
-  if (!fs.existsSync(thumbsCachePath)) {
-    console.log('creating');
-    fs.mkdirSync(thumbsCachePath, { recursive: true });
+  if (!existsSync(thumbsCachePath)) {
+    console.log('creating thumbnail cache', thumbsCachePath);
+    mkdirSync(thumbsCachePath, { recursive: true });
   } else {
-    console.log('exists');
+    console.log('thumbnail cache exists', thumbsCachePath);
   }
 });
 
