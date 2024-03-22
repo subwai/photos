@@ -11,7 +11,7 @@ import sharp from 'sharp';
 import { getCachePath } from 'main/file-system';
 
 import type FileEntryObject from 'renderer/models/FileEntry';
-import { CoverEntryObject } from 'renderer/models/FileEntry';
+import type { CoverEntryObject } from 'renderer/models/FileEntry';
 
 const ffmpegUnpackedPath = ffmpegPath?.replace('app.asar', 'app.asar.unpacked');
 if (ffmpegUnpackedPath) {
@@ -19,7 +19,9 @@ if (ffmpegUnpackedPath) {
   log.info('ffmpeg at', ffmpegUnpackedPath);
 }
 
-const ffprobeUnpackedPath = ffprobePath?.replace('app.asar', 'app.asar.unpacked');
+const ffprobeUnpackedPath = ffprobePath
+  ?.replace('app.asar', 'app.asar.unpacked')
+  .replace('release/dist/main', 'node_modules/ffprobe-static');
 if (ffmpegUnpackedPath) {
   ffmpeg.setFfprobePath(ffprobeUnpackedPath);
   log.info('ffprobe at', ffprobeUnpackedPath);
