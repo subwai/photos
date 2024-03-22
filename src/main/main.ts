@@ -95,10 +95,12 @@ const createWindow = async () => {
       height: 728,
       icon: getAssetPath('icon.png'),
       transparent: !isWindows,
-      backgroundColor: '#00000000',
+      backgroundColor: !isWindows ? '#00000000' : '#000000',
       titleBarStyle: isMac ? 'hiddenInset' : 'hidden',
       frame: false,
       vibrancy: 'under-window',
+      visualEffectState: 'active',
+      resizable: true,
       webPreferences: {
         sandbox: false,
         preload: app.isPackaged

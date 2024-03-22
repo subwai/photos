@@ -7,12 +7,12 @@ import Home from 'renderer/components/Home';
 import TopBar from 'renderer/components/TopBar';
 import { store } from 'renderer/redux/store';
 
-const aero = window.electron.platform === 'win32';
+const isWindows = window.electron.platform === 'win32';
 
 const useStyles = createUseStyles({
   '@global': {
     body: {
-      background: aero ? 'rgba(66,66,66,.5)' : 'transparent',
+      background: isWindows ? '#202020' : 'transparent',
     },
   },
 });
