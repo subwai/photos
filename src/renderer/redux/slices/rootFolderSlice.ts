@@ -33,10 +33,13 @@ const rootFolderSlice = createSlice({
 
         parent.children[fileModel.name] = parent.children[fileModel.name] || fileModel;
         if (childExistOnParent) {
+          parent.children[fileModel.name].triggerRerender();
           parent.children[fileModel.name].triggerEventSoon('update');
         } else {
+          parent.children[fileModel.name].triggerRerender();
           parent.children[fileModel.name].triggerEventSoon('add');
         }
+        parent.refreshCover();
       }
     },
     removeFile: (state, action) => {
@@ -45,8 +48,12 @@ const rootFolderSlice = createSlice({
 
       if (fileToDelete && fileToDelete.parent?.children) {
         delete fileToDelete.parent.children[fileToDelete.name];
+        fileToDelete.triggerRerender();
         fileToDelete.triggerEventSoon('remove');
       }
+
+      const coverParent = state.folder?.findCoverParent(fullPath);
+      coverParent?.refreshCover();
     },
   },
 });

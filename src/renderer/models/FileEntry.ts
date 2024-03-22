@@ -118,6 +118,30 @@ export class FileEntryModel implements FileEntryObject {
     return entry;
   }
 
+  findCoverParent(fullPath: string): FileEntryModel | undefined {
+    const escapedFullPath = this.fullPath.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    const arrayPath = fullPath
+      .replace(new RegExp(`${escapedFullPath}[\\\\/]?`), '')
+      .split(/[\\/]/)
+      .filter(Boolean);
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    let entry: FileEntryModel | undefined = this;
+
+    while (arrayPath.length > 1) {
+      const childName = arrayPath.shift();
+      entry = childName && entry.children ? entry.children[childName] : undefined;
+      if (!entry) {
+        return undefined;
+      }
+    }
+
+    if (entry.cover?.fullPath === fullPath) {
+      return entry;
+    }
+
+    return undefined;
+  }
+
   isVideo() {
     return isVideo(this);
   }

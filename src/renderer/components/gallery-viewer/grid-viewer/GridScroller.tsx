@@ -13,6 +13,7 @@ import GridThumbnail from 'renderer/components/gallery-viewer/grid-viewer/GridTh
 import ScrollRestoration from 'renderer/components/gallery-viewer/grid-viewer/ScrollRestoration';
 import useAutomaticChildrenLoader from 'renderer/hooks/useAutomaticChildrenLoader';
 import useEventListener from 'renderer/hooks/useEventListener';
+import useFileEventListener from 'renderer/hooks/useFileEventListener';
 import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
 import useSelectedIndex from 'renderer/hooks/useSelectedIndex';
 import { openFolder } from 'renderer/redux/slices/folderVisibilitySlice';
@@ -103,6 +104,15 @@ export default function GridScroller({ width, height, search }: Props) {
     }
     selectIndex(0);
   }, [search]);
+
+  useFileEventListener(
+    'all',
+    () => {
+      const file = selectedIndex !== null ? sortedFiles[selectedIndex] : null;
+      setSelectedFileDebounced(file);
+    },
+    selectedFolder,
+  );
 
   useEffect(() => {
     const x = jss.createStyleSheet({}, { link: true, generateId: (rule) => rule.key }).attach();
@@ -289,11 +299,7 @@ export default function GridScroller({ width, height, search }: Props) {
 
   const setSelectedFileDebounced = useDebouncedCallback(
     (file) => {
-      if (file && file.isFolder) {
-        dispatch(setSelectedFile(file));
-      } else {
-        dispatch(setSelectedFile(file));
-      }
+      dispatch(setSelectedFile(file));
     },
     100,
     { leading: true },
@@ -368,7 +374,7 @@ export default function GridScroller({ width, height, search }: Props) {
     scroll.current = scrollTop;
   };
 
-  const cellRenderer = ({ columnIndex, rowIndex, style }: GridCellProps) => {
+  const cellRenderer = ({ columnIndex, rowIndex, style, key }: GridCellProps) => {
     const index = rowIndex * columnCount + columnIndex;
     const file = sortedFiles[index];
     if (!file) {
@@ -377,7 +383,7 @@ export default function GridScroller({ width, height, search }: Props) {
 
     return (
       <GridThumbnail
-        key={file.fullPath}
+        key={key}
         index={index}
         fileEntry={file}
         onClick={() => selectIndex(index)}

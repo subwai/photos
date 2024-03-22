@@ -1,11 +1,20 @@
 import { Menu, Transition } from '@headlessui/react';
-import { ChevronDownIcon, EllipsisHorizontalIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  ArrowUpIcon,
+  ChevronDownIcon,
+  EllipsisHorizontalIcon,
+  Squares2X2Icon,
+} from '@heroicons/react/20/solid';
 import classNames from 'classnames';
 import { Fragment, memo, useRef } from 'react';
 import { createUseStyles } from 'react-jss';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 
 import useEventListener from 'renderer/hooks/useEventListener';
+import useSelectedFolder from 'renderer/hooks/useSelectedFolder';
 import {
   type SortBy,
   type SortDirection,
@@ -35,19 +44,7 @@ const useStyles = createUseStyles({
     borderWidth: '1px 0 1px 0',
     zIndex: 1,
   },
-  leftSide: {
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  center: {
-    height: '100%',
-    display: 'flex',
-    width: '60%',
-    maxWidth: '800px',
-    gap: '1rem',
-    alignItems: 'center',
-  },
+
   rightSide: {
     height: '100%',
   },
@@ -132,7 +129,9 @@ export default memo(function MetaBar({ search, onSearch }: { search: string; onS
   const isFileSystemServiceWorking = useIsFileSystemServiceWorking();
   const dispatch = useDispatch();
   const classes = useStyles();
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedFolder, setSelectedFolder] = useSelectedFolder();
 
   const onSortByChange = (newSortBy: SortBy) => {
     dispatch(setSortBy(newSortBy));
@@ -185,8 +184,34 @@ export default memo(function MetaBar({ search, onSearch }: { search: string; onS
 
   return (
     <div className={classes.metaBar}>
-      <div className={classes.leftSide} />
-      <div className={classes.center}>
+      <div className="flex h-full items-center justify-center pl-2">
+        <button
+          type="button"
+          aria-label="Go back"
+          onClick={() => navigate(-1)}
+          className="block h-8 text-base text-zinc-400 hover:text-zinc-300"
+        >
+          <ArrowLeftIcon className="inline h-5 w-8" />
+        </button>
+        <button
+          type="button"
+          aria-label="Go forward"
+          onClick={() => navigate(1)}
+          className="block h-8 text-base text-zinc-400 hover:text-zinc-300"
+        >
+          <ArrowRightIcon className="inline h-5 w-8" />
+        </button>
+        <button
+          type="button"
+          aria-label="Go up one level"
+          onClick={() => selectedFolder?.parent && setSelectedFolder(selectedFolder.parent)}
+          className="block h-8 text-base text-zinc-400 hover:text-zinc-300 disabled:text-zinc-600"
+          disabled={!selectedFolder?.parent}
+        >
+          <ArrowUpIcon className="inline h-5 w-8" />
+        </button>
+      </div>
+      <div className="max-w[800px] flex h-full w-[60%] items-center gap-[1rem]">
         <input
           ref={inputRef}
           type="text"

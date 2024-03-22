@@ -44,7 +44,6 @@ const useStyles = createUseStyles({
   innerGridWrapper: {
     width: '80%',
     height: '80%',
-    background: 'black',
   },
   imageWrapper: {
     width: '100%',
@@ -231,7 +230,7 @@ export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageVi
   if (targetEntry?.isFolder) {
     return (
       <div className={classNames(classes.gridWrapper)}>
-        <div className={classes.innerGridWrapper}>
+        <div className={`${classes.innerGridWrapper} bg-[#121212]`}>
           <PeekGridViewer fileEntry={targetEntry} />
         </div>
       </div>

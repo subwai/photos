@@ -1,5 +1,4 @@
 import Promise from 'bluebird';
-import { values } from 'lodash';
 import path from 'path';
 import { useEffect, useState } from 'react';
 import { createUseStyles } from 'react-jss';
@@ -33,7 +32,7 @@ const useStyles = createUseStyles({
 export default function Home() {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [, setSelectedFolder] = useSelectedFolder();
+  const [selectedFolder, setSelectedFolder] = useSelectedFolder();
   const rootFolderPath = useSelector(selectRootFolderPath);
   const rootFolder = useSelector(selectRootFolder);
   const [rootFolderPathCache, setRootFolderPathCache] = useState<string | null>(null);
@@ -63,7 +62,7 @@ export default function Home() {
 
   useEffect(() => {
     if (rootFolderPathCache === rootFolderPath && rootFolder !== null) {
-      return () => {};
+      return;
     }
 
     setRootFolderPathCache(rootFolderPath);
@@ -94,18 +93,6 @@ export default function Home() {
     return () => promise.cancel();
   }, []);
 
-  useEventListener('keydown', (event: React.KeyboardEvent) => {
-    switch (true) {
-      case event.key === 'R' && event.ctrlKey:
-        event.preventDefault();
-        console.log('reload', rootFolder);
-        rootFolder?.triggerEvent('update');
-        break;
-      default:
-        break;
-    }
-  });
-
   useEventListener('mousedown', (event: React.MouseEvent) => {
     switch (event.button) {
       case 3:
@@ -113,6 +100,19 @@ export default function Home() {
         break;
       case 4:
         navigate(1);
+        break;
+      default:
+        break;
+    }
+  });
+
+  useEventListener('keydown', (event: React.KeyboardEvent) => {
+    switch (true) {
+      case event.key === 'R' && event.shiftKey:
+        event.preventDefault();
+        console.log('reload', selectedFolder);
+        selectedFolder?.refreshChildren();
+        selectedFolder?.refreshCover();
         break;
       default:
         break;

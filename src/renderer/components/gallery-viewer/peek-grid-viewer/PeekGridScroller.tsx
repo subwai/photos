@@ -27,15 +27,25 @@ type Props = {
   height: number;
   fileEntry: FileEntryModel | null;
   setSelectedFile: (selectedFile: FileEntryModel | null) => void;
+  selectedFolder: FileEntryModel;
+  setSelectedFolder: (selectedFolder: FileEntryModel) => void;
   peek: boolean;
   setPeek: (value: boolean) => void;
 };
 
-export default function PeekGridScroller({ width, height, fileEntry, setSelectedFile, peek, setPeek }: Props) {
+export default function PeekGridScroller({
+  width,
+  height,
+  fileEntry,
+  setSelectedFile,
+  selectedFolder,
+  setSelectedFolder,
+  peek,
+  setPeek,
+}: Props) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const [sheet, setSheet] = useState<StyleSheet<string> | null>();
-  const [selectedFolder, setSelectedFolder] = useState(fileEntry);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const playing = useSelector(selectPlaying);
   const sortBy = useSelector(selectGallerySortBy);
@@ -175,6 +185,10 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
     }
   };
 
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [selectedFolder]);
+
   useEventListener(
     'mousedown',
     (event: React.MouseEvent) => {
@@ -182,7 +196,6 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
       event.stopPropagation();
       if (event.button === 3 && selectedFolder?.parent && selectedFolder !== fileEntry) {
         setSelectedFolder(selectedFolder.parent);
-        setSelectedIndex(0);
       }
 
       if (event.button === 1 && isTargetWithinGridButNotThumbnail(event.target)) {
@@ -298,7 +311,7 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
     scroll.current = scrollTop;
   };
 
-  const cellRenderer = ({ columnIndex, rowIndex, style }: GridCellProps) => {
+  const cellRenderer = ({ columnIndex, rowIndex, style, key }: GridCellProps) => {
     const index = rowIndex * columnCount + columnIndex;
     const file = sortedFiles[index];
     if (!file) {
@@ -307,7 +320,7 @@ export default function PeekGridScroller({ width, height, fileEntry, setSelected
 
     return (
       <GridThumbnail
-        key={file.fullPath}
+        key={key}
         index={index}
         fileEntry={file}
         onClick={() => selectIndex(index)}

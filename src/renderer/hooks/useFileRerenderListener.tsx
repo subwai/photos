@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import type { FileEntryEvent, FileEntryModel } from 'renderer/models/FileEntry';
 
-export default function useFileEventListener(
+export default function useFileRerenderListener(
   handler: (event: FileEntryEvent) => void,
   fileEntry: FileEntryModel | null,
 ) {
