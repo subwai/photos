@@ -6,7 +6,8 @@
     "**\\*.{node,dll}",
     "**/node_modules/sharp/**/*",
     "**/node_modules/@img/**/*",
-    "**/node_modules/ffmpeg-static/**/*"
+    "**/node_modules/ffmpeg-static/**/*",
+    "**/node_modules/ffprobe-static/**/*"
   ],
   "files": ["release/dist", "node_modules", "package.json"],
   "afterSign": ".erb/scripts/notarize.js",

@@ -2,7 +2,7 @@
   "name": "prism",
   "productName": "Prism",
   "description": "A Photo/Image viewer application, powered by Electron",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subwai/photos.git"
@@ -44,6 +44,7 @@
     "electron-log": "^5.1.1",
     "electron-updater": "^6.1.8",
     "ffmpeg-static": "^5.2.0",
+    "ffprobe-static": "^3.1.0",
     "fix-esm": "^1.0.1",
     "fluent-ffmpeg": "^2.1.2",
     "jss": "^10.10.0",
@@ -80,6 +81,7 @@
     "@testing-library/react": "^14.2.1",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/bluebird": "^3.5.42",
+    "@types/ffprobe-static": "^2.0.3",
     "@types/fluent-ffmpeg": "^2.1.24",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.14.202",

@@ -196,6 +196,7 @@ export default class FileSystem {
           return {
             name: file,
             fullPath: path.resolve(fullPath, file),
+            isFolder: false
           };
         }
       }

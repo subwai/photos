@@ -17,7 +17,7 @@ export default interface FileEntryObject {
   level: number;
 }
 
-export type CoverEntryObject = Pick<FileEntryObject, 'name' | 'fullPath'>;
+export type CoverEntryObject = Pick<FileEntryObject, 'name' | 'fullPath'> & { isFolder: false };
 
 export type Children<T> = { [key: string]: T } | null;
 
@@ -42,7 +42,7 @@ export class FileEntryModel implements FileEntryObject {
 
   name: string;
 
-  cover?: CoverEntryObject;
+  cover?: FileEntryModel | CoverEntryObject;
 
   didLoadCover: boolean;
 
@@ -215,7 +215,7 @@ export class FileEntryModel implements FileEntryObject {
     return this.children ? findFirstImageOrVideo(this.children) : undefined;
   }
 
-  refreshCover(options: PromiseQueueJobOptions = {}): Promise<CoverEntryObject | undefined> {
+  refreshCover(options: PromiseQueueJobOptions = {}): Promise<CoverEntryObject | FileEntryObject | undefined> {
     if (!this.isFolder) {
       return Promise.resolve(undefined);
     }
@@ -246,15 +246,15 @@ export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp
 export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv'];
 export const VIDEO_THUMBNAIL_EXTENSIONS = ['.webp', ...VIDEO_EXTENSIONS];
 
-export function isImage(fileEntry: FileEntryObject) {
+export function isImage(fileEntry: FileEntryObject | CoverEntryObject) {
   return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
-export function isVideo(fileEntry: FileEntryObject) {
+export function isVideo(fileEntry: FileEntryObject | CoverEntryObject) {
   return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 
-export function isVideoThumbnail(fileEntry: FileEntryObject) {
+export function isVideoThumbnail(fileEntry: FileEntryObject | CoverEntryObject) {
   return !fileEntry.isFolder && includes(VIDEO_THUMBNAIL_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
 }
 

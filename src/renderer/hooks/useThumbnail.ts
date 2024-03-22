@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import { v4 as uuid4 } from 'uuid';
 
-import { FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
+import { CoverEntryObject, FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
 import { selectCachePath } from 'renderer/redux/slices/rootFolderSlice';
 import PromiseQueue from 'renderer/utils/PromiseQueue';
 
@@ -14,12 +14,12 @@ const ignore = ['.gif'];
 
 const queue = new PromiseQueue({ concurrency: 15 });
 
-function isIgnored(fileEntry?: FileEntryModel | null) {
+function isIgnored(fileEntry?: FileEntryModel | CoverEntryObject | null) {
   return fileEntry && includes(ignore, path.extname(fileEntry.name).toLowerCase());
 }
 
 export default function useThumbnail(
-  fileEntry?: FileEntryModel | null,
+  fileEntry?: FileEntryModel | CoverEntryObject | null,
 ): [string | undefined, string | undefined, React.Dispatch<React.SetStateAction<string | null>>] {
   const [key, setKey] = useState<string | undefined>(undefined);
   const [requestThumbnail, setRequestThumbnail] = useState<string | null>(null);
@@ -38,7 +38,12 @@ export default function useThumbnail(
     if (requestThumbnail && !useOriginal && fileEntry) {
       promise = queue.add(() => {
         return Bluebird.resolve()
-          .then(() => window.electron.invoke(`generate-${requestThumbnail}-thumbnail`, fileEntry.values()))
+          .then(() =>
+            window.electron.invoke(
+              `generate-${requestThumbnail}-thumbnail`,
+              'values' in fileEntry ? fileEntry.values() : fileEntry,
+            ),
+          )
           .then(() => setKey(uuid4()))
           .catch(() => setUseOriginal(true));
       });

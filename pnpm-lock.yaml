@@ -38,6 +38,9 @@ dependencies:
   ffmpeg-static:
     specifier: ^5.2.0
     version: 5.2.0
+  ffprobe-static:
+    specifier: ^3.1.0
+    version: 3.1.0
   fix-esm:
     specifier: ^1.0.1
     version: 1.0.1
@@ -147,6 +150,9 @@ devDependencies:
   '@types/bluebird':
     specifier: ^3.5.42
     version: 3.5.42
+  '@types/ffprobe-static':
+    specifier: ^2.0.3
+    version: 2.0.3
   '@types/fluent-ffmpeg':
     specifier: ^2.1.24
     version: 2.1.24
@@ -3043,6 +3049,10 @@ packages:
       '@types/express-serve-static-core': 4.17.43
       '@types/qs': 6.9.14
       '@types/serve-static': 1.15.5
+    dev: true
+
+  /@types/ffprobe-static@2.0.3:
+    resolution: {integrity: sha512-86Q8dIzhjknxA6935ZcVLkVU3t6bP+F08mdriWZk2+3UqjxIbT3QEADjbO5Yq8826cVs/aZBREVZ7jUoSTgHiw==}
     dev: true
 
   /@types/fluent-ffmpeg@2.1.24:
@@ -6803,6 +6813,10 @@ packages:
       progress: 2.0.3
     transitivePeerDependencies:
       - supports-color
+    dev: false
+
+  /ffprobe-static@3.1.0:
+    resolution: {integrity: sha512-Dvpa9uhVMOYivhHKWLGDoa512J751qN1WZAIO+Xw4L/mrUSPxS4DApzSUDbCFE/LUq2+xYnznEahTd63AqBSpA==}
     dev: false
 
   /file-entry-cache@6.0.1:

@@ -2,6 +2,7 @@ import Bluebird from 'bluebird';
 import { ipcMain } from 'electron';
 import log from 'electron-log';
 import ffmpegPath from 'ffmpeg-static';
+import { path as ffprobePath } from 'ffprobe-static';
 import ffmpeg, { FfprobeStream } from 'fluent-ffmpeg';
 import path from 'path';
 import sha1 from 'sha1';
@@ -10,6 +11,7 @@ import sharp from 'sharp';
 import { getCachePath } from 'main/file-system';
 
 import type FileEntryObject from 'renderer/models/FileEntry';
+import { CoverEntryObject } from 'renderer/models/FileEntry';
 
 const ffmpegUnpackedPath = ffmpegPath?.replace('app.asar', 'app.asar.unpacked');
 if (ffmpegUnpackedPath) {
@@ -17,7 +19,13 @@ if (ffmpegUnpackedPath) {
   log.info('ffmpeg at', ffmpegUnpackedPath);
 }
 
-ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject) => {
+const ffprobeUnpackedPath = ffprobePath?.replace('app.asar', 'app.asar.unpacked');
+if (ffmpegUnpackedPath) {
+  ffmpeg.setFfprobePath(ffprobeUnpackedPath);
+  log.info('ffprobe at', ffprobeUnpackedPath);
+}
+
+ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject | CoverEntryObject) => {
   console.log('Generating video thumbnail', fileEntry.fullPath);
 
   const command = ffmpeg(fileEntry.fullPath);
@@ -35,7 +43,7 @@ ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject
   });
 });
 
-ipcMain.handle('generate-image-thumbnail', (_e, fileEntry: FileEntryObject) => {
+ipcMain.handle('generate-image-thumbnail', (_e, fileEntry: FileEntryObject | CoverEntryObject) => {
   console.log('Generating image thumbnail', fileEntry.fullPath);
 
   return sharp(fileEntry.fullPath)
