@@ -1,5 +1,6 @@
 import Bluebird from 'bluebird';
 import { ipcMain } from 'electron';
+import log from 'electron-log';
 import ffmpegPath from 'ffmpeg-static';
 import ffmpeg, { FfprobeStream } from 'fluent-ffmpeg';
 import path from 'path';
@@ -13,7 +14,7 @@ import type FileEntryObject from 'renderer/models/FileEntry';
 const ffmpegUnpackedPath = ffmpegPath?.replace('app.asar', 'app.asar.unpacked');
 if (ffmpegUnpackedPath) {
   ffmpeg.setFfmpegPath(ffmpegUnpackedPath);
-  console.log('ffmpeg at', ffmpegUnpackedPath);
+  log.info('ffmpeg at', ffmpegUnpackedPath);
 }
 
 ipcMain.handle('generate-video-thumbnail', async (_e, fileEntry: FileEntryObject) => {
