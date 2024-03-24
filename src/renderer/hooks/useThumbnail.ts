@@ -70,5 +70,12 @@ export default function useThumbnail(
 }
 
 function getThumbnailType(fileEntry: FileEntryModel | CoverEntryObject) {
-  return isVideo(fileEntry) ? 'video' : 'image';
+  if (isVideo(fileEntry)) {
+    return 'video';
+  }
+  if (isImage(fileEntry)) {
+    return 'image';
+  }
+
+  return null;
 }

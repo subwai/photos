@@ -285,7 +285,7 @@ export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageVi
                 ref={imageElement}
                 className={classes.image}
                 alt={targetEntry.fullPath}
-                src={window.electron.pathToFileURL(targetEntry.fullPath).toString()}
+                src={window.electron.pathToFileURL(targetEntry.fullPath).toString().replace('file://', 'media://')}
               />
             )}
           </TransformComponent>

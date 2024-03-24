@@ -234,9 +234,7 @@ export default class FileSystem {
 
   static IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
 
-  static VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv'];
-
-  static VIDEO_THUMBNAIL_EXTENSIONS = ['.webp', ...FileSystem.VIDEO_EXTENSIONS];
+  static VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv', '.mov'];
 
   static isImageOrVideo(filePath: string) {
     const ext = path.extname(filePath).toLowerCase();

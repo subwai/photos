@@ -267,8 +267,7 @@ export interface FileEntryEvent {
 }
 
 export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv'];
-export const VIDEO_THUMBNAIL_EXTENSIONS = ['.webp', ...VIDEO_EXTENSIONS];
+export const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.avi', '.wmv', '.flv', '.mov'];
 
 export function isImage(fileEntry: FileEntryObject | CoverEntryObject) {
   return !fileEntry.isFolder && includes(IMAGE_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
@@ -276,16 +275,6 @@ export function isImage(fileEntry: FileEntryObject | CoverEntryObject) {
 
 export function isVideo(fileEntry: FileEntryObject | CoverEntryObject) {
   return !fileEntry.isFolder && includes(VIDEO_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
-}
-
-export function isVideoThumbnail(fileEntry: FileEntryObject | CoverEntryObject) {
-  return !fileEntry.isFolder && includes(VIDEO_THUMBNAIL_EXTENSIONS, path.extname(fileEntry.fullPath).toLowerCase());
-}
-
-export function isImageOrVideo(filePath: string) {
-  const ext = path.extname(filePath).toLowerCase();
-
-  return includes(VIDEO_EXTENSIONS, ext) || includes(IMAGE_EXTENSIONS, ext);
 }
 
 export function findFirstFolder(fileEntry: FileEntryObject) {
