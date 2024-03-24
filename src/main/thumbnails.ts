@@ -19,10 +19,7 @@ if (ffmpegUnpackedPath) {
   log.info('ffmpeg at', ffmpegUnpackedPath);
 }
 
-const ffprobeUnpackedPath = ffprobePath
-  ?.replace('app.asar', 'app.asar.unpacked')
-  .replace('release/dist/main', 'node_modules/ffprobe-static')
-  .replace('release\\dist\\main', 'node_modules\\ffprobe-static');
+const ffprobeUnpackedPath = ffprobePath?.replace('app.asar', 'app.asar.unpacked');
 if (ffprobeUnpackedPath) {
   ffmpeg.setFfprobePath(ffprobeUnpackedPath);
   log.info('ffprobe at', ffprobeUnpackedPath);

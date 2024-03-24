@@ -4,11 +4,11 @@
 import TsconfigPathsPlugins from 'tsconfig-paths-webpack-plugin';
 import webpack from 'webpack';
 
-// import { dependencies as externals } from '../../release/app/package.json';
+import { dependencies as externals } from '../../package.json';
 import webpackPaths from './webpack.paths';
 
 const configuration: webpack.Configuration = {
-  externals: ['sharp', 'fluent-ffmpeg', 'ffmpeg-static'],
+  externals: [...Object.keys(externals || {})],
 
   stats: 'errors-only',
 

@@ -4,10 +4,10 @@
   "asar": true,
   "asarUnpack": [
     "**\\*.{node,dll}",
-    "**/node_modules/sharp/**/*",
     "**/node_modules/@img/**/*",
     "**/node_modules/ffmpeg-static/**/*",
-    "**/node_modules/ffprobe-static/**/*"
+    "**/node_modules/ffprobe-static/**/*",
+    "**/node_modules/sharp/**/*"
   ],
   "files": ["release/dist", "node_modules", "package.json"],
   "afterSign": ".erb/scripts/notarize.js",
