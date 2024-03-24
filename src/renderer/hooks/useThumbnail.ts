@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import sha1 from 'sha1';
 import { v4 as uuid4 } from 'uuid';
 
-import { CoverEntryObject, FileEntryModel, isImage, isVideo, isVideoThumbnail } from 'renderer/models/FileEntry';
+import { CoverEntryObject, FileEntryModel, isImage, isVideo } from 'renderer/models/FileEntry';
 import { selectCachePath } from 'renderer/redux/slices/rootFolderSlice';
 import PromiseQueue from 'renderer/utils/PromiseQueue';
 
@@ -21,7 +21,7 @@ function isIgnored(fileEntry?: FileEntryModel | CoverEntryObject | null) {
 export default function useThumbnail(
   fileEntry?: FileEntryModel | CoverEntryObject | null,
 ): [string | undefined, string, () => void] {
-  const [rerender, triggerRerender] = useState<string>(uuid4());
+  const [key, updateRenderKey] = useState<string>(uuid4());
   const [thumbnailRequested, triggerThumbnailRequest] = useState(false);
   const [useOriginal, setUseOriginal] = useState(false);
   const cachePath = useSelector(selectCachePath);
@@ -38,7 +38,7 @@ export default function useThumbnail(
               'values' in fileEntry ? fileEntry.values() : fileEntry,
             ),
           )
-          .then(() => triggerRerender(uuid4()))
+          .then(() => updateRenderKey(uuid4()))
           .catch(() => setUseOriginal(true));
       });
     }
@@ -50,7 +50,7 @@ export default function useThumbnail(
   if (!fileEntry) {
     fullPath = undefined;
   } else if (useOriginal) {
-    fullPath = window.electron.pathToFileURL(fileEntry.fullPath);
+    fullPath = isVideo(fileEntry) ? undefined : window.electron.pathToFileURL(fileEntry.fullPath);
   } else if (isIgnored(fileEntry)) {
     fullPath = window.electron.pathToFileURL(fileEntry.fullPath);
   } else if (!cachePath) {
@@ -66,9 +66,9 @@ export default function useThumbnail(
     triggerThumbnailRequest(true);
   }, [triggerThumbnailRequest]);
 
-  return [fullPath, rerender, generateThumbnail];
+  return [fullPath, key, generateThumbnail];
 }
 
 function getThumbnailType(fileEntry: FileEntryModel | CoverEntryObject) {
-  return isVideoThumbnail(fileEntry) ? 'video' : 'image';
+  return isVideo(fileEntry) ? 'video' : 'image';
 }

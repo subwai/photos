@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import { createUseStyles } from 'react-jss';
 
 import useThumbnail from 'renderer/hooks/useThumbnail';
-import { FileEntryModel, isVideoThumbnail } from 'renderer/models/FileEntry';
+import { FileEntryModel } from 'renderer/models/FileEntry';
 
 export const THUMBNAIL_PADDING = 6;
 
@@ -49,22 +49,6 @@ interface Props {
 export default memo(function Thumbnail({ fileEntry, index, onClick, style }: Props): JSX.Element | null {
   const classes = useStyles();
   const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry);
-
-  if (isVideoThumbnail(fileEntry)) {
-    return (
-      <div className={classes.thumbnail} style={style}>
-        <img
-          key={key}
-          className={classNames(classes.image, `file-${index}`)}
-          alt=""
-          src={fullPath}
-          onError={() => generateThumbnail()}
-          onClick={onClick}
-          loading="lazy"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className={classes.thumbnail} style={style}>

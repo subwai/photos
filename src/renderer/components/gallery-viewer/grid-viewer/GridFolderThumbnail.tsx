@@ -4,7 +4,7 @@ import { createUseStyles } from 'react-jss';
 
 import useAutomaticCoverLoader from 'renderer/hooks/useAutomaticCoverLoader';
 import useThumbnail from 'renderer/hooks/useThumbnail';
-import { FileEntryModel, isImage, isVideoThumbnail } from 'renderer/models/FileEntry';
+import { FileEntryModel } from 'renderer/models/FileEntry';
 
 export const THUMBNAIL_PADDING = 6;
 export const THUMBNAIL_SIZE = 200;
@@ -61,21 +61,7 @@ export default memo(function GridFolderThumbnail({ fileEntry }: Props): JSX.Elem
   const [fullPath, key, generateThumbnail] = useThumbnail(fileEntry.cover);
   const [loaded, setLoaded] = useState(false);
 
-  if (fileEntry.cover && isVideoThumbnail(fileEntry.cover)) {
-    return (
-      <img
-        key={key}
-        className={classNames(classes.previewIcon, { [classes.hidden]: !loaded })}
-        alt=""
-        src={fullPath}
-        loading="lazy"
-        onError={() => generateThumbnail()}
-        onLoad={() => setLoaded(true)}
-      />
-    );
-  }
-
-  if (fileEntry.cover && isImage(fileEntry.cover)) {
+  if (fileEntry.cover) {
     return (
       <img
         key={key}

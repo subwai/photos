@@ -8,7 +8,7 @@ import GridFolderThumbnail, {
   THUMBNAIL_WIDTH,
 } from 'renderer/components/gallery-viewer/grid-viewer/GridFolderThumbnail';
 import useThumbnail from 'renderer/hooks/useThumbnail';
-import { FileEntryModel, isVideo } from 'renderer/models/FileEntry';
+import { FileEntryModel } from 'renderer/models/FileEntry';
 
 const useStyles = createUseStyles({
   thumbnail: {
@@ -104,32 +104,6 @@ export default memo(function GridThumbnail({
       >
         <GridFolderThumbnail fileEntry={fileEntry} />
         <span className={classes.folderName}>{fileEntry.name}</span>
-      </div>
-    );
-  }
-
-  if (isVideo(fileEntry)) {
-    return (
-      <div
-        className={classNames(
-          classes.thumbnail,
-          `${classPrefix}grid-thumbnail`,
-          `${classPrefix}grid-thumbnail-${index}`,
-        )}
-        style={style}
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-        onAuxClick={onAuxClick}
-      >
-        <img
-          key={key}
-          className={classNames(classes.image, { [classes.hidden]: !loaded })}
-          alt=""
-          src={fullPath}
-          loading="lazy"
-          onError={() => generateThumbnail()}
-          onLoad={() => setLoaded(true)}
-        />
       </div>
     );
   }
