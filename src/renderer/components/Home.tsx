@@ -121,6 +121,7 @@ export default function Home() {
 
   return (
     <div className={classes.container}>
+      Test
       <DirectoryViewer />
       <GalleryViewer />
     </div>
