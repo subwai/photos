@@ -251,7 +251,7 @@ export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageVi
         onPause={() => dispatch(pause())}
         onAuxClick={() => setPeek(false)}
       >
-        <source src={`${window.electron.pathToFileURL(targetEntry.fullPath).toString()}#t=0.5`} />
+        <source src={`${window.electron.pathToFileURL(targetEntry.fullPath).toString()}`} />
       </video>
     );
   }
@@ -285,7 +285,7 @@ export function FileImageViewer({ fileEntry, previewType, setPeek }: FileImageVi
                 ref={imageElement}
                 className={classes.image}
                 alt={targetEntry.fullPath}
-                src={window.electron.pathToFileURL(targetEntry.fullPath).toString().replace('file://', 'media://')}
+                src={window.electron.pathToFileURL(targetEntry.fullPath).toString()}
               />
             )}
           </TransformComponent>

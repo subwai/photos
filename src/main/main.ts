@@ -8,11 +8,10 @@
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { BrowserWindow, BrowserWindowConstructorOptions, app, net, protocol, shell } from 'electron';
+import { BrowserWindow, BrowserWindowConstructorOptions, app, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import { existsSync, mkdirSync } from 'fs';
-import mime from 'mime-types';
 import path from 'path';
 import 'utils/configure-bluebird';
 
@@ -38,6 +37,7 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
+const isDevelopment = process.env.NODE_ENV === 'development';
 const isDebug = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDebug) {
@@ -100,6 +100,7 @@ const createWindow = async () => {
         preload: app.isPackaged
           ? path.join(__dirname, 'preload.js')
           : path.join(__dirname, '../../.erb/dll/preload.js'),
+        webSecurity: !isDevelopment,
       },
     };
   };
@@ -180,33 +181,9 @@ app.on('quit', () => {
   fileSystem?.closeWatcher();
 });
 
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: 'media',
-    privileges: {
-      secure: true,
-      stream: true,
-      bypassCSP: true,
-    },
-  },
-]);
-
 app
   .whenReady()
   .then(() => {
-    protocol.handle('media', async (req) => {
-      const pathToMedia = new URL(req.url).pathname;
-      try {
-        return await net.fetch(`file://${pathToMedia}`);
-      } catch (_) {
-        const contentType = mime.lookup(pathToMedia);
-        return new Response(null, {
-          status: 404,
-          ...(contentType ? { headers: { 'content-type': contentType } } : {}),
-        });
-      }
-    });
-
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

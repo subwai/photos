@@ -22,7 +22,7 @@ const electronHandler = {
   },
   platform: process.platform,
   pathToFileURL(path: string) {
-    return url.pathToFileURL(path).toString().replace('file://', 'media://');
+    return url.pathToFileURL(path).toString();
   },
 };
 
