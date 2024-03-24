@@ -145,10 +145,10 @@ export default class FileSystem {
     this.blackList.set(fullPath, new Date().valueOf() + 500);
     try {
       const files = await readdir(fullPath);
-      const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
-
-      const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
       const stats = await Bluebird.map(files, file => stat(path.resolve(fullPath, file)));
+
+      const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
+      const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
 
       const children: Children<FileEntryObject> = {};
 
@@ -227,9 +227,9 @@ export default class FileSystem {
   }
 
   static inExcludes = (name: String) => {
-    const exludes = [/\.DS_Store/i, /\.Thumbs.db/i, /desktop.ini/i];
+    const excludes = [/\.DS_Store/i, /\.Thumbs.db/i, /desktop.ini/i];
 
-    return some(exludes, (regex: RegExp) => name.match(regex));
+    return some(excludes, (regex: RegExp) => name.match(regex));
   };
 
   static IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
