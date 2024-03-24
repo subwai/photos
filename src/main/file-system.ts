@@ -6,6 +6,7 @@ import { includes, some } from 'lodash';
 import path from 'path';
 import type FileEntryObject from 'renderer/models/FileEntry';
 import type { Children, CoverEntryObject } from 'renderer/models/FileEntry';
+import log from 'electron-log';
 
 export function getCachePath() {
   return path.join(app.getPath('userData'), 'app-cache');
@@ -145,7 +146,14 @@ export default class FileSystem {
     this.blackList.set(fullPath, new Date().valueOf() + 500);
     try {
       const files = await readdir(fullPath);
-      const stats = await Bluebird.map(files, file => stat(path.resolve(fullPath, file)));
+      const stats = await Bluebird.map(files, async file => {
+        try {
+          return await stat(path.resolve(fullPath, file))
+        } catch (_) {
+          log.error(`Couldn't call stat() for`, path.resolve(fullPath, file));
+          return null;
+        }
+      });
 
       const rootLevel = this.rootFolder?.split(/[\\/]/).length || 0;
       const level = fullPath.split(/[\\/]/).length - rootLevel + 1;
@@ -157,7 +165,7 @@ export default class FileSystem {
         const file = files[index];
         const fileStats = stats[index];
 
-        if (FileSystem.inExcludes(file)) {
+        if (!fileStats || FileSystem.inExcludes(file)) {
           // eslint-disable-next-line no-continue
           continue;
         }
