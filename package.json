@@ -2,7 +2,7 @@
   "name": "prism",
   "productName": "Prism",
   "description": "A Photo/Image viewer application, powered by Electron",
-  "version": "1.9.7",
+  "version": "1.9.8",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/subwai/photos.git"
